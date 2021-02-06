@@ -7,19 +7,19 @@
 #' @param lower vector of lower bounds
 #' @param upper vector of upper bounds
 #' @return a vector of \code{n} observations
-relife_dtrunc <- function(n, 
+rdtrunc_elife <- function(n,
                           scale,
                           shape,
-                          lower, 
-                          upper, 
+                          lower,
+                          upper,
                           family = c("exp","gp","gomp","weibull","extgp")
                           ){
   family <- match.arg(family)
   if(length(lower) > 1){
-    stopifnot("Sample size should match length of `lower`" = length(lower) == n)
+    stopifnot("Sample size should match length of 'lower'" = length(lower) == n)
   }
   if(length(upper) > 1){
-    stopifnot("Sample size should match length of `upper`" = length(upper) == n)
+    stopifnot("Sample size should match length of 'upper'" = length(upper) == n)
   }
   if(family == "gomp"){
     stopifnot("Scale and shape parameters must be positive" = isTRUE(scale > 0 && shape[1] >= 0))
@@ -35,7 +35,7 @@ relife_dtrunc <- function(n,
   }
   if(family == "exp"){
     stopifnot("Scale parameter must be positive" = isTRUE(scale > 0))
-    par <- c(scale, 0)
+    shape <- 0
     family <- "gp"
   }
   if(family == "gp"){

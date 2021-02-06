@@ -54,14 +54,13 @@ dgpd <- function (x,
     stop("invalid shape")
   }
   d <- (x - loc)/scale
-  nn <- x
   index <- (d > 0 & ((1 + shape * d) > 0)) | is.na(d)
   if (shape == 0) {
-    d[index] <- log(1/scale[index]) - d[index]
+    d[index] <- log(1/scale) - d[index]
     d[!index] <- -Inf
   }
   else {
-    d[index] <- log(1/scale[index]) - (1/shape + 1) * log1p(shape * d[index])
+    d[index] <- log(1/scale) - (1/shape + 1) * log1p(shape * d[index])
     d[!index] <- -Inf
   }
   if (!log){
@@ -100,7 +99,7 @@ qgpd <- function(p,
 }
 
 
-#' Distribution function of the Gompertz-Makeham distribution
+#' Distribution function of the Gompertz distribution
 #'
 #' @inheritParams pgpd
 #' @return a vector of (log)-probabilities of the same length as \code{q}
@@ -135,7 +134,7 @@ pgomp <- function(q,
   return(p)
 }
 
-#' Quantile function of the Gompertz-Makeham distribution
+#' Quantile function of the Gompertz distribution
 #'
 #' @param p vector of probabilities.
 #' @inheritParams pgpd
@@ -267,7 +266,7 @@ qextgp <- function(p,
 #' @param dat vector of threshold exceedances
 #' @param rcens logical indicating right-censoring (\code{TRUE} for censored)
 #' @param ltrunc lower truncation limit, possibly zero
-#' @param ltrunc upper truncation limit
+#' @param rtrunc upper truncation limit
 #' @param weights weights for observations
 #' @param family string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}) or extended generalized Pareto (\code{extgp}).
 #' @return log-likelihood value
@@ -322,8 +321,8 @@ nll_elife <- function(par,
     if(par[1] < 0 || par[2] < (-1+1e-8)){
       return(1e10)
     }
-    if(par[2] < 0 && (-par[2]/par[1] < max(dat))){
-         return(1e10)
+    if(par[2] < 0 && (-par[1]/par[2] < max(dat))){
+       return(1e10)
     }
     ldensf <- function(par, dat){ dgpd(x = dat, loc = 0, scale = par[1], shape = par[2], log = TRUE)}
     lsurvf <- function(par, dat){ pgpd(q = dat, loc = 0, scale = par[1], shape = par[2], lower.tail = FALSE, log.p = TRUE)}
@@ -413,6 +412,10 @@ nll_elife <- function(par,
 #' routines for different models with interval truncation and
 #' left-truncation and right-censoring.
 #'
+#' @note The extended generalized Pareto model is constrained
+#' to avoid regions where the likelihood is flat so \eqn{\gamma \in [-1, 10]} in
+#' the optimization algorithm.
+#'
 #' @importFrom Rsolnp solnp
 optim_elife <- function(dat,
                         thresh,
@@ -436,23 +439,23 @@ optim_elife <- function(dat,
   if(type == "ltrt" && isTRUE(any(missing(ltrunc), missing(rtrunc)))){
     stop("User must provide `ltrunc` and `rtrunc` for left- and right-truncated data.")
   }
-  stopifnot("Threshold must be positive" = thresh > 0,
+  stopifnot("Threshold must be positive" = thresh >= 0,
             "Only a single threshold is allowed" = length(thresh) == 1L,
             "Only a single sampling scheme in `type` is allowed" = length(type) == 1L
   )
-  if(!missing(ltrunc)){
+  if(!missing(ltrunc) && !is.null(rtrunc)){
     stopifnot("`dat` and `ltrunc` must be of the same length." = n == length(ltrunc),
               "`ltrunc` must be lower than `dat`" = isTRUE(all(ltrunc <= dat))
     )
   }
-  if(!missing(rtrunc)){
-    stopifnot("Argument `rtrunc` is not needed for chosen sampling scheme" = type == "ltrc",
+  if(!missing(rtrunc) && !is.null(rtrunc)){
+    stopifnot("Argument `rtrunc` is not needed for chosen sampling scheme" = type == "ltrt",
               "`dat` and `rtrunc` must be of the same length." = n == length(rtrunc),
               "`rtrunc` must be higher than `dat`" = isTRUE(all(rtrunc >= dat)),
               "`ltrunc` must be larger than `ltrunc" = isTRUE(all(rtrunc > ltrunc))
     )
   }
-  if(!missing(rcens)){
+  if(!missing(rcens) && !is.null(rcens)){
     stopifnot("Argument `rcens` is not needed for chosen sampling scheme" = type == "ltrc",
               "`dat` and `rcens` must be of the same length." = n == length(rcens),
               "`rcens` must be a vector of logicals.`" = islogical(rcens)
@@ -502,7 +505,8 @@ optim_elife <- function(dat,
                        hessian = TRUE
       )
       mle <- opt_mle$par
-      se_mle <- sqrt(diag(solve(opt_mle$hessian)))
+      vcov <- solve(opt_mle$hessian)
+      se_mle <- sqrt(diag(vcov))
       ll <- -opt_mle$value
       conv <- opt_mle$convergence == 0
     }
@@ -510,11 +514,11 @@ optim_elife <- function(dat,
     if(family == "gp"){
       hin <- function(par, dat, thresh, ...){
         # scale > 0, xi > -1, xdat < -xi/sigma if xi < 0
-        c(par[1], par[2], ifelse(par[2] < 0, thresh - par[1]/par[2] - max(dat)), 1e-5)
+        c(par[1], par[2], ifelse(par[2] < 0, thresh - par[1]/par[2] - max(dat), 1e-5))
       }
       ineqLB <- c(0, -1, 0)
       ineqUB <- rep(Inf, 3)
-      start <- mev::fit.gpd(xdat = dat, thresh = thresh)$par
+      start <- c(mean(dat)-thresh, 0.1)
     } else if(family == "weibull"){
       hin <- function(par, dat, thresh, ...){
         c(par[1], par[2])
@@ -533,12 +537,13 @@ optim_elife <- function(dat,
       #parameters are (1) scale > 0, (2) beta >= 0 (3) gamma
       hin <- function(par, dat, thresh, ...){
         c(par[1:2],
-          ifelse(par[3] < 0, 1-par[2]/par[3], 1e-5),
-          ifelse(par[3] < 0, thresh + par[1]/par[2]*log(1-par[2]/par[3]) - max(dat), 1e-5)
+          ifelse(par[3] < 0, -par[2]/par[3], 1e-5),
+          ifelse(par[3] < 0, thresh + par[1]/par[2]*log(1-par[2]/par[3]) - max(dat), 1e-5),
+          par[3]
         )
       }
-      ineqLB <- rep(0, 4)
-      ineqUB <- rep(Inf, 4)
+      ineqLB <- c(rep(0, 4), -1) # Constraints for xi...
+      ineqUB <- c(rep(Inf, 4), 10) # Careful, these are for GPD
       start <- c(mean(dat), 1, 0.1)
       #TODO try also fitting the GP/EXP/Gompertz and see which is best?
     }
@@ -569,13 +574,23 @@ optim_elife <- function(dat,
     ll <- -opt_mle$values[length(opt_mle$values)]
     conv <- opt_mle$convergence == 0
   }
+  names(mle) <- names(se_mle) <- switch(family,
+                                        "exp" = c("scale"),
+                                        "gomp" = c("scale","shape"),
+                                        "weibull" = c("scale","shape"),
+                                        "gp" = c("scale","shape"),
+                                        "extgp" = c("scale","beta","gamma"),
+                                        )
   structure(list(par = mle,
                  std.error = se_mle,
                  loglik = ll,
                  nexc = sum(dat>thresh),
                  vcov = vcov,
-                 convergence = conv),
-            class = "longevity_parmod")
+                 convergence = conv,
+                 type = type,
+                 family = family,
+                 thresh = thresh),
+            class = "elife_par")
 }
 
 #' Maximum likelihood estimation of parametric models for excess lifetime
@@ -640,14 +655,20 @@ for(i in 1:length(thresh)){
 #' @export
 print.elife_par <-
   function(x,
-          digits = getOption("digits"),
+          digits = min(3, getOption("digits")),
           na.print = "", ...){
 
-      cat("Model:", x$family, "distribution.", "\n")
+      cat("Model:", switch(x$family,
+                           exp = "exponential",
+                           gomp = "Gompertz",
+                           weibull = "Weibull",
+                           extgp = "extended generalized Pareto",
+                           gp = "generalized Pareto"),
+          "distribution.", "\n")
     if(x$type != "none"){
       cat("Sampling:",
           switch(x$type,
-                 ltrt = "left- and right-truncated data",
+                 ltrt = "interval truncated data",
                  ltrc = "left-truncated, right-censored data"),"\n")
     }
       cat("Log-likelihood:", round(x$loglik, digits), "\n")
@@ -656,7 +677,7 @@ print.elife_par <-
       cat("Number of exceedances:", x$nexc, "\n")
       cat("\nEstimates\n")
       print.default(format(x$par, digits = digits), print.gap = 2, quote = FALSE, ...)
-      if (!is.null(x$se) && x$estimate[1] > -0.5) {
+      if (!is.null(x$std.error)) {
         cat("\nStandard Errors\n")
         print.default(format(x$std.err, digits = digits), print.gap = 2, quote = FALSE, ...)
       }
