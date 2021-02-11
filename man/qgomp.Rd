@@ -2,7 +2,7 @@
 % Please edit documentation in R/parametric.R
 \name{qgomp}
 \alias{qgomp}
-\title{Quantile function of the Gompertz-Makeham distribution}
+\title{Quantile function of the Gompertz distribution}
 \usage{
 qgomp(p, scale = 1, shape = 0, lower.tail = TRUE)
 }
@@ -19,6 +19,6 @@ qgomp(p, scale = 1, shape = 0, lower.tail = TRUE)
 vector of quantiles
 }
 \description{
-Quantile function of the Gompertz-Makeham distribution
+Quantile function of the Gompertz distribution
 }
 \keyword{internal}

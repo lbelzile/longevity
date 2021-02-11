@@ -11,12 +11,17 @@ optim_elife(
   rtrunc,
   rcens,
   type = c("none", "ltrc", "ltrt"),
-  family = c("exp", "gp", "weibull", "gomp", "extgp"),
-  weights
+  family = c("exp", "gp", "weibull", "gomp", "extgp", "gppiece"),
+  weights = rep(1, length(dat))
 )
 }
 \description{
 This function is a wrapper around constrained optimization
 routines for different models with interval truncation and
 left-truncation and right-censoring.
+}
+\note{
+The extended generalized Pareto model is constrained
+to avoid regions where the likelihood is flat so \eqn{\gamma \in [-1, 10]} in
+the optimization algorithm.
 }

@@ -10,7 +10,12 @@ Imports:
     boot,
     Rsolnp,
     methods,
-    stats,
+    stats
+Suggests: 
+    knitr,
+    testthat,
+    ggplot2,
+    patchwork
 Description: Parametric and nonparametric methods for the analysis of survival data and semi-supercentenarian, including Gompertz, exponential and generalized Pareto models, nonparametric estimate based on Gampe (2010) <doi:10.1007/978-3-642-11520-2_13>, Rootzén and Zholud (2017) <10.1007/s10687-017-0305-5> and Belzile et al. (2020)
 License: GPL-3
 Encoding: UTF-8

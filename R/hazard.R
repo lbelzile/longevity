@@ -1,3 +1,4 @@
+#' @keywords internal
 hazard_fn_elife <- function(x,
                          par,
                          family = c("exp","gp","gomp","weibull","extgp")){

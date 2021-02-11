@@ -1,4 +1,4 @@
-#' Sample observations from a doubly truncated generalized Pareto distribution
+#' Sample observations from a doubly truncated excess lifetime distribution
 #'
 #' @param n sample size
 #' @param scale scale parameter
@@ -7,7 +7,14 @@
 #' @param lower vector of lower bounds
 #' @param upper vector of upper bounds
 #' @return a vector of \code{n} observations
-rdtrunc_elife <- function(n,
+#' @examples
+#' n <- 100L
+#' # the lower and upper bound are either scalar,
+#' # or else vectors of length n
+#' r_dtrunc_elife(n = n, scale = 1, shape = -0.1,
+#'                lower = pmax(0, runif(n, -0.5, 1)),
+#'                upper = runif(n, 6, 10))
+r_dtrunc_elife <- function(n,
                           scale,
                           shape,
                           lower,
@@ -62,4 +69,60 @@ rdtrunc_elife <- function(n,
                 scale = scale, shape = shape[1])
     )
   }
+}
+
+
+
+#' Sample lifetime from excess lifetime model
+#'
+#' Given parameters of a \code{elife} distribution, sampling window and
+#' birth dates with excess lifetimes, sample new observations; excess lifetime
+#' at \code{c1} are sampled from an exponential distribution, whereas
+#' the birth dates are sampled from a jittered histogram-based distribution
+#' The new excess lifetime above the threshold are right-censored if they exceed
+#' \code{c2}.
+#'
+#' @inheritParams rdtrunc_elife
+#' @param xcal date at which individual reaches \code{u} years
+#' @param c1 date, first day of the sampling frame
+#' @param c2 date, last day of the sampling frame
+#' @return list with new birthdates (\code{xcal}), excess lifetime at \code{c1} (\code{ltrunc}),
+#' excess lifetime above \code{u} (\code{dat}) and right-censoring indicator (\code{rightcens}).
+newsamp_elife <- function(n,
+                         scale,
+                         shape,
+                         family = c("exp","gp","gomp","weibull","extgp"),
+                         xcal,
+                         c1,
+                         c2){
+  stopifnot("Date `c1` is missing" = !missing(c1),
+            "Date `c2` is missing" = !missing(c2),
+            "`c1` should be a single date" = is.Date(c1) && length(c1) == 1L,
+            "`c2` should be a single date" = is.Date(c2) && length(c2) == 1L)
+  ltrunc <- as.numeric(pmax(0, c1 - xcal))
+  sample_dates <- function(n, xcal, c1, c2, ltrunc){
+    sample_ltrunc <- function(n, ltrunc){
+      sort(round(rexp(n, rate = 1/mean(365.25*ltrunc[ltrunc>0])))/365.25, decreasing = TRUE)
+    }
+    nday <- as.numeric(xcal[ind]-c1)
+    nday <- nday[nday>0]
+    nmax <- as.numeric(c2-c1)
+    ssltrunc <- sample_ltrunc(round(sum(ltrunc>0)*n/length(ltrunc)), ltrunc = ltrunc)
+    xhist <- hist(nday, plot = FALSE)
+    bins <- with(xhist, sample(length(mids), n-length(ssltrunc), p=density, replace=TRUE)) # choose a bin
+    result <- round(runif(length(bins), xhist$breaks[bins], pmin(xhist$breaks[bins+1], nmax-1)))
+    list(xcal = as.Date(round(c(-ssltrunc*365.25, sort(result))), origin = c1),
+         ltrunc = c(ssltrunc, rep(0, n-length(ssltrunc))))
+  }
+
+  traject <- rdtrunc_elife(n = n,
+                           scale = scale,
+                           shape = shape,
+                           lower = 0,
+                           upper = Inf,
+                           family = family)
+  sdates <- sample_dates(n = n, xcal, c1, c2, ltrunc)
+  lifeah <- pmax(1,pmin(round(365.25*(traject + sdates$ltrunc)), as.numeric(c2-sdates$xcal)))
+  rcens_new <- lifeah == as.numeric(c2-sdates$xcal)
+  list(xcal = sdates$xcal, ltrunc = sdates$ltrunc, dat = lifeah/365.25, rightcens = rcens_new)
 }

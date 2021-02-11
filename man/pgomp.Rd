@@ -2,7 +2,7 @@
 % Please edit documentation in R/parametric.R
 \name{pgomp}
 \alias{pgomp}
-\title{Distribution function of the Gompertz-Makeham distribution}
+\title{Distribution function of the Gompertz distribution}
 \usage{
 pgomp(q, scale = 1, shape = 0, lower.tail = TRUE, log.p = FALSE)
 }
@@ -21,6 +21,6 @@ pgomp(q, scale = 1, shape = 0, lower.tail = TRUE, log.p = FALSE)
 a vector of (log)-probabilities of the same length as \code{q}
 }
 \description{
-Distribution function of the Gompertz-Makeham distribution
+Distribution function of the Gompertz distribution
 }
 \keyword{internal}

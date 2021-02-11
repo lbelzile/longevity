@@ -2,13 +2,14 @@ Create functions to compute the nonparametric maximum likelihood estimator descr
 
 Parametric models (Gompertz, exponential, generalized Pareto, extended generalized Pareto) with
 X Fitting routines (left- and right-truncated, left-truncated and right-censored, no adjustment)
-- Hazard plots with profile-likelihood confidence interval + confint method
+X Hazard plots with profile-likelihood confidence interval + confint method
 - Quantile-quantile plots
 - Goodness-of-fit tests (bootstrap tests)
 - LR tests for difference between groups (with a binary indicator or factor variable)
 - Model comparisons (Extended GP versus > Gompertz/GP > exp), including bootstrap p-values
-- threshold stability plots for truncated/censored data
-(via hazard?)
+X threshold stability plots for truncated/censored data
+- (via hazard for general parametric model?)
+- GP/exponential 
 - Unit tests using testthat
 - Vignettes
 Nonparametric cumulative hazard function (with pointwise standard errors, with log-log transformations)

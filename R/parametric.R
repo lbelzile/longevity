@@ -277,21 +277,23 @@ nll_elife <- function(par,
                       rcens,
                       ltrunc,
                       rtrunc,
-                      family = c("exp","gp","gomp","weibull","extgp"),
+                      family = c("exp","gp","gomp","weibull","extgp","gppiece"),
                       weights = rep(1, length(dat))){
   family <- match.arg(family)
   type <- match.arg(type)
   stopifnot("Threshold must be non-negative" = thresh >= 0,
-            "Only a single threshold value is allowed" = length(thresh) == 1L
+            "Only a single threshold value is allowed" = family != "gppiece" && length(thresh) == 1L
             )
-  if(thresh > 0){
+  if(thresh[1] > 0){
     # Keep only exceedances, shift observations
-    ind <- dat > thresh
-    dat <- dat[ind] - thresh
+    ind <- dat > thresh[1]
+    weights <- weights[ind] # in this order
+    dat <- dat[ind] - thresh[1]
     if(type != "none"){
-      ltrunc <- pmax(0, ltrunc[ind] - thresh)
+      ltrunc <- pmax(0, ltrunc[ind] - thresh[1])
     }
-    weights <- weights[ind]
+
+
     if(type == "ltrc"){
       if(missing(rcens) || missing(ltrunc)){
         stop("Missing inputs for left-truncated and right-censored data (`rcens` or `ltrunc`).")
@@ -301,7 +303,7 @@ nll_elife <- function(par,
       if(missing(rtrunc) || missing(ltrunc)){
         stop("Missing inputs for left- and right-truncated data (`ltrunc` or `rtrunc`).")
       }
-      rtrunc <- rtrunc[ind] - thresh
+      rtrunc <- rtrunc[ind] - thresh[1]
     }
   }
   if(family == "gomp"){
@@ -312,23 +314,23 @@ nll_elife <- function(par,
   if(family == "exp"){
     stopifnot("Length of parameters for exponential family is one" = length(par) == 1)
     if(par < 0){
-      return(1e10)
+      return(1e20)
     }
     ldensf <- function(par, dat){ dexp(x = dat, rate = 1/par[1], log = TRUE)}
     lsurvf <- function(par, dat){ pexp(q = dat, rate = 1/par[1], lower.tail = FALSE, log.p = TRUE)}
   } else if(family == "gp"){
     stopifnot("Length of parameters for generalized Pareto family is two." = length(par) == 2)
     if(par[1] < 0 || par[2] < (-1+1e-8)){
-      return(1e10)
+      return(1e20)
     }
     if(par[2] < 0 && (-par[1]/par[2] < max(dat))){
-       return(1e10)
+       return(1e20)
     }
     ldensf <- function(par, dat){ dgpd(x = dat, loc = 0, scale = par[1], shape = par[2], log = TRUE)}
     lsurvf <- function(par, dat){ pgpd(q = dat, loc = 0, scale = par[1], shape = par[2], lower.tail = FALSE, log.p = TRUE)}
   } else if(family == "weibull"){
     if(par[1] <= 0 || par[2] <= 0){
-      return(1e10)
+      return(1e20)
     }
       ldensf <- function(par, dat){dweibull(x = dat, scale = par[1], shape = par[2], log = TRUE)}
       lsurvf <- function(par, dat){pweibull(q = dat, scale = par[1], shape = par[2], lower.tail = FALSE, log.p = TRUE)}
@@ -349,7 +351,7 @@ nll_elife <- function(par,
       bounds <- c(par[1:2], 1+par[3]*(exp(par[2]*maxdat/par[1])-1)/par[2])
     }
     if(isTRUE(any(bounds <= 0))){
-      return(1e10)
+      return(1e20)
     }
     lsurvf <- function(dat, par){
       if(abs(par[3]) < 1e-8 && abs(par[2]) < 1e-8){ #exponential
@@ -373,6 +375,29 @@ nll_elife <- function(par,
        -log(par[1]) + (-1/par[3] - 1)*log(par[3]*(exp(par[2]*dat/par[1]) - 1)/par[2] + 1) + par[2]*dat/par[1]
       }
     }
+  } else if(family == "gppiece"){
+    # Check constraints for the model
+    scale <- par[1]
+    shape <- par[-1]
+    m <- length(shape)
+    stopifnot(length(thresh) == length(shape))
+    w <- as.numeric(diff(thresh))
+    sigma <- scale + c(0, cumsum(shape[-m]*w))
+    which_shape_neg <- shape < 0
+    fail <- isTRUE(all(sigma > 0,
+                       shape >= -1,
+                       c(thresh[-1], Inf)[which_shape_neg] <= thresh[which_shape_neg] - sigma[which_shape_neg]/shape[which_shape_neg],
+                       ifelse(shape[m] < 0, max(dat) <= thresh[m] - sigma[m]/shape[m], TRUE))
+                   )
+    if(fail){
+      return(1e20)
+    }
+    ldensf <- function(dat, par){
+      dgppiece(x = dat, scale = par[1], shape = par[-1], thresh = thresh, log = TRUE)
+    }
+    lsurvf <- function(dat, par){
+      pgppiece(q = dat, scale = par[1], shape = par[-1], thresh = thresh, lower.tail = FALSE, log.p = TRUE)
+    }
   }
   # Likelihoods, depending on the sampling scheme (left- and right-truncated, left-truncated and right-censored, none)
   if(type == "ltrc"){
@@ -388,7 +413,7 @@ nll_elife <- function(par,
       }
     }
     if(sum(rcens)>0){
-      ll <- ll +  sum(weights[rcens]*lsurvf(dat  =dat[rcens], par = par))
+      ll <- ll +  sum(weights[rcens]*lsurvf(dat = dat[rcens], par = par))
       if(length(g2) > 0){
         ll <- ll - sum(weights[g2]*lsurvf(dat = ltrunc[g2], par = par))
       }
@@ -400,7 +425,7 @@ nll_elife <- function(par,
     ll <- sum(weights*ldensf(dat = dat, par = par))
   }
   if (!is.finite(ll)) {
-    return(1e10)
+    return(1e20)
   }  else {
     return(-ll)
   }
@@ -423,8 +448,8 @@ optim_elife <- function(dat,
                         rtrunc,
                         rcens,
                         type = c("none", "ltrc", "ltrt"),
-                        family = c("exp", "gp", "weibull", "gomp", "extgp"),
-                        weights){
+                        family = c("exp", "gp", "weibull", "gomp", "extgp","gppiece"),
+                        weights = rep(1, length(dat))){
   n <- length(dat)
   if(is.null(weights)){
     weights <- rep(1, length(dat))
@@ -517,7 +542,8 @@ optim_elife <- function(dat,
         c(par[1], par[2], ifelse(par[2] < 0, thresh - par[1]/par[2] - max(dat), 1e-5))
       }
       ineqLB <- c(0, -1, 0)
-      ineqUB <- rep(Inf, 3)
+      ineqUB <- c(Inf, 2, Inf)
+      # hardcode upper bound for shape parameter, to prevent optim from giving nonsensical output
       start <- c(mean(dat)-thresh, 0.1)
     } else if(family == "weibull"){
       hin <- function(par, dat, thresh, ...){
@@ -545,6 +571,22 @@ optim_elife <- function(dat,
       ineqLB <- c(rep(0, 4), -1) # Constraints for xi...
       ineqUB <- c(rep(Inf, 4), 10) # Careful, these are for GPD
       start <- c(mean(dat), 1, 0.1)
+      #TODO try also fitting the GP/EXP/Gompertz and see which is best?
+    } else if(family == "gppiece"){
+      hin <- function(par, dat, thresh, ...){
+        m <- length(shape)
+        w <- as.numeric(diff(thresh))
+        shape <- par[-1]
+        sigma <- par[1] + c(0, cumsum(shape[-m]*w))
+        c(sigma,
+          shape,
+          ifelse(shape[-m] < 0, thresh[-m] - scale[-m]/shape[-m] - thresh[-1], 1e-5),
+          ifelse(shape[m] < 0, thresh[m] - scale[m]/shape[m] - max(dat), 1e-5),
+        )
+      }
+      ineqLB <- c(rep(0, m), rep(-1, m), rep(0, m)) # Constraints for xi...
+      ineqUB <- c(rep(Inf, m), rep(4, m), rep(0, Inf)) # Careful, these are for GPD
+      start <- c(mean(dat) - thresh[1], rep(0.1, m))
       #TODO try also fitting the GP/EXP/Gompertz and see which is best?
     }
     opt_mle <- Rsolnp::solnp(pars = start,
@@ -580,11 +622,12 @@ optim_elife <- function(dat,
                                         "weibull" = c("scale","shape"),
                                         "gp" = c("scale","shape"),
                                         "extgp" = c("scale","beta","gamma"),
+                                        "gppiece" = c("scale", paste0("shape",1:(length(mle)-1L))),
                                         )
   structure(list(par = mle,
                  std.error = se_mle,
                  loglik = ll,
-                 nexc = sum(dat>thresh),
+                 nexc = sum(dat > thresh),
                  vcov = vcov,
                  convergence = conv,
                  type = type,
@@ -663,7 +706,8 @@ print.elife_par <-
                            gomp = "Gompertz",
                            weibull = "Weibull",
                            extgp = "extended generalized Pareto",
-                           gp = "generalized Pareto"),
+                           gp = "generalized Pareto",
+                           gppiece = "piecewise generalized Pareto"),
           "distribution.", "\n")
     if(x$type != "none"){
       cat("Sampling:",

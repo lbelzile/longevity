@@ -12,7 +12,7 @@ nll_elife(
   rcens,
   ltrunc,
   rtrunc,
-  family = c("exp", "gp", "gomp", "weibull", "extgp"),
+  family = c("exp", "gp", "gomp", "weibull", "extgp", "gppiece"),
   weights = rep(1, length(dat))
 )
 }

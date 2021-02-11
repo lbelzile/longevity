@@ -5,7 +5,7 @@
 \title{Profile likelihood for hazard}
 \usage{
 hazard_elife(
-  par,
+  x,
   dat,
   thresh = 0,
   type = c("none", "ltrt", "ltrc"),
@@ -13,11 +13,14 @@ hazard_elife(
   ltrunc,
   rtrunc,
   family = c("exp", "gp", "gomp", "weibull", "extgp"),
-  weights = rep(1, length(dat))
+  weights = rep(1, length(dat)),
+  level = 0.95,
+  psi = NULL,
+  plot = FALSE
 )
 }
 \arguments{
-\item{par}{vector of parameters}
+\item{x}{value of the threshold exceedance at which to estimate the hazard}
 
 \item{dat}{vector of threshold exceedances}
 
@@ -34,12 +37,22 @@ hazard_elife(
 \item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}) or extended generalized Pareto (\code{extgp}).}
 
 \item{weights}{weights for observations}
+
+\item{plot}{logical; if true, display the profile log-likelihood. Default to \code{FALSE}.}
 }
 \value{
-a profile likelihood object
+an invisible object of class \code{elife_hazard} containing information about the profile likelihood
 }
 \description{
 This function computes the hazard for different \code{elife} parametric
 model with profile-likelihood based confidence intervals.
-It is also used to provide plots with varying thresholds.
+It is also used to provide local hazard plots at varying thresholds.
+}
+\examples{
+n <- 2500
+dat <- rdtrunc_elife(n = n, scale = 2,
+family = "gp", shape = 0.1,
+lower = ltrunc <- runif(n),
+upper = rtrunc <- (5 + runif(n)))
+hazard_elife(x = 2, dat = dat, ltrunc = ltrunc, rtrunc = rtrunc, type = "ltrt", family = "gp")
 }

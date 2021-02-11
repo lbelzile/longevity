@@ -1,11 +1,11 @@
-#' Piecewise generalized Pareto distribution
+#' Piece-wise generalized Pareto distribution
 #'
 #' Density, distribution, quantile functions and random number generation from the
 #' mixture model of Northrop and Coleman (2014), which consists of \code{m}
 #' different generalized Pareto distributions over non-overlapping intervals
-#' with \code{m} shape parameters and one scale parameter; the others are
+#' with \code{m} shape parameters and one scale parameter; the other scale parametrs are
 #' constrained so that the resulting distribution is continuous over the domain
-#' and reduces to a generalized Pareto distribution if all shape parameters are equal.
+#' and reduces to a generalized Pareto distribution if all of the shape parameters are equal.
 #'
 #' @references Northrop & Coleman (2014). Improved threshold diagnostic plots for extreme value
 #' analyses, \emph{Extremes}, \bold{17}(2), 289--303.
@@ -193,57 +193,3 @@ rgppiece <- function(n,
   }
   return(samp[sample.int(n, n)])
 }
-
-#
-# mult.u.gpd.fit <-
-#   function(y,
-#            m,
-#            v,
-#            w,
-#            npy = 365,
-#            method = "Nelder-Mead",
-#            maxit = 10000,
-#            init.ests = NULL,
-#            ...) {
-#     negated.mult.log.likelihood <- function(sig) {
-#       # sig: (sigma1, xi_1, ..., xi_m) y: excesses of threshold
-#       sigma1 <- sig[1]  # sigma_1
-#       if (sigma1 <= 0)
-#         return(1e+30)  # Need sigma_1 > 0
-#       xi <- sig[-1]  # (xi_1, ..., xi_m)
-#       sigma <- sigma1 + cumsum(c(0, xi[-m] * w[-m]))  # (sigma_1, ..., sigma_m)
-#       phi <- xi / sigma  # (phi_1, ..., phi_m)
-#       if (any(1 + phi[-m] * w[-m] <= 0)) {
-#         return(1e+30)  # Need all elements of 1+phi*w/sigma > 0
-#       }
-#       Ij <- unlist(lapply(y, function(sig) {
-#         sum(sig - v > 0)
-#       }))  # interval indicators
-#       if (any(1 + phi[Ij] * (y - v[Ij]) <= 0))
-#         return(1e+30)  # Need all elements of 1+phi[Ij]*(y-v[Ij]) > 0
-#       aj <-   c(0, cumsum(log(1 + phi[-m] * w[-m]) / sigma[-m] / phi[-m]))  # -log(p_j), j=1, ..., m
-#       pj <- exp(-aj)  # P(Y > v_j), j=1, ..., m
-#       bj <- log(sigma)
-#       dj <- log(1 + phi[Ij] * (y - v[Ij]))
-#       ej <- log(1 + phi[Ij] * (y - v[Ij])) / sigma[Ij] / phi[Ij]
-#       sum(aj[Ij] + bj[Ij] + dj + ej)
-#     }
-#
-#     fscale <- negated.mult.log.likelihood(init.ests)
-#     temp <-
-#       optim(
-#         init.ests,
-#         negated.mult.log.likelihood,
-#         hessian = FALSE,
-#         method = method,
-#         control = list(maxit = maxit, fnscale = fscale,
-#                        ...)
-#       )
-#     zz <- list()
-#     zz$mle <- temp$par
-#     zz$nllh <- temp$value
-#     zz$conv <- temp$convergence
-#     zz$counts <- temp$counts
-#     zz$message <- temp$message
-#     invisible(zz)
-#   }
