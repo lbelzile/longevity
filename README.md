@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# longevity
+# longevity <img src="tools/longevity_sticker.png" align="right" />
 
 <!-- badges: start -->
 

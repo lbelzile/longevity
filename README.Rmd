@@ -2,6 +2,7 @@
 output: github_document
 ---
 
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}
@@ -13,7 +14,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# longevity
+# longevity <img src="tools/longevity_sticker.png" align="right" />
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
