@@ -23,7 +23,7 @@ tstab <- function(dat,
                   rcens,
                   type = c("none","ltrt","ltrc"),
                   family = c('gp','exp'),
-                  method = c("wald","lrt"),
+                  method = c("wald","profile"),
                   level = 0.95,
                   plot.type = c("base","ggplot"),
                   which.plot = c("scale","shape")){
@@ -47,7 +47,7 @@ tstab <- function(dat,
                            rcens = rcens,
                            type = type,
                            family = family)
-    if(method == "lrt"){
+    if(method == "profile"){
       if(family == "gp"){
         if("shape" %in% which.plot){
           shape_i <- try(prof_gp_shape_confint(mle = opt_mle,
@@ -162,7 +162,7 @@ plot.elife_tstab <- function(object,
         }
       }
       if(length(which.plot) == 2L){
-        if(requireNamespace("patchwork", quietly == TRUE)){
+        if(requireNamespace("patchwork", quietly = TRUE)){
           library(patchwork)
           g1 + g2
         } else{

@@ -13,19 +13,21 @@ The `longevity` packages proposes estimation routines for modelling
 excess lifetime of old people. Functionalities include
 
 Parametric models for excess lifetime (exponential, Gompertz, Weibull,
-generalized Pareto, extended generalized Pareto), with
+generalized Pareto, extended generalized Pareto, piecewise generalized
+Pareto), with
 
--   maximum likelihood estimation
--   simulation for doubly truncated data
+-   maximum likelihood estimation routines
+-   simulation of doubly truncated data
 -   hazard plots with profile-likelihood based confidence intervals
--   threshold selection diagnostics
--   likelihood ratio tests for features
+-   threshold selection diagnostics with profile and Wald pointwise
+    confidence intervals
+-   likelihood ratio tests for a categorical explanatory
 -   quantile-quantile plots
 -   bootstrap goodness-of-fit tests
 -   likelihood ratio tests for nested models
 
-The package will also include tools for esitmation of the nonparametric
-hazard estimates of Turnbull (1978) with pointwise confidence intervals.
+The package also includes tools for estimation of the nonparametric
+hazard using the EM algorithm of Turnbull (1976).
 
 ## Installation
 

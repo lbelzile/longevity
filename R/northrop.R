@@ -91,10 +91,14 @@ pgppiece <- function(q,
     )) / F_upper[Ind]
   if(shape[m] < 0){
     # check that any point beyond the support gets cumulative value of 1
-    outbound <- which(q[Ind == m] > u[m] - scale[m]/shape[m])
+    outbound <- which(q[Ind == m] > thresh[m] - scale[m]/shape[m])
     if(length(outbound) > 0){
       ret_p[outbound] <- 1
     }
+  }
+  outzero <- which(q <= min(thresh))
+  if(length(outzero) > 0){
+    ret_p[outzero] <- 0
   }
   if(!lower.tail){
     ret_p <- 1-ret_p

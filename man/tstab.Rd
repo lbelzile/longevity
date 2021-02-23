@@ -12,7 +12,7 @@ tstab(
   rcens,
   type = c("none", "ltrt", "ltrc"),
   family = c("gp", "exp"),
-  method = c("wald", "lrt"),
+  method = c("wald", "profile"),
   level = 0.95,
   plot.type = c("base", "ggplot"),
   which.plot = c("scale", "shape")

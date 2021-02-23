@@ -15,6 +15,14 @@ newsamp_elife(
 )
 }
 \arguments{
+\item{n}{sample size}
+
+\item{scale}{scale parameter}
+
+\item{shape}{shape parameter(s)}
+
+\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}) or extended generalized Pareto (\code{extgp}).}
+
 \item{xcal}{date at which individual reaches \code{u} years}
 
 \item{c1}{date, first day of the sampling frame}

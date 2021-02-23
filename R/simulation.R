@@ -13,7 +13,8 @@
 #' # or else vectors of length n
 #' r_dtrunc_elife(n = n, scale = 1, shape = -0.1,
 #'                lower = pmax(0, runif(n, -0.5, 1)),
-#'                upper = runif(n, 6, 10))
+#'                upper = runif(n, 6, 10),
+#'                family = "gp")
 r_dtrunc_elife <- function(n,
                           scale,
                           shape,
@@ -82,7 +83,7 @@ r_dtrunc_elife <- function(n,
 #' The new excess lifetime above the threshold are right-censored if they exceed
 #' \code{c2}.
 #'
-#' @inheritParams rdtrunc_elife
+#' @inheritParams r_dtrunc_elife
 #' @param xcal date at which individual reaches \code{u} years
 #' @param c1 date, first day of the sampling frame
 #' @param c2 date, last day of the sampling frame

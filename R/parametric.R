@@ -274,33 +274,31 @@ nll_elife <- function(par,
                       dat,
                       thresh = 0,
                       type = c("none","ltrt","ltrc"),
-                      rcens,
-                      ltrunc,
-                      rtrunc,
+                      rcens = NULL,
+                      ltrunc = NULL,
+                      rtrunc = NULL,
                       family = c("exp","gp","gomp","weibull","extgp","gppiece"),
                       weights = rep(1, length(dat))){
   family <- match.arg(family)
   type <- match.arg(type)
   stopifnot("Threshold must be non-negative" = thresh >= 0,
-            "Only a single threshold value is allowed" = family != "gppiece" && length(thresh) == 1L
+            "Only a single threshold value is allowed" = family == "gppiece" || length(thresh) == 1L
             )
   if(thresh[1] > 0){
     # Keep only exceedances, shift observations
     ind <- dat > thresh[1]
     weights <- weights[ind] # in this order
     dat <- dat[ind] - thresh[1]
-    if(type != "none"){
+    if(!is.null(ltrunc)){ #both ltrc and ltrt
       ltrunc <- pmax(0, ltrunc[ind] - thresh[1])
     }
-
-
     if(type == "ltrc"){
-      if(missing(rcens) || missing(ltrunc)){
+      if(is.null(rcens) || is.null(ltrunc)){
         stop("Missing inputs for left-truncated and right-censored data (`rcens` or `ltrunc`).")
       }
       rcens <- rcens[ind]
     } else if(type == "ltrt"){
-      if(missing(rtrunc) || missing(ltrunc)){
+      if(is.null(rtrunc) || is.null(ltrunc)){
         stop("Missing inputs for left- and right-truncated data (`ltrunc` or `rtrunc`).")
       }
       rtrunc <- rtrunc[ind] - thresh[1]
@@ -383,12 +381,10 @@ nll_elife <- function(par,
     stopifnot(length(thresh) == length(shape))
     w <- as.numeric(diff(thresh))
     sigma <- scale + c(0, cumsum(shape[-m]*w))
-    which_shape_neg <- shape < 0
-    fail <- isTRUE(all(sigma > 0,
+    fail <- !isTRUE(all(sigma > 0,
                        shape >= -1,
-                       c(thresh[-1], Inf)[which_shape_neg] <= thresh[which_shape_neg] - sigma[which_shape_neg]/shape[which_shape_neg],
-                       ifelse(shape[m] < 0, max(dat) <= thresh[m] - sigma[m]/shape[m], TRUE))
-                   )
+                       ifelse(shape[-m] < 0, thresh[-1] <= thresh[-m] - sigma[-m]/shape[-m], TRUE),
+                       ifelse(shape[m] < 0, max(dat) <= thresh[m] - sigma[m]/shape[m], TRUE)))
     if(fail){
       return(1e20)
     }
@@ -442,14 +438,17 @@ nll_elife <- function(par,
 #' the optimization algorithm.
 #'
 #' @importFrom Rsolnp solnp
+#' @inheritParams nll_elife
+#' @param export logical; should data be included in the returned object to produce diagnostic plots? Default to \code{FALSE}.
 optim_elife <- function(dat,
                         thresh,
-                        ltrunc,
-                        rtrunc,
-                        rcens,
+                        ltrunc = NULL,
+                        rtrunc = NULL,
+                        rcens = NULL,
                         type = c("none", "ltrc", "ltrt"),
                         family = c("exp", "gp", "weibull", "gomp", "extgp","gppiece"),
-                        weights = rep(1, length(dat))){
+                        weights = rep(1, length(dat)),
+                        export = FALSE){
   n <- length(dat)
   if(is.null(weights)){
     weights <- rep(1, length(dat))
@@ -458,29 +457,29 @@ optim_elife <- function(dat,
   }
   family <- match.arg(family, several.ok = TRUE)
   type <- match.arg(type)
-  if(type == "ltrc" && isTRUE(any(missing(ltrunc), missing(rcens)))){
+  if(type == "ltrc" && isTRUE(any(is.null(ltrunc), is.null(rcens)))){
     stop("User must provide `ltrunc` and `rcens` for left-truncated and right-censored data.")
   }
-  if(type == "ltrt" && isTRUE(any(missing(ltrunc), missing(rtrunc)))){
+  if(type == "ltrt" && isTRUE(any(is.null(ltrunc), is.null(rtrunc)))){
     stop("User must provide `ltrunc` and `rtrunc` for left- and right-truncated data.")
   }
   stopifnot("Threshold must be positive" = thresh >= 0,
-            "Only a single threshold is allowed" = length(thresh) == 1L,
+            "Only a single threshold is allowed" = length(thresh) == 1L || family == "gppiece",
             "Only a single sampling scheme in `type` is allowed" = length(type) == 1L
   )
-  if(!missing(ltrunc) && !is.null(rtrunc)){
+  if(!is.null(ltrunc) && !is.null(rtrunc)){
     stopifnot("`dat` and `ltrunc` must be of the same length." = n == length(ltrunc),
               "`ltrunc` must be lower than `dat`" = isTRUE(all(ltrunc <= dat))
     )
   }
-  if(!missing(rtrunc) && !is.null(rtrunc)){
+  if(!is.null(rtrunc) && !is.null(rtrunc)){
     stopifnot("Argument `rtrunc` is not needed for chosen sampling scheme" = type == "ltrt",
               "`dat` and `rtrunc` must be of the same length." = n == length(rtrunc),
               "`rtrunc` must be higher than `dat`" = isTRUE(all(rtrunc >= dat)),
               "`ltrunc` must be larger than `ltrunc" = isTRUE(all(rtrunc > ltrunc))
     )
   }
-  if(!missing(rcens) && !is.null(rcens)){
+  if(!is.null(rcens) && !is.null(rcens)){
     stopifnot("Argument `rcens` is not needed for chosen sampling scheme" = type == "ltrc",
               "`dat` and `rcens` must be of the same length." = n == length(rcens),
               "`rcens` must be a vector of logicals.`" = islogical(rcens)
@@ -490,7 +489,7 @@ optim_elife <- function(dat,
   if(family == "exp"){
     # closed-form solution for left-truncated and right-censored data
     if(type == "none"){
-      exc_i <- dat>thresh
+      exc_i <- dat > thresh
       mle <- weighted.mean(x = (dat - thresh)[exc_i], w = weights[exc_i], na.rm = TRUE)
       se_mle <- mle / sqrt(sum(weights[exc_i]))
       ll <- sum(weights[exc_i]*dexp((dat - thresh)[exc_i], rate = 1/mle, log = TRUE))
@@ -573,19 +572,20 @@ optim_elife <- function(dat,
       start <- c(mean(dat), 1, 0.1)
       #TODO try also fitting the GP/EXP/Gompertz and see which is best?
     } else if(family == "gppiece"){
+      m <- length(thresh)
       hin <- function(par, dat, thresh, ...){
-        m <- length(shape)
+        m <- length(thresh)
         w <- as.numeric(diff(thresh))
         shape <- par[-1]
         sigma <- par[1] + c(0, cumsum(shape[-m]*w))
-        c(sigma,
+          c(sigma,
           shape,
-          ifelse(shape[-m] < 0, thresh[-m] - scale[-m]/shape[-m] - thresh[-1], 1e-5),
-          ifelse(shape[m] < 0, thresh[m] - scale[m]/shape[m] - max(dat), 1e-5),
+          ifelse(shape[-m] < 0, thresh[-m] - sigma[-m]/shape[-m] - thresh[-1], 1e-5),
+          ifelse(shape[m] < 0, thresh[m] - sigma[m]/shape[m] - max(dat), 1e-5)
         )
       }
       ineqLB <- c(rep(0, m), rep(-1, m), rep(0, m)) # Constraints for xi...
-      ineqUB <- c(rep(Inf, m), rep(4, m), rep(0, Inf)) # Careful, these are for GPD
+      ineqUB <- c(rep(Inf, m), rep(4, m), rep(Inf, m)) # Careful, these are for GPD
       start <- c(mean(dat) - thresh[1], rep(0.1, m))
       #TODO try also fitting the GP/EXP/Gompertz and see which is best?
     }
@@ -624,16 +624,33 @@ optim_elife <- function(dat,
                                         "extgp" = c("scale","beta","gamma"),
                                         "gppiece" = c("scale", paste0("shape",1:(length(mle)-1L))),
                                         )
+  if(!export){
   structure(list(par = mle,
                  std.error = se_mle,
                  loglik = ll,
-                 nexc = sum(dat > thresh),
+                 nexc = sum(dat > thresh[1]),
                  vcov = vcov,
                  convergence = conv,
                  type = type,
                  family = family,
                  thresh = thresh),
             class = "elife_par")
+  } else{
+       structure(list(par = mle,
+                      std.error = se_mle,
+                      loglik = ll,
+                      nexc = sum(dat > thresh[1]),
+                      vcov = vcov,
+                      convergence = conv,
+                      type = type,
+                      family = family,
+                      thresh = thresh,
+                      dat = dat,
+                      ltrunc = ltrunc,
+                      rtrunc = rtrunc,
+                      rcens = rcens),
+                 class = "elife_par")
+  }
 }
 
 #' Maximum likelihood estimation of parametric models for excess lifetime
@@ -642,16 +659,16 @@ optim_elife <- function(dat,
 #' for a range of parametric models suitable for the analysis of longevity data.
 #' These can be estimated simultaneously for a range of thresholds.
 #'
-#' @inheritParams np.surv.interv
+#' @inheritParams np.ecdf
 #' @param family string, one of \code{exp}, \code{gp}, \code{gomp} or \code{ext} for exponential, generalized Pareto, Gompertz or extended family, respectively.
 #' @param thresh a vector of thresholds
 #' @param weights vector of weights, defaults to one for each observation.
 #' @return a list containing
 fit_elife <- function(dat,
                       thresh,
-                      ltrunc,
-                      rtrunc,
-                      rcens,
+                      ltrunc = NULL,
+                      rtrunc = NULL,
+                      rcens = NULL,
                       type = c("none", "ltrc", "ltrt"),
                       family = c("exp", "gp", "weibull", "gomp", "extgp"),
                       weights = NULL) {

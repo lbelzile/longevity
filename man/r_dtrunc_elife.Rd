@@ -38,5 +38,6 @@ n <- 100L
 # or else vectors of length n
 r_dtrunc_elife(n = n, scale = 1, shape = -0.1,
                lower = pmax(0, runif(n, -0.5, 1)),
-               upper = runif(n, 6, 10))
+               upper = runif(n, 6, 10),
+               family = "gp")
 }

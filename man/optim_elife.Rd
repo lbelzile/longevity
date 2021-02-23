@@ -7,13 +7,33 @@
 optim_elife(
   dat,
   thresh,
-  ltrunc,
-  rtrunc,
-  rcens,
+  ltrunc = NULL,
+  rtrunc = NULL,
+  rcens = NULL,
   type = c("none", "ltrc", "ltrt"),
   family = c("exp", "gp", "weibull", "gomp", "extgp", "gppiece"),
-  weights = rep(1, length(dat))
+  weights = rep(1, length(dat)),
+  export = FALSE
 )
+}
+\arguments{
+\item{dat}{vector of threshold exceedances}
+
+\item{thresh}{threshold}
+
+\item{ltrunc}{lower truncation limit, possibly zero}
+
+\item{rtrunc}{upper truncation limit}
+
+\item{rcens}{logical indicating right-censoring (\code{TRUE} for censored)}
+
+\item{type}{string, either \code{ltrt} for left- and right-truncated data or \code{ltrc} for left-truncated right-censored data}
+
+\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}) or extended generalized Pareto (\code{extgp}).}
+
+\item{weights}{weights for observations}
+
+\item{export}{logical; should data be included in the returned object to produce diagnostic plots? Default to \code{FALSE}.}
 }
 \description{
 This function is a wrapper around constrained optimization

@@ -9,9 +9,9 @@ nll_elife(
   dat,
   thresh = 0,
   type = c("none", "ltrt", "ltrc"),
-  rcens,
-  ltrunc,
-  rtrunc,
+  rcens = NULL,
+  ltrunc = NULL,
+  rtrunc = NULL,
   family = c("exp", "gp", "gomp", "weibull", "extgp", "gppiece"),
   weights = rep(1, length(dat))
 )

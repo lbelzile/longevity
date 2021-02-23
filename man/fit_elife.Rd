@@ -7,16 +7,24 @@
 fit_elife(
   dat,
   thresh,
-  ltrunc,
-  rtrunc,
-  rcens,
+  ltrunc = NULL,
+  rtrunc = NULL,
+  rcens = NULL,
   type = c("none", "ltrc", "ltrt"),
   family = c("exp", "gp", "weibull", "gomp", "extgp"),
   weights = NULL
 )
 }
 \arguments{
+\item{dat}{vector of exceedances of length \code{n}, i.e., observations that are larger than the thresh}
+
 \item{thresh}{a vector of thresholds}
+
+\item{ltrunc}{vector of size \code{n} of lower truncation time}
+
+\item{rtrunc}{vector of size \code{n} of upper truncation time}
+
+\item{rcens}{logical vector of length \code{n}, where \code{rcens} is \code{TRUE} for right-censored observation and \code{FALSE} otherwise.}
 
 \item{family}{string, one of \code{exp}, \code{gp}, \code{gomp} or \code{ext} for exponential, generalized Pareto, Gompertz or extended family, respectively.}
 
