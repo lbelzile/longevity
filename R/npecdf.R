@@ -17,6 +17,7 @@
 #' @param tol double, relative tolerance for convergence of the EM algorithm
 #' @param vcov logical; should the observed information matrix be computed? Default to \code{FALSE}
 #' @return an object of class \code{stepfun}
+#' @export
 #' @examples
 #' set.seed(2021)
 #' n <- 20L

@@ -2,7 +2,7 @@
 % Please edit documentation in R/parametric.R
 \name{fit_elife}
 \alias{fit_elife}
-\title{Maximum likelihood estimation of parametric models for excess lifetime}
+\title{Fit excess lifetime models}
 \usage{
 fit_elife(
   dat,
@@ -11,30 +11,40 @@ fit_elife(
   rtrunc = NULL,
   rcens = NULL,
   type = c("none", "ltrc", "ltrt"),
-  family = c("exp", "gp", "weibull", "gomp", "extgp"),
-  weights = NULL
+  family = c("exp", "gp", "weibull", "gomp", "extgp", "gppiece"),
+  weights = rep(1, length(dat)),
+  export = FALSE
 )
 }
 \arguments{
-\item{dat}{vector of exceedances of length \code{n}, i.e., observations that are larger than the thresh}
+\item{dat}{vector of threshold exceedances}
 
-\item{thresh}{a vector of thresholds}
+\item{thresh}{threshold}
 
-\item{ltrunc}{vector of size \code{n} of lower truncation time}
+\item{ltrunc}{lower truncation limit, possibly zero}
 
-\item{rtrunc}{vector of size \code{n} of upper truncation time}
+\item{rtrunc}{upper truncation limit}
 
-\item{rcens}{logical vector of length \code{n}, where \code{rcens} is \code{TRUE} for right-censored observation and \code{FALSE} otherwise.}
+\item{rcens}{logical indicating right-censoring (\code{TRUE} for censored)}
 
-\item{family}{string, one of \code{exp}, \code{gp}, \code{gomp} or \code{ext} for exponential, generalized Pareto, Gompertz or extended family, respectively.}
+\item{type}{string, either \code{ltrt} for left- and right-truncated data or \code{ltrc} for left-truncated right-censored data}
 
-\item{weights}{vector of weights, defaults to one for each observation.}
+\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}) or extended generalized Pareto (\code{extgp}).}
+
+\item{weights}{weights for observations}
+
+\item{export}{logical; should data be included in the returned object to produce diagnostic plots? Default to \code{FALSE}.}
 }
 \value{
-a list containing
+an object of class \code{elife_par}
 }
 \description{
-This function performs constrained optimization to find the maximum likelihood estimator
-for a range of parametric models suitable for the analysis of longevity data.
-These can be estimated simultaneously for a range of thresholds.
+This function is a wrapper around constrained optimization
+routines for different models with interval truncation and
+left-truncation and right-censoring.
+}
+\note{
+The extended generalized Pareto model is constrained
+to avoid regions where the likelihood is flat so \eqn{\xi \in [-1, 10]} in
+the optimization algorithm.
 }

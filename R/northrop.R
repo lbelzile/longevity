@@ -7,6 +7,7 @@
 #' constrained so that the resulting distribution is continuous over the domain
 #' and reduces to a generalized Pareto distribution if all of the shape parameters are equal.
 #'
+#' @name gppiece
 #' @references Northrop & Coleman (2014). Improved threshold diagnostic plots for extreme value
 #' analyses, \emph{Extremes}, \bold{17}(2), 289--303.
 #' @param x,q vector of quantiles
@@ -15,11 +16,12 @@
 #' @param thresh vector of \code{m} thresholds
 #' @param lower.tail logical; if TRUE (default), probabilities are \eqn{\Pr[X \leq x]} otherwise, \eqn{\Pr[X > x]}.
 #' @param log,log.p logical; if \code{TRUE}, probabilities \eqn{p} are given as \eqn{\log(p)}.
-#' @name gppiece
 #'
 NULL
 
 #' @rdname gppiece
+#' @export
+#' @keywords internal
 dgppiece <- function(x,
                      scale,
                      shape,
@@ -58,6 +60,8 @@ dgppiece <- function(x,
 }
 
 #' @rdname gppiece
+#' @export
+#' @keywords internal
 pgppiece <- function(q,
                      scale,
                      shape,
@@ -111,6 +115,8 @@ pgppiece <- function(q,
 }
 
 #' @rdname gppiece
+#' @export
+#' @keywords internal
 qgppiece <- function(p,
                      scale,
                      shape,
@@ -154,6 +160,8 @@ qgppiece <- function(p,
 }
 
 #' @rdname gppiece
+#' @export
+#' @keywords internal
 rgppiece <- function(n,
                      scale,
                      shape,

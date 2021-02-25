@@ -41,3 +41,4 @@ and reduces to a generalized Pareto distribution if all of the shape parameters 
 Northrop & Coleman (2014). Improved threshold diagnostic plots for extreme value
 analyses, \emph{Extremes}, \bold{17}(2), 289--303.
 }
+\keyword{internal}

@@ -44,7 +44,7 @@ plot.elife_par <- function(object,
   }
   stopifnot("Object should be of class `elife_par`" = inherits(object, what = "elife_par"))
      if(is.null(object$dat)){
-          stop("`object` created using a call to `optim_elife` should include the data (`export=TRUE`).")
+          stop("`object` created using a call to `fit_elife` should include the data (`export=TRUE`).")
      }
   which.plot <- match.arg(which.plot, choices = c("pp","qq","exp"), several.ok = TRUE)
   # if("erp" %in% which.plot && is.null(rcens)){

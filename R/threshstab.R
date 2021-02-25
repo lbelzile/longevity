@@ -3,7 +3,7 @@
 #' The generalized Pareto and exponential distribution
 #' are threshold stable. This property, which is used
 #' for extrapolation purposes, can also be used to diagnose
-#' goodness-of-fit: we expect the parameters \eqn{\xi} and \eqn{\widetilde{\sigma} = \sigma + \xi u}
+#' goodness-of-fit: we expect the parameters \eqn{\xi} and \eqn{\tilde{\sigma} = \sigma + \xi u}
 #' to be constant over a range of thresholds. The threshold stability
 #' plot consists in plotting maximum likelihood estimates with pointwise confidence interval.
 #' This function handles interval truncation and right-censoring.
@@ -40,7 +40,7 @@ tstab <- function(dat,
     shape_par_mat <- matrix(NA, nrow = length(thresh), ncol = 3)
   }
   for(i in 1:length(thresh)){
-    opt_mle <- optim_elife(dat = dat,
+    opt_mle <- fit_elife(dat = dat,
                            thresh = thresh[i],
                            ltrunc = ltrunc,
                            rtrunc = rtrunc,
@@ -229,9 +229,9 @@ prof_gp_shape_confint <-
               "Level should be a probability" = level < 1 && level > 0,
               "Provide a single threshold" = length(thresh) == 1L)
     if(!is.null(mle)){
-      stopifnot("`mle` should be an object of class `elife_par` as returned by `optim_elife`" =  inherits(mle, "elife_par"))
+      stopifnot("`mle` should be an object of class `elife_par` as returned by `fit_elife`" =  inherits(mle, "elife_par"))
     } else{
-      mle <- optim_elife(dat = dat,
+      mle <- fit_elife(dat = dat,
                          thresh = thresh,
                          ltrunc = ltrunc,
                          rtrunc = rtrunc,
@@ -285,9 +285,9 @@ prof_gp_scalet_confint <-
               "Level should be a probability" = level < 1 && level > 0,
               "Provide two thresholds" = length(thresh) == 1L)
     if(!is.null(mle)){
-      stopifnot("`mle` should be an object of class `elife_par` as returned by `optim_elife`" =  inherits(mle, "elife_par"))
+      stopifnot("`mle` should be an object of class `elife_par` as returned by `fit_elife`" =  inherits(mle, "elife_par"))
     } else{
-      mle <- optim_elife(dat = dat,
+      mle <- fit_elife(dat = dat,
                          thresh = thresh,
                          ltrunc = ltrunc,
                          rtrunc = rtrunc,
@@ -375,9 +375,9 @@ prof_exp_scale_confint <- function(mle = NULL,
             "Level should be a probability" = level < 1 && level > 0,
             "Provide a single threshold" = length(thresh) == 1L)
   if(!is.null(mle)){
-    stopifnot("`mle` should be an object of class `elife_par` as returned by `optim_elife`" =  inherits(mle, "elife_par"))
+    stopifnot("`mle` should be an object of class `elife_par` as returned by `fit_elife`" =  inherits(mle, "elife_par"))
   } else{
-    mle <- optim_elife(dat = dat,
+    mle <- fit_elife(dat = dat,
                        thresh = thresh,
                        ltrunc = ltrunc,
                        rtrunc = rtrunc,
@@ -437,7 +437,7 @@ conf_interv <- function(object,
   qulev <- qnorm(1 - prob)
   conf <- rep(0,3)
   if (is.null(object$pll) && is.null(object$r)) {
-    break
+    stop("Object should contain arguments `pll` or `r` in order to compute confidence intervals.")
   }
   if (is.null(object$r)) {
     object$r <- sign(object$psi.max - object$psi) *

@@ -1,4 +1,5 @@
 #' @keywords internal
+#' @export
 hazard_fn_elife <- function(x,
                          par,
                          family = c("exp","gp","gomp","weibull","extgp")){
@@ -34,6 +35,7 @@ switch(family,
 #' @param plot logical; if true, display the profile log-likelihood. Default to \code{FALSE}.
 #' @inheritParams nll_elife
 #' @return an invisible object of class \code{elife_hazard} containing information about the profile likelihood
+#' @export
 #' @examples
 #' n <- 2500
 #' dat <- rdtrunc_elife(n = n, scale = 2,
@@ -63,7 +65,7 @@ hazard_elife <- function(x,
   # 3) return an object with hazard and the log-likelihood value
   # 4) include a @confint and a @plot method to display the profile
   # Compute maximum likelihood estimator
-  mle <- optim_elife(dat = dat,
+  mle <- fit_elife(dat = dat,
                      thresh = thresh,
                      ltrunc = ltrunc,
                      rtrunc = rtrunc,

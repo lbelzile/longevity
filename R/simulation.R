@@ -7,6 +7,7 @@
 #' @param lower vector of lower bounds
 #' @param upper vector of upper bounds
 #' @return a vector of \code{n} observations
+#' @export
 #' @examples
 #' n <- 100L
 #' # the lower and upper bound are either scalar,
@@ -89,6 +90,7 @@ r_dtrunc_elife <- function(n,
 #' @param c2 date, last day of the sampling frame
 #' @return list with new birthdates (\code{xcal}), excess lifetime at \code{c1} (\code{ltrunc}),
 #' excess lifetime above \code{u} (\code{dat}) and right-censoring indicator (\code{rightcens}).
+#' @export
 newsamp_elife <- function(n,
                          scale,
                          shape,

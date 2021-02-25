@@ -7,6 +7,7 @@
 #' @param lower.tail logical; if \code{TRUE} (default), the lower tail probability \eqn{\Pr(X \leq x)} is returned.
 #' @param log.p logical; if \code{FALSE} (default), values are returned on the probability scale.
 #' @return a vector of (log)-probabilities of the same length as \code{q}
+#' @export
 #' @keywords internal
 pgpd <- function(q,
                  loc = 0,
@@ -41,6 +42,7 @@ pgpd <- function(q,
 #' @param x vector of quantiles.
 #' @param log logical; if \code{FALSE} (default), return the density, else the log likelihood of the individual observations.
 #' @return a vector of (log)-density.
+#' @export
 #' @keywords internal
 dgpd <- function (x,
                   loc = 0,
@@ -74,6 +76,7 @@ dgpd <- function (x,
 #' @param p vector of probabilities.
 #' @inheritParams pgpd
 #' @return vector of quantiles
+#' @export
 #' @keywords internal
 qgpd <- function(p,
                  loc = 0,
@@ -102,6 +105,7 @@ qgpd <- function(p,
 #' Distribution function of the Gompertz distribution
 #'
 #' @inheritParams pgpd
+#' @export
 #' @return a vector of (log)-probabilities of the same length as \code{q}
 #' @keywords internal
 pgomp <- function(q,
@@ -138,6 +142,7 @@ pgomp <- function(q,
 #'
 #' @param p vector of probabilities.
 #' @inheritParams pgpd
+#' @export
 #' @return vector of quantiles
 #' @keywords internal
 qgomp <- function(p,
@@ -171,6 +176,7 @@ qgomp <- function(p,
 #' @param shape1 positive shape parameter \eqn{\beta}; model defaults to generalized Pareto when it equals zero.
 #' @param shape2 shape parameter \eqn{\gamma}; model reduces to Gompertz when \code{shape2=0}.
 #' @return a vector of (log)-probabilities of the same length as \code{q}
+#' @export
 #' @keywords internal
 pextgp <- function(q,
                   scale = 1,
@@ -219,6 +225,7 @@ pextgp <- function(q,
 #' @inheritParams pgpd
 #' @inheritParams pextgp
 #' @return vector of quantiles
+#' @export
 #' @keywords internal
 qextgp <- function(p,
                   scale = 1,
@@ -270,6 +277,7 @@ qextgp <- function(p,
 #' @param weights weights for observations
 #' @param family string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}) or extended generalized Pareto (\code{extgp}).
 #' @return log-likelihood value
+#' @export
 nll_elife <- function(par,
                       dat,
                       thresh = 0,
@@ -427,20 +435,22 @@ nll_elife <- function(par,
   }
 }
 
-#' Optimization routine for excess lifetime models
+#' Fit excess lifetime models
 #'
 #' This function is a wrapper around constrained optimization
 #' routines for different models with interval truncation and
 #' left-truncation and right-censoring.
 #'
 #' @note The extended generalized Pareto model is constrained
-#' to avoid regions where the likelihood is flat so \eqn{\gamma \in [-1, 10]} in
+#' to avoid regions where the likelihood is flat so \eqn{\xi \in [-1, 10]} in
 #' the optimization algorithm.
 #'
 #' @importFrom Rsolnp solnp
 #' @inheritParams nll_elife
 #' @param export logical; should data be included in the returned object to produce diagnostic plots? Default to \code{FALSE}.
-optim_elife <- function(dat,
+#' @return an object of class \code{elife_par}
+#' @export
+fit_elife <- function(dat,
                         thresh,
                         ltrunc = NULL,
                         rtrunc = NULL,
@@ -448,7 +458,8 @@ optim_elife <- function(dat,
                         type = c("none", "ltrc", "ltrt"),
                         family = c("exp", "gp", "weibull", "gomp", "extgp","gppiece"),
                         weights = rep(1, length(dat)),
-                        export = FALSE){
+                        export = FALSE
+                      ){
   n <- length(dat)
   if(is.null(weights)){
     weights <- rep(1, length(dat))
@@ -664,7 +675,8 @@ optim_elife <- function(dat,
 #' @param thresh a vector of thresholds
 #' @param weights vector of weights, defaults to one for each observation.
 #' @return a list containing
-fit_elife <- function(dat,
+#' @export
+fitrange_elife <- function(dat,
                       thresh,
                       ltrunc = NULL,
                       rtrunc = NULL,
@@ -672,7 +684,6 @@ fit_elife <- function(dat,
                       type = c("none", "ltrc", "ltrt"),
                       family = c("exp", "gp", "weibull", "gomp", "extgp"),
                       weights = NULL) {
-
 # Return a list of tables with parameter estimates as
 # a function of the different thresholds
 results <- list()
@@ -692,7 +703,7 @@ results$thresh <- thresh
 results$family <- family
 results$type <- results$type
 for(i in 1:length(thresh)){
-  results_i <- optim_elife(dat = dat,
+  results_i <- fit_elife(dat = dat,
                            thresh = thresh[i],
                            ltrunc = ltrunc,
                            rtrunc = rtrunc,

@@ -18,7 +18,7 @@
 #'   )
 #'   type <- match.arg(type)
 #'   for(thresh )
-#'   mle <- optim_elife(dat = dat,
+#'   mle <- fit_elife(dat = dat,
 #'                      thresh = thresh,
 #'                      ltrunc = ltrunc,
 #'                      rtrunc = rtrunc,

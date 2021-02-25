@@ -48,7 +48,7 @@ an invisible list with pointwise estimates and confidence intervals for the scal
 The generalized Pareto and exponential distribution
 are threshold stable. This property, which is used
 for extrapolation purposes, can also be used to diagnose
-goodness-of-fit: we expect the parameters \eqn{\xi} and \eqn{\widetilde{\sigma} = \sigma + \xi u}
+goodness-of-fit: we expect the parameters \eqn{\xi} and \eqn{\tilde{\sigma} = \sigma + \xi u}
 to be constant over a range of thresholds. The threshold stability
 plot consists in plotting maximum likelihood estimates with pointwise confidence interval.
 This function handles interval truncation and right-censoring.
