@@ -149,7 +149,7 @@ qgomp <- function(p,
                   scale = 1,
                   shape = 0,
                   lower.tail = TRUE){
-  if (min(p, na.rm = TRUE) <= 0 || max(p, na.rm = TRUE) >= 1)
+  if (min(p, na.rm = TRUE) < 0 || max(p, na.rm = TRUE) > 1)
     stop("`p' must contain probabilities in (0,1)")
   if (length(scale) != 1L || scale <= 0) {
     stop("invalid scale")
@@ -164,7 +164,7 @@ qgomp <- function(p,
                 lower.tail = lower.tail)
     )
   }
-  if (lower.tail){
+  if(!lower.tail){
     p <- 1 - p
   }
   return(scale / shape * log(1 - shape * log(1 - p)))
@@ -300,6 +300,9 @@ nll_elife <- function(par,
     if(!is.null(ltrunc)){ #both ltrc and ltrt
       ltrunc <- pmax(0, ltrunc[ind] - thresh[1])
     }
+    if(family == "gppiece"){
+      thresh <- thresh - thresh[1]
+    }
     if(type == "ltrc"){
       if(is.null(rcens) || is.null(ltrunc)){
         stop("Missing inputs for left-truncated and right-censored data (`rcens` or `ltrunc`).")
@@ -319,7 +322,7 @@ nll_elife <- function(par,
   # Define density and survival function for each of the parametric families
   if(family == "exp"){
     stopifnot("Length of parameters for exponential family is one" = length(par) == 1)
-    if(par < 0){
+    if(!isTRUE(par > 0)){
       return(1e20)
     }
     ldensf <- function(par, dat){ dexp(x = dat, rate = 1/par[1], log = TRUE)}
@@ -493,7 +496,7 @@ fit_elife <- function(dat,
   if(!is.null(rcens) && !is.null(rcens)){
     stopifnot("Argument `rcens` is not needed for chosen sampling scheme" = type == "ltrc",
               "`dat` and `rcens` must be of the same length." = n == length(rcens),
-              "`rcens` must be a vector of logicals.`" = islogical(rcens)
+              "`rcens` must be a vector of logicals.`" = is.logical(rcens)
     )
   }
   # Perform constrained optimization for the different routines
@@ -510,11 +513,20 @@ fit_elife <- function(dat,
         sum(weights*(dat - ltrunc)) / sum(weights[!rcens])
       }
       exc_i <- dat > thresh
-      mle <- exp_mle_ltrc(dat = (dat - thresh)[exc_i],
-                          ltrunc = pmax(0, ltrunc[exc_i] - thresh),
-                          rcens = rcens[exc_i],
-                          weights = weights[exc_i])
-      se_mle <- mle/sqrt(sum(weights[exc_i][!rcens[exc_i]]))
+      dat <- (dat - thresh)[exc_i]
+      n <- length(dat)
+      if(length(ltrunc) == 1L){
+        ltrunc <- ltrunc - thresh
+      } else if(length(ltrunc) == n){
+        ltrunc <- pmax(0, ltrunc[exc_i] - thresh)
+      }
+      rcens <- rcens[exc_i]
+      weights <- weights[exc_i]
+      mle <- exp_mle_ltrc(dat = dat,
+                          ltrunc = ltrunc,
+                          rcens = rcens,
+                          weights = weights)
+      se_mle <- mle/sqrt(sum(weights[!rcens]))
       ll <- - nll_elife(par = mle,
                         dat = dat,
                         ltrunc = ltrunc,
@@ -554,21 +566,21 @@ fit_elife <- function(dat,
       ineqLB <- c(0, -1, 0)
       ineqUB <- c(Inf, 2, Inf)
       # hardcode upper bound for shape parameter, to prevent optim from giving nonsensical output
-      start <- c(mean(dat)-thresh, 0.1)
+      start <- c(mean(dat[dat>thresh])-thresh, 0.1)
     } else if(family == "weibull"){
       hin <- function(par, dat, thresh, ...){
         c(par[1], par[2])
       }
       ineqLB <- c(0,0)
       ineqUB <- rep(Inf, 2)
-      start <- c(mean(dat), 1)
+      start <- c(mean(dat[dat>thresh])-thresh, 1)
     } else if(family == "gomp"){
       hin <- function(par, dat, thresh, ...){
         par[1:2]
       }
       ineqLB <- c(0,0)
       ineqUB <- rep(Inf, 2)
-      start <- c(mean(dat), 0.5)
+      start <- c(mean(dat[dat>thresh])-thresh, 0.5)
     } else if(family == "extgp"){
       #parameters are (1) scale > 0, (2) beta >= 0 (3) gamma
       hin <- function(par, dat, thresh, ...){
@@ -580,7 +592,7 @@ fit_elife <- function(dat,
       }
       ineqLB <- c(rep(0, 4), -1) # Constraints for xi...
       ineqUB <- c(rep(Inf, 4), 10) # Careful, these are for GPD
-      start <- c(mean(dat), 1, 0.1)
+      start <- c(mean(dat[dat>thresh])-thresh, 1, 0.1)
       #TODO try also fitting the GP/EXP/Gompertz and see which is best?
     } else if(family == "gppiece"){
       m <- length(thresh)
@@ -597,8 +609,18 @@ fit_elife <- function(dat,
       }
       ineqLB <- c(rep(0, m), rep(-1, m), rep(0, m)) # Constraints for xi...
       ineqUB <- c(rep(Inf, m), rep(4, m), rep(Inf, m)) # Careful, these are for GPD
-      start <- c(mean(dat) - thresh[1], rep(0.1, m))
-      #TODO try also fitting the GP/EXP/Gompertz and see which is best?
+      start <- c(mean(dat[dat > thresh[1]]) - thresh[1], rep(0.02, m))
+      # st <- try(fit_elife(dat = dat,
+      #          thresh = thresh[1],
+      #           ltrunc = ltrunc,
+      #           rtrunc = rtrunc,
+      #           rcens = rcens,
+      #           type = type,
+      #           family = "gp",
+      #           weights= weights))
+      # if(!is.character(st) && st$convergence){
+      #   start <- c(st$par['scale'], rep(st$par['shape'], m))
+      # }
     }
     opt_mle <- Rsolnp::solnp(pars = start,
                              family = family,
@@ -618,12 +640,15 @@ fit_elife <- function(dat,
     vcov <- try(solve(opt_mle$hessian[-(1:length(ineqLB)),-(1:length(ineqLB))]))
     if(is.character(vcov)){
       vcov <- NULL
+      se_mle <- rep(NA, length(mle))
     } else{
       se_mle <- try(sqrt(diag(vcov)))
     }
     if(is.character(se_mle)){
       se_mle <- rep(NA, length(mle))
     }
+    # The function returns -ll, and the value at each
+    # iteration (thus keep only the last one)
     ll <- -opt_mle$values[length(opt_mle$values)]
     conv <- opt_mle$convergence == 0
   }
@@ -785,4 +810,70 @@ coef.elife_par <- function(object, ...) {
 #' @export
 vcov.elife_par <- function(object, ...) {
   return(object$vcov)
+}
+
+#'Excess lifetime distributions
+#'
+#' Quantile and distribution function of excess lifetime distribution
+#' for threshold exceedances.
+#' @param q vector of quantiles.
+#' @param p vector of probabilities
+#' @param scale scale parameter, strictly positive.
+#' @param shape vector of shape parameter(s).
+#' @param lower.tail logical; if \code{TRUE} (default), the lower tail probability \eqn{\Pr(X \leq x)} is returned.
+#' @param log.p logical; if \code{FALSE} (default), values are returned on the probability scale.
+#' @param family string indicating the parametric model, one of \code{exp}, \code{gp}, \code{gomp}, \code{weibull} and \code{extgp}
+#' @name elife
+
+#' @rdname elife
+#' @export
+#' @keywords internal
+qelife <- function(p,
+                   scale,
+                   shape,
+                   family = c("exp", "gp", "weibull", "gomp", "extgp"),
+                   lower.tail = TRUE){
+  family <- match.arg(family)
+  switch(family,
+         exp = qexp(p, rate = 1/scale, lower.tail = lower.tail),
+         gp = qgpd(p = p, loc = 0, scale = scale, shape = shape, lower.tail = lower.tail),
+         weibull = qweibull(p = p, shape = shape, scale = scale, lower.tail = lower.tail),
+         gomp = qgomp(p = p, scale = scale, shape = shape, lower.tail = lower.tail),
+         extgp = qextgp(p = p, scale = scale, shape1 = shape[1], shape2 = shape[2], lower.tail = lower.tail))
+}
+
+#' @rdname elife
+#' @export
+#' @keywords internal
+pelife <- function(q,
+                   scale,
+                   shape,
+                   family = c("exp", "gp", "weibull", "gomp", "extgp"),
+                   lower.tail = TRUE,
+                   log.p = FALSE){
+  family <- match.arg(family)
+  switch(family,
+         exp = pexp(q = q, rate = 1/scale, lower.tail = lower.tail, log.p = log.p),
+         gp = pgpd(q = q, loc = 0, scale = scale, shape = shape, lower.tail = lower.tail, log.p = log.p),
+         weibull = pweibull(q = q, shape = shape, scale = scale, lower.tail = lower.tail, log.p = log.p),
+         gomp = pgomp(q = q, scale = scale, shape = shape, lower.tail = lower.tail, log.p = log.p),
+         extgp = pextgp(q = q, scale = scale, shape1 = shape[1], shape2 = shape[2], lower.tail = lower.tail, log.p = log.p))
+}
+
+#' @rdname elife
+#' @export
+#' @keywords internal
+relife <- function(n,
+                   scale,
+                   shape,
+                   family = c("exp", "gp", "weibull", "gomp", "extgp")
+                   ){
+  family <- match.arg(family)
+  switch(family,
+         exp = rexp(n = n, rate = 1/scale),
+         gp = qgpd(p = runif(n), loc = 0, scale = scale, shape = shape),
+         weibull = rweibull(n = n, shape = shape, scale = scale),
+         gomp = qgomp(p = runif(n), scale = scale, shape = shape),
+         extgp = qextgp(p = runif(n), scale = scale, shape1 = shape[1], shape2 = shape[2])
+  )
 }

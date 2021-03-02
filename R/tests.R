@@ -10,9 +10,9 @@
 #' @param covariate vector of factors, logical or integer whose distinct values are
 #' @return a list with elements
 #' \itemize{
-#' \item{\code{lrt_stat}: }{likelihood ratio statistic}
+#' \item{\code{stat}: }{likelihood ratio statistic}
 #' \item{\code{df}: }{degrees of freedom}
-#' \item{\code{p_value}: }{the p-value obtained from the asymptotic chi-square approximation.}
+#' \item{\code{pval}: }{the p-value obtained from the asymptotic chi-square approximation.}
 #' }
 #' @examples
 #' with(uk110,
@@ -75,9 +75,9 @@ test_elife <- function(dat,
   }
   lrt_stat <- 2*as.numeric((sum(loglik1)-loglik0))
   p_value <- pchisq(q = lrt_stat, df = (m - 1) * npar, lower.tail = FALSE)
-  return(list(lrt_stat = lrt_stat,
+  return(list(stat = lrt_stat,
               df = (m - 1) * npar,
-              p_value = p_value))
+              pval = p_value))
 }
 
 #' @export
@@ -141,6 +141,9 @@ anova.elife_par <- function(object,
 
   df <- -diff(npar)
   dvdiff <- -diff(dev)
+  if(dvdiff < 0){
+    stop("The alternative model has a lower likelihood value than the null model, indicating convergence problems.")
+  }
   if(test == "Chisq"){
     if(nmods[match_family,3] == "regular"){ #regular model
      pval <- pchisq(dvdiff, df = df, lower.tail = FALSE)
@@ -156,3 +159,198 @@ anova.elife_par <- function(object,
             class = c("anova", "data.frame"))
 }
 
+#' Score test of Northrop and Coleman
+#'
+#' This function computes the score test
+#' with the piecewise generalized Pareto distribution
+#' under the null hypothesis that the generalized Pareto
+#' with a single shape parameter is an adequate simplification.
+#' The test statistic is calculated using the observed information
+#' matrix; both hessian and score vector are obtained through numerical differentiation.
+#'
+#' The reference distribution is chi-square
+#' @inheritParams fit_elife
+#' @param thresh a vector of thresholds
+#' @return a data frame with the following variables:
+#' \itemize{
+#' \item{\code{thresh}: }{threshold for the generalized Pareto}
+#' \item{\code{nexc}: }{number of exceedances}
+#' \item{\code{score}: }{score statistic}
+#' \item{\code{df}: }{degrees of freedom}
+#' \item{\code{pval}: }{the p-value obtained from the asymptotic chi-square approximation.}
+#' }
+nc_score_test <- function(dat,
+                          thresh,
+                          ltrunc = NULL,
+                          rtrunc = NULL,
+                          rcens = NULL,
+                          type = c("none", "ltrc", "ltrt"),
+                          weights = rep(1, length(dat))){
+  stopifnot("Threshold is missing" = !missing(thresh))
+  nt <- length(thresh)
+  thresh <- sort(unique(thresh))
+  stopifnot("Threshold should be at least length two" = nt >= 2L)
+  res <- as.data.frame(matrix(NA, ncol = 5, nrow = nt - 1L))
+  colnames(res) <- c("thresh","nexc","score","df","pval")
+  for(i in 1:(nt-1L)){
+    fit0 <- fit_elife(dat = dat,
+                      thresh = thresh[i],
+                      ltrunc = ltrunc,
+                      rtrunc = rtrunc,
+                      rcens = rcens,
+                      type = type,
+                      family = "gp",
+                      weights = weights,
+                      export = FALSE)
+    score0 <- try(numDeriv::grad(func = function(x){
+                     nll_elife(par = x,
+                               dat = dat,
+                               thresh = thresh[i:nt],
+                               type = type,
+                               rcens = rcens,
+                               ltrunc = ltrunc,
+                               rtrunc = rtrunc,
+                               family = "gppiece",
+                               weights = weights
+                     )},
+                     x = c(fit0$par['scale'], rep(fit0$par['shape'], nt-i+1L))
+                   ))
+    hess0 <- try(numDeriv::hessian(func = function(x){
+                    nll_elife(par = x,
+                              dat = dat,
+                              thresh = thresh[i:nt],
+                              type = type,
+                              ltrunc = ltrunc,
+                              rtrunc = rtrunc,
+                              rcens = rcens,
+                              family = "gppiece",
+                              weights = weights
+                    )},
+                    x = c(fit0$par['scale'],rep(fit0$par['shape'], nt-i+1L))
+                  ))
+    score_stat <- try(as.numeric(score0 %*% solve(hess0) %*% score0))
+    if(!is.character(score_stat)){
+      res$score[i] <- score_stat
+      res$df[i] <- nt - i
+      res$pval[i] <- pchisq(q = score_stat, df = nt - i, lower.tail = FALSE)
+    }
+    res$nexc[i] <- fit0$nexc
+  }
+  res$thresh <- thresh[-nt]
+  return(res)
+}
+
+
+#' Goodness-of-fit diagnostics
+#'
+#' Compute the Kolmogorov-Smirnov or the Anderson-Darling
+#' test statistic and compare it with a simulated null
+#' distribution obtained via a parametric bootstrap.
+#'
+#' @note The bootstrap scheme requires simulating new data,
+#' fitting a parametric model and estimating the nonparametric
+#' maximum likelihood estimate for each new sample.
+#' This is computationally intensive in large samples.
+#'
+#' @inheritParams fit_elife
+#' @param B number of bootstrap simulations
+#' @return a list with elements
+#' \itemize{
+#' \item{\code{stat}: }{the value of the test statistic}
+#' \item{\code{pval}: }{p-value obtained via simulation}
+#' }
+#' @export
+ks_test <- function(dat,
+                     thresh,
+                     ltrunc = NULL,
+                     rtrunc = NULL,
+                     rcens = NULL,
+                     type = c("none", "ltrc", "ltrt"),
+                     family = c("exp", "gp", "weibull", "gomp", "extgp","gppiece"),
+                     B = 999L){
+  #TODO implement simulation from ltrc
+  #TODO handle cases with more than 2K observation np.ecdf
+  family <- match.arg(family)
+  type <- match.arg(type)
+  wexc <- dat > thresh[1]
+  if(sum(wexc) > 2500L){
+    stop("The `np.ecdf` used in `ks_test` function cannot handle large datasets currently. Aborting (n < 2500 hardcoded limit to avoid crashing R).")
+  }
+  dat <- dat[wexc] - thresh[1]
+  if(!is.null(ltrunc)){
+    ltrunc <- pmax(0, ltrunc[wexc] - thresh[1])
+  }
+  if(!is.null(rtrunc)){
+    rtrunc <- rtrunc[wexc] - thresh[1]
+  }
+  thresh <- 0
+  # Fit parametric model
+  F0 <- try(fit_elife(dat = dat,
+                  thresh = thresh,
+                  rcens = rcens,
+                  ltrunc = ltrunc,
+                  rtrunc = rtrunc,
+                  type = type,
+                  family = family
+                  ))
+  if(is.character(F0) || !F0$convergence){
+    stop("Could not estimate the parametric model.")
+  }
+  # Fit NPMLE of ECDF
+  Fn <- np.ecdf(dat = dat,
+                thresh = thresh,
+                rcens = rcens,
+                ltrunc = ltrunc,
+                rtrunc = rtrunc)
+ # Compute test statistic
+ ks <- max(abs(Fn$ecdf(Fn$x) - pelife(q = Fn$x, scale = F0$par[1], shape = F0$par[-1], family = family)))
+ stat <- rep(NA, B + 1L)
+ stat[B + 1] <- ks
+ for(b in 1:B){
+   bootconv <- FALSE
+   while(!bootconv){
+ if(type == "ltrt"){
+   bootsamp <- r_dtrunc_elife(n = length(dat),
+                  scale = F0$par[1],
+                  shape = F0$par[-1],
+                  lower = ltrunc,
+                  upper = rtrunc,
+                  family = family)
+   bootrcens <- NULL
+ } else if(type == "none"){
+  bootsamp <- relife(n = length(dat),
+                 scale = F0$par[1],
+                 shape = F0$par[-1],
+                 family = family)
+  bootrcens <- NULL
+ } else if(type == "rcens"){
+   stop("Currently not implemented for right-censored data.")
+ }
+
+   # bootstrap loop
+   F0_b <- try(fit_elife(dat = bootsamp,
+                   thresh = thresh,
+                   rcens = bootrcens,
+                   ltrunc = ltrunc,
+                   rtrunc = rtrunc,
+                   type = type,
+                   family = family))
+   # Fit NPMLE of ECDF
+   Fn_b <- try(np.ecdf(dat = bootsamp,
+                 thresh = thresh,
+                 rcens = bootrcens,
+                 ltrunc = ltrunc,
+                 rtrunc = rtrunc))
+
+   # Compute test statistic
+   ks_boot <- try(max(abs(Fn_b$ecdf(Fn_b$x) - pelife(q = Fn_b$x, scale = F0_b$par[1], shape = F0_b$par[-1], family = family))))
+   if(is.numeric(ks_boot)){
+     stat[b] <- ks_boot
+     bootconv <- TRUE
+   }
+  }
+ }
+  list(stat = ks,
+       # null = stat,
+       pval = mean(stat >= ks, na.rm = TRUE))
+}

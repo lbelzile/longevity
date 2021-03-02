@@ -45,7 +45,7 @@ an invisible object of class \code{elife_hazard} containing information about th
 }
 \description{
 This function computes the hazard for different \code{elife} parametric
-model with profile-likelihood based confidence intervals.
+models with profile-likelihood based confidence intervals.
 It is also used to provide local hazard plots at varying thresholds.
 }
 \examples{
@@ -54,5 +54,7 @@ dat <- rdtrunc_elife(n = n, scale = 2,
 family = "gp", shape = 0.1,
 lower = ltrunc <- runif(n),
 upper = rtrunc <- (5 + runif(n)))
-hazard_elife(x = 2, dat = dat, ltrunc = ltrunc, rtrunc = rtrunc, type = "ltrt", family = "gp")
+hazard_elife(x = 2, dat = dat,
+ ltrunc = ltrunc, rtrunc = rtrunc,
+ type = "ltrt", family = "gp")
 }

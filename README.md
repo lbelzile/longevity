@@ -17,26 +17,28 @@ generalized Pareto, extended generalized Pareto, piecewise generalized
 Pareto), with
 
 -   [x] maximum likelihood estimation routines
--   [x] simulation of doubly truncated data
+-   [x] simulation of left-truncated and right-truncated/right-censored
+    data
 -   [x] hazard plots with profile-likelihood based confidence intervals
 -   [x] threshold selection diagnostics with profile and Wald pointwise
     confidence intervals
 -   [x] quantile-quantile plots
 -   [x] likelihood ratio tests for nested models
 -   [x] likelihood ratio tests for a categorical explanatory
+-   [x] score tests for piecewise generalized Pareto distribution,
+    extending Northrop and Coleman (2014)
 -   [x] nonparametric maximum likelihood estimate of the distribution
     function with arbitrary truncation and censoring using the EM
     algorithm of Turnbull (1976).
 
 **TODO** list:
 
--   simulation of (left-truncated) right-censored data
--   profile likelihood for generalized Pareto (shape, endpoint)
+-   C++ implementation of the nonparametric MLE for the distribution
+    function of Turnbull (1976)
+-   profile likelihood for generalized Pareto (endpoint)
 -   uncertainty for diagnostic plots (via bootstrap)
 -   local hazard models (with associated plots)
 -   bootstrap *p*-values for nested models (`anova`)
--   local hazard plots
--   bootstrap goodness-of-fit tests
 -   unit tests
 -   vignettes
 

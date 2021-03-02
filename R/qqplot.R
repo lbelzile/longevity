@@ -1,17 +1,3 @@
-# For the RSOS paper, I did the following:
-# Fit a Kaplan-Meier (left-truncated right-censored data)
-# and transform these plotting positions to exponential
-# For the uncertainty, bootstrap scheme:
-# - Sample new observations from the model
-# (doubly truncated data, people outside the window
-# are right-censored)
-# - Refit the parametric model and get MLE
-# - Refit the product-limit estimator, extract timings
-# - Use the output of the latter and compute a weighted empirical distribution function (ECDF)
-# - Evaluate the ECDF on a regular grid of days
-# - Transform these days to the exponential (with bootstrap param)
-# Compute simultaneous confidence intervals using the envelope method
-
 #' Goodness-of-fit plots for parametric models
 #'
 #' Because of censoring and truncation, the plotting
@@ -32,41 +18,89 @@
 #'
 #' @param object a parametric model of class \code{elife_par}
 #' @param plot.type string, one of \code{base} for base R or \code{ggplot}
-#' @param which.plot vector of string indicating the plots, among \code{pp} for probability-probability plot, \code{qq} for quantile-quantile plot, \code{erp} for empirically rescaled plot (only useful for censored data), \code{e} for exponential quantile-quantile plot
-#' @param detrended logical; if \code{TRUE}, Tukey's mean difference plot. The pair \eqn{(x,y)} is mapped to \code{((x+y)/2,y-x)} are detrended (y-x, x)
+#' @param which.plot vector of string indicating the plots, among \code{pp} for probability-probability plot, \code{qq} for quantile-quantile plot, \code{erp} for empirically rescaled plot (only for censored data), \code{exp} for exponential quantile-quantile plot or \code{tmd} for Tukey's mean difference plot, which is a variant of the Q-Q plot in which we map the pair \eqn{(x,y)} is mapped to \code{((x+y)/2,y-x)} are detrended
+#' @param confint logical; if \code{TRUE}, creates uncertainty diagnostic via a parametric bootstrap
+#' @param plot logical; if \code{TRUE}, creates a plot. Useful for returning \code{ggplot} objects without printing the graphs
+#' @examples
+#' samp <- samp_elife(
+#'  n = 200,
+#'  scale = 2,
+#'  shape = 0.3,
+#'  family = "gomp",
+#'  lower = 0, upper = runif(200, 0, 10),
+#'  type = "ltrc")
+#' fitted <- fit_elife(
+#'  dat = samp$dat,
+#'  thresh = 0,
+#'  ltrunc = 0,
+#'  rcens = samp$rcens,
+#'  type = "ltrc",
+#'  family = "exp",
+#'  export = TRUE)
+#' plot(fitted)
+#' # Left- and right-truncated data
+#' samp <- samp_elife(
+#'  n = 200,
+#'  scale = 2,
+#'  shape = 0.3,
+#'  family = "gp",
+#'  lower = ltrunc <- runif(200),
+#'  upper = rtrunc <- runif(200, 0, 10),
+#'  type = "ltrc")
+#' fitted <- fit_elife(
+#'  dat = samp$dat,
+#'  thresh = 0,
+#'  ltrunc = ltrunc,
+#'  rtrunc = rtrunc,
+#'  type = "ltrt",
+#'  family = "gp",
+#'  export = TRUE)
+#' plot(fitted)
 plot.elife_par <- function(object,
                            plot.type = c("base","ggplot"),
                            which.plot = c("pp","qq"),
-                           detrended = FALSE){
-  if(detrended){
-    warning("Option currently unimplemented.")
-    detrended <- FALSE
-  }
+                           confint = FALSE,
+                           plot = TRUE){
+  #TODO incomplete; add uncertainty
   stopifnot("Object should be of class `elife_par`" = inherits(object, what = "elife_par"))
      if(is.null(object$dat)){
           stop("`object` created using a call to `fit_elife` should include the data (`export=TRUE`).")
      }
-  which.plot <- match.arg(which.plot, choices = c("pp","qq","exp"), several.ok = TRUE)
-  # if("erp" %in% which.plot && is.null(rcens)){
-  #   stop("Empirically rescaled plot is only useful for censored data.")
-  # }
+   plot.type <- match.arg(plot.type)
+   which.plot <- match.arg(which.plot, choices = c("pp","qq","erp","exp","tmd"), several.ok = TRUE)
      thresh <- object$thresh
+     n <- length(object$dat)
      exc <- object$dat > thresh[1]
      dat <- object$dat[exc] - thresh[1]
-     if(length(dat) > 2000){
+     nexc <- length(dat)
+     if(n > 2000){
        warning("Nonparametric estimation of the function very expensive for the given sample size.")
      }
+
      if(!is.null(object$ltrunc)){
-       ltrunc <- pmax(0, object$ltrunc[exc] - thresh[1])
+       if(length(object$ltrunc) == 1L){
+        ltrunc <- rep(pmax(0, object$ltrunc - thresh[1]), length.out = nexc)
+       } else if(length(object$ltrunc) == n){
+        ltrunc <- pmax(0, object$ltrunc[exc] - thresh[1])
+       } else{
+         stop("Invalid argument: `ltrunc` must be a scalar or a vector of the same length as `dat`")
+       }
      } else{
        ltrunc <- NULL
      }
      if(!is.null(object$rtrunc)){
-       rtrunc <- object$rtrunc[exc] - thresh[1]
+       if(length(object$rtrunc) == 1L){
+         rtrunc <- rep(object$rtrunc - thresh[1], length.out = nexc)
+       } else if(length(object$rtrunc) == n){
+         rtrunc <- object$rtrunc[exc] - thresh[1]
+       } else{
+        stop("Invalid argument: `rtrunc` must be a scalar or a vector of the same length as `dat`")
+       }
      } else{
        rtrunc <- NULL
      }
      if(!is.null(object$rcens)){
+       stopifnot("`rcens` must be a vector of the same length as `dat`" = length(object$rcens) == n)
        rcens <- object$rcens[exc]
      } else{
        rcens <- NULL
@@ -124,7 +158,7 @@ plot.elife_par <- function(object,
        )
      }
      if(!is.null(rcens)){
-      ypos <- pmod(q = dat[!rcens], scale = scale, shape = shape, family = family)
+        ypos <- pmod(q = dat[!rcens], scale = scale, shape = shape, family = family)
       if(!is.null(ltrunc) && is.null(rtrunc)){
         ypos <- (ypos - pmod(q = ltrunc[!rcens], scale = scale, shape = shape, family = family))/(1-pmod(q = ltrunc[!rcens], scale = scale, shape = shape, family = family))
       } else if(!is.null(rtrunc) && is.null(ltrunc)){
@@ -143,114 +177,177 @@ plot.elife_par <- function(object,
        }
      }
      # if(any(c("qq","erp") %in% which.plot)){
-     if(any(c("qq") %in% which.plot)){
+     if(any(c("qq","tmd","erp") %in% which.plot)){
        txpos <- xpos
+       ind_rcens <- 1L + !is.null(rcens)  # FALSE = 1, TRUE = 2
        if(!is.null(ltrunc) && !is.null(rtrunc)){
-         txpos <- xpos*pmod(q = switch(is.null(rcens), rtrunc, rtrunc[!rcens]), scale = scale, shape = shape, family = object$family) +
-           (1-xpos)*pmod(q = switch(is.null(rcens), ltrunc, ltrunc[!rcens]), scale = scale, shape = shape, family = object$family)
+         txpos <- xpos*pmod(q = switch(ind_rcens, rtrunc, rtrunc[!rcens]), scale = scale, shape = shape, family = object$family) +
+           (1-xpos)*pmod(q = switch(ind_rcens, ltrunc, ltrunc[!rcens]), scale = scale, shape = shape, family = object$family)
        } else if(is.null(ltrunc) && !is.null(rtrunc)){
-         txpos <- xpos*pmod(q = switch(is.null(rcens), rtrunc, rtrunc[!rcens]), scale = scale, shape = shape, family = object$family)
+         txpos <- xpos*pmod(q = switch(ind_rcens, rtrunc, rtrunc[!rcens]), scale = scale, shape = shape, family = object$family)
        } else if(is.null(rtrunc) && !is.null(ltrunc)){
-         txpos <- (1-xpos)*pmod(q = switch(is.null(rcens), ltrunc, ltrunc[!rcens]), scale = scale, shape = shape, family = object$family)
+         txpos <- xpos + (1-xpos)*pmod(q = switch(ind_rcens, ltrunc, ltrunc[!rcens]), scale = scale, shape = shape, family = object$family)
+       }
+     }
+     if("erp" %in% which.plot){
+       if(object$type != "ltrc"){
+         warning("`erp` is only useful for censored data. Use `which.plot = pp` for specifying the equivalent plot.")
+         if("pp" %in% which.plot){
+           which.plot <- which.plot[which.plot == "erp"]
+         } else {
+           which.plot[which.plot == "erp"] <- "pp"
+         }
+     } else{
+       np2 <- np.ecdf(dat = dat[!rcens],
+                     thresh = 0,
+                     ltrunc = ltrunc[!rcens],
+                     rtrunc = rtrunc[!rcens],
+                     tol = 1e-12,
+                     vcov = FALSE)
+       # Create a weighted empirical CDF
+       ecdffun2 <- np2$ecdf
+       }
+     }
+     if(plot.type == "ggplot"){
+       if(requireNamespace("ggplot2", quietly = TRUE)){
+         library(ggplot2)
+       } else{
+         warning("`ggplot2` package is not installed. Switching to base R plots.")
+         plot.type <- "base"
        }
      }
      if(plot.type == "base"){
-        if("pp" %in% which.plot){
+       for(pl in which.plot){
+          if(pl == "pp"){
       plot(y = ypos,
            x = xpos,
            bty = "l",
            pch = 20,
            xlab = "theoretical quantiles",
-           ylab = "empirical quantiles")
-        }
-       if("exp" %in% which.plot){
+           ylab = "empirical quantiles",
+           panel.first = {abline(a = 0, b = 1, col = "gray")})
+        } else if(pl == "exp"){
          # exponential q-q plot
          plot(y = -log(1-ypos),
               x = -log(1-xpos),
               bty = "l",
               pch = 20,
               xlab = "theoretical quantiles",
-              ylab = "empirical quantiles")
-       }
-       if("qq" %in% which.plot){
-          plot(y = switch(is.null(rcens), dat, dat[!rcens]),
+              ylab = "empirical quantiles",
+              panel.first = {abline(a = 0, b = 1, col = "gray")})
+       } else if(pl == "qq"){
+          plot(y = switch(ind_rcens, dat, dat[!rcens]),
                x = qmod(p = txpos, scale = scale, shape = shape, family = object$family),
                bty = "l",
                pch = 20,
-               xaxs = "i",
-               yaxs = "i",
                xlab = "theoretical quantiles",
                ylab = "empirical quantiles",
-               panel.first = {abline(a = 0, b = 1)})
+               panel.first = {abline(a = 0, b = 1, col = "gray")})
+       } else if(pl == "tmd"){
+         yp <- switch(ind_rcens, dat, dat[!rcens])
+         xp <- qmod(p = txpos, scale = scale, shape = shape, family = object$family)
+         plot(y = yp - xp,
+              x = (xp+yp)/2,
+              bty = "l",
+              pch = 20,
+              xlab = "average quantile",
+              ylab = "quantile difference",
+              panel.first = {abline(h = 0, col = "gray")})
+       } else if(pl == "erp" && !is.null(rcens)){
+       plot(y = ecdffun2(dat[!rcens]),
+           x = ecdffun2(qmod(p = txpos, scale = scale, shape = shape, family = object$family)),
+           bty = "l",
+           pch = 20,
+           xlab = "theoretical quantiles",
+           ylab = "empirical quantiles",
+           panel.first = {abline(a = 0, b = 1, col = "gray")})
        }
-       # if("erp" %in% which.plot){
-       #   np2 <- np.ecdf(dat = dat[!rcens],
-       #                 thresh = 0,
-       #                 ltrunc = ltrunc[!rcens],
-       #                 rtrunc = rtrunc[!rcens],
-       #                 tol = 1e-12,
-       #                 vcov = FALSE)
-       #   # Create a weighted empirical CDF
-       #   ecdffun2 <- .wecdf(x = np2$x, w = np2$par)
-       #   plot(y = ecdffun2(dat[!rcens]),
-       #        x = ecdffun2(qmod(p = txpos, scale = scale, shape = shape, family = object$family)),
-       #        bty = "l",
-       #        pch = 20,
-       #        xaxs = "i",
-       #        yaxs = "i",
-       #        xlab = "theoretical quantiles",
-       #        ylab = "empirical quantiles",
-       #        panel.first = {abline(a = 0, b = 1)})
-       # }
-       return(NULL)
-     }
+       }
+       return(invisible(NULL))
+     } else if(plot.type == "ggplot"){
+       pl_list <- list()
+       for(pl in which.plot){
+         if(pl == "pp"){
+           pl_list[["pp"]] <-
+             ggplot(data = data.frame(y = ypos, x = xpos),
+                  mapping = aes(x = x, y = y)) +
+             geom_abline(intercept = 0, slope = 1, col = "gray") +
+             geom_point() +
+             labs(x = "theoretical quantiles",
+                  y = "empirical quantiles")
+         } else if(pl == "exp"){
+           pl_list[["exp"]] <-
+             ggplot(data = data.frame(y = -log(1-ypos),
+                                      x = -log(1-xpos)),
+                    mapping = aes(x = x, y = y)) +
+             geom_abline(intercept = 0, slope = 1, col = "gray") +
+             geom_point() +
+             labs(x = "theoretical quantiles",
+                  y = "empirical quantiles")
+         } else if(pl == "qq"){
+           pl_list[["qq"]] <-
+             ggplot(data = data.frame(y = switch(ind_rcens, dat, dat[!rcens]),
+                                      x = qmod(p = txpos, scale = scale, shape = shape, family = object$family)),
+                  mapping = aes(x = x, y = y)) +
+             geom_abline(intercept = 0, slope = 1, col = "gray") +
+             geom_point() +
+             labs(x = "theoretical quantiles",
+                  y = "empirical quantiles")
+         } else if(pl == "tmd"){
+           pl_list[["tmd"]] <-
+             ggplot(data = data.frame(yp = switch(ind_rcens, dat, dat[!rcens]),
+                                      xp = qmod(p = txpos, scale = scale, shape = shape, family = object$family)),
+                                     mapping = aes(x = (xp + yp) / 2, y = yp - xp)) +
+             geom_hline(yintercept = 0, col = "gray") +
+             geom_point() +
+             labs(x = "average quantile",
+                  y = "quantile difference")
 
+         } else if(pl == "erp" && !is.null(rcens)){
+           pl_list[["erp"]] <-
+             ggplot(data = data.frame(y = ecdffun2(dat[!rcens]),
+                                      x = ecdffun2(qmod(p = txpos, scale = scale, shape = shape, family = object$family))),
+                   mapping = aes(x = x, y = y)) +
+             geom_abline(intercept = 0, slope = 1, col = "gray") +
+             geom_point() +
+             labs(x = "theoretical quantiles",
+                  y = "empirical quantiles")
+         }
+       }
+       if(plot){
+         lapply(pl_list, print)
+       }
+       return(invisible(pl_list))
+     }
 }
 
-
-#' Weighted empirical distribution function
-#'
-#' @param x vector of length \code{n} of values
-#' @param w vector of weights of length \code{n}
-#' @param type string, one of distribution function (\code{dist}) or survival function (\code{surv})
-#' @author Adapted from spatstat (c) Adrian Baddeley and Rolf Turner
 #' @keywords internal
-.wecdf <- function(x, w, type = c("dist","surv")){
-     # Adapted from spatstat (c) Adrian Baddeley and Rolf Turner
-     type <- match.arg(type)
-     stopifnot(length(x) == length(w))  #also returns error if x is multidimensional
-     nbg <- is.na(x)
-     x <- x[!nbg]
-     w <- w[!nbg]
-     n <- length(x)
-     w <- w / sum(w)
-     if (n < 1)
-     stop("'x' must have 1 or more non-missing values")
-     ox <- order(x)
-     x <- x[ox]
-     w <- w[ox]
-     vals <- sort(unique(x))
-     xmatch <- factor(match(x, vals), levels = seq_along(vals))
-     wmatch <- tapply(w, xmatch, sum)
-     wmatch[is.na(wmatch)] <- 0
-     if(type == "dist"){
-     rval <- approxfun(vals, cumsum(wmatch),
-                       method = "constant",
-                       yleft = 0,
-                       yright = 1,
-                       f = 0,
-                       ties = "ordered")
-     } else{
-        rval <- approxfun(vals, 1-cumsum(wmatch),
-                       method = "constant",
-                       yleft = 1,
-                       yright = 0,
-                       f = 1,
-                       ties = "ordered")
-     }
-     class(rval) <- c("ecdf", "stepfun", class(rval))
-     assign("nobs", n, envir = environment(rval))
-     attr(rval, "call") <- sys.call()
-     invisible(rval)
-}
+uq1_qqplot_elife <-
+  function(dat,
+           lower,
+           upper,
+           rcens = NULL,
+           type = c("none","ltrt","ltrc"),
+           family = c("exp","gp","gomp","weibull","extgp")
+  ){
+    # parametric bootstrap samples
+    # - simulate new data with the same sampling scheme
+    # - estimate parameters of the distribution
+    # - compute quantiles corresponding to plotting positions
+  }
 
+#' Approximate the uncertainty
+#' @keywords internal
+uq2_qqplot_elife <-
+  function(dat,
+           lower,
+           upper,
+           rcens = NULL,
+           type = c("none","ltrt","ltrc"),
+           family = c("exp","gp","gomp","weibull","extgp")
+  ){
+    # parametric bootstrap samples
+    # - simulate new data with the same sampling scheme
+    # - estimate parameters of the distribution
+    # - compute quantiles corresponding to plotting positions
+  }

@@ -14,23 +14,29 @@
 #' @param level probability level for the pointwise confidence intervals
 #' @param plot.type string; either \code{base} for base R plots or \code{ggplot} for \code{ggplot2} plots
 #' @param which.plot string; which parameters to plot;
+#' @param plot logical; should a plot be returned alongside with the estimates? Default to \code{TRUE}
 #' @seealso \code{\link[mev]{tstab.gpd}}, \code{\link[ismev]{gpd.fitrange}}, \code{\link[evd]{tcplot}}
+#' @export
 #' @return an invisible list with pointwise estimates and confidence intervals for the scale and shape parameters
 tstab <- function(dat,
                   thresh,
-                  ltrunc,
-                  rtrunc,
-                  rcens,
+                  ltrunc = NULL,
+                  rtrunc = NULL,
+                  rcens = NULL,
                   type = c("none","ltrt","ltrc"),
                   family = c('gp','exp'),
                   method = c("wald","profile"),
                   level = 0.95,
+                  plot = TRUE,
                   plot.type = c("base","ggplot"),
-                  which.plot = c("scale","shape")){
+                  which.plot = c("scale","shape")
+                  ){
   family <- match.arg(family)
   method <- match.arg(method)
-  plot.type <- match.arg(plot.type)
-  which.plot <- match.arg(which.plot, choices = c("scale","shape"), several.ok = TRUE)
+  if(plot){
+    plot.type <- match.arg(plot.type)
+    which.plot <- match.arg(which.plot, choices = c("scale","shape"), several.ok = TRUE)
+  }
   wald_confint <- function(par, std.error, level = 0.95){
     c(par[1], par[1] +  qnorm(0.5+level/2)*std.error[1]*c(-1,1))
   }
@@ -126,7 +132,10 @@ tstab <- function(dat,
                           thresh = thresh),
                      class = "elife_tstab")
   }
-  plot(res, plot.type = plot.type, which.plot = which.plot)
+  if(plot){
+    plot(res, plot.type = plot.type, which.plot = which.plot)
+  }
+  res$nexc <- as.integer(sapply(thresh, function(u){sum(dat > u, na.rm = TRUE)}))
   invisible(res)
 }
 
@@ -134,6 +143,7 @@ tstab <- function(dat,
 plot.elife_tstab <- function(object,
                              plot.type = c("base","ggplot"),
                              which.plot = c("scale","shape"),
+                             plot = TRUE,
                              ...){
   plot.type <- match.arg(plot.type)
   which.plot <- match.arg(which.plot, choices = c("scale","shape"), several.ok = TRUE)
@@ -148,20 +158,23 @@ plot.elife_tstab <- function(object,
         labs(x = "threshold", y = ylab, main = "threshold stability plot")
       return(g)
     }
+    graphs <- list()
     if(object$family == "gp"){
       if("scale" %in% which.plot){
         g1 <- ggplot_thstab(x = object$scale, thresh = object$thresh, ylab = "modified scale")
-        if(length(which.plot) == 1L){
-          print(g1)
+        if(length(which.plot) == 1L && plot){
+            print(g1)
         }
+        graphs$g1 <- g1
       }
       if("shape" %in% which.plot){
         g2 <- ggplot_thstab(x = object$shape, thresh = object$thresh, ylab = "shape")
-        if(length(which.plot) == 1L){
+        if(length(which.plot) == 1L && plot){
           print(g2)
         }
+        graphs$g2 <- g2
       }
-      if(length(which.plot) == 2L){
+      if(length(which.plot) == 2L && plot){
         if(requireNamespace("patchwork", quietly = TRUE)){
           library(patchwork)
           g1 + g2
@@ -171,7 +184,11 @@ plot.elife_tstab <- function(object,
         }
       }
     } else if(object$family == "exp"){
-      print(ggplot_thstab(x = object$scale, thresh = object$thresh, ylab = "scale"))
+      g1 <- ggplot_thstab(x = object$scale, thresh = object$thresh, ylab = "scale")
+      if(plot){
+        print(g1)
+      }
+    graphs$g1 <- g1
     }
 
   } else{ # Default to base plot

@@ -28,7 +28,7 @@ switch(family,
 #' Profile likelihood for hazard
 #'
 #' This function computes the hazard for different \code{elife} parametric
-#' model with profile-likelihood based confidence intervals.
+#' models with profile-likelihood based confidence intervals.
 #' It is also used to provide local hazard plots at varying thresholds.
 #'
 #' @param x value of the threshold exceedance at which to estimate the hazard
@@ -42,7 +42,9 @@ switch(family,
 #' family = "gp", shape = 0.1,
 #' lower = ltrunc <- runif(n),
 #' upper = rtrunc <- (5 + runif(n)))
-#' hazard_elife(x = 2, dat = dat, ltrunc = ltrunc, rtrunc = rtrunc, type = "ltrt", family = "gp")
+#' hazard_elife(x = 2, dat = dat,
+#'  ltrunc = ltrunc, rtrunc = rtrunc,
+#'  type = "ltrt", family = "gp")
 hazard_elife <- function(x,
                         dat,
                         thresh = 0,
@@ -320,8 +322,7 @@ plot.elife_hazard <- function(x, ...){
 }
 
 confint.elife_hazard <- function(x, ...){
-x$confint
-
+  x$confint
 }
 #
 # hazard_plot_elife <- function(dat, thresh){

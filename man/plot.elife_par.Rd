@@ -8,7 +8,8 @@
   object,
   plot.type = c("base", "ggplot"),
   which.plot = c("pp", "qq"),
-  detrended = FALSE
+  confint = FALSE,
+  plot = TRUE
 )
 }
 \arguments{
@@ -16,9 +17,11 @@
 
 \item{plot.type}{string, one of \code{base} for base R or \code{ggplot}}
 
-\item{which.plot}{vector of string indicating the plots, among \code{pp} for probability-probability plot, \code{qq} for quantile-quantile plot, \code{erp} for empirically rescaled plot (only useful for censored data), \code{e} for exponential quantile-quantile plot}
+\item{which.plot}{vector of string indicating the plots, among \code{pp} for probability-probability plot, \code{qq} for quantile-quantile plot, \code{erp} for empirically rescaled plot (only for censored data), \code{exp} for exponential quantile-quantile plot or \code{tmd} for Tukey's mean difference plot, which is a variant of the Q-Q plot in which we map the pair \eqn{(x,y)} is mapped to \code{((x+y)/2,y-x)} are detrended}
 
-\item{detrended}{logical; if \code{TRUE}, Tukey's mean difference plot. The pair \eqn{(x,y)} is mapped to \code{((x+y)/2,y-x)} are detrended (y-x, x)}
+\item{confint}{logical; if \code{TRUE}, creates uncertainty diagnostic via a parametric bootstrap}
+
+\item{plot}{logical; if \code{TRUE}, creates a plot. Useful for returning \code{ggplot} objects without printing the graphs}
 }
 \description{
 Because of censoring and truncation, the plotting
@@ -37,4 +40,40 @@ distribution function \eqn{F_0}.
 For quantile-quantile plots, the plotting positions \eqn{v_i} are mapped back
 to the data scale viz. \deqn{F_0^{-1}\{F_0(a_i) + v_i[F_0(b_i) - F_0(a_i)]\}}
 When data are truncated, the plotting positions need not be in the same order as the data
+}
+\examples{
+samp <- samp_elife(
+ n = 200,
+ scale = 2,
+ shape = 0.3,
+ family = "gomp",
+ lower = 0, upper = runif(200, 0, 10),
+ type = "ltrc")
+fitted <- fit_elife(
+ dat = samp$dat,
+ thresh = 0,
+ ltrunc = 0,
+ rcens = samp$rcens,
+ type = "ltrc",
+ family = "exp",
+ export = TRUE)
+plot(fitted)
+# Left- and right-truncated data
+samp <- samp_elife(
+ n = 200,
+ scale = 2,
+ shape = 0.3,
+ family = "gp",
+ lower = ltrunc <- runif(200),
+ upper = rtrunc <- runif(200, 0, 10),
+ type = "ltrc")
+fitted <- fit_elife(
+ dat = samp$dat,
+ thresh = 0,
+ ltrunc = ltrunc,
+ rtrunc = rtrunc,
+ type = "ltrt",
+ family = "gp",
+ export = TRUE)
+plot(fitted)
 }

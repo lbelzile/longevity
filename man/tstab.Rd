@@ -7,13 +7,14 @@
 tstab(
   dat,
   thresh,
-  ltrunc,
-  rtrunc,
-  rcens,
+  ltrunc = NULL,
+  rtrunc = NULL,
+  rcens = NULL,
   type = c("none", "ltrt", "ltrc"),
   family = c("gp", "exp"),
   method = c("wald", "profile"),
   level = 0.95,
+  plot = TRUE,
   plot.type = c("base", "ggplot"),
   which.plot = c("scale", "shape")
 )
@@ -36,6 +37,8 @@ tstab(
 \item{method}{string giving the type of pointwise confidence interval, either Wald (\code{wald}) or profile likelihood (\code{lrt})}
 
 \item{level}{probability level for the pointwise confidence intervals}
+
+\item{plot}{logical; should a plot be returned alongside with the estimates? Default to \code{TRUE}}
 
 \item{plot.type}{string; either \code{base} for base R plots or \code{ggplot} for \code{ggplot2} plots}
 

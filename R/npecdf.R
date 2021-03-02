@@ -61,18 +61,23 @@ np.ecdf <- function(dat,
     rcens <- as.logical(rcens)
   }
   if (!is.null(rtrunc)) {
+    if(length(rtrunc) == 1L){
+      rtrunc <- rep(rtrunc, length.out = n)
+    }
     stopifnot(
       "`rtrunc`` should be a vector" = is.vector(rtrunc),
       "`rtrunc` should be the same length as `dat`" =  length(rtrunc) == n,
-      "`rtrunc` should be smaller or equal to `dat`" = isTRUE(all(rtrunc > dat))
+      "`rtrunc` should be greater or equal to `dat`" = isTRUE(all(rtrunc >= dat))
     )
   }
   if (!is.null(ltrunc)) {
+    if(length(ltrunc) == 1L){
+      ltrunc <- rep(x = ltrunc, length.out = n)
+    }
     stopifnot(
       "`ltrunc` should be a vector" = is.vector(ltrunc),
       "`ltrunc` should be the same length as `dat`" =  length(ltrunc) == n,
-      "`ltrunc` should be smaller or equal to `dat`" = isTRUE(all(ltrunc <= dat)),
-      "`ltrunc` must be larger than the thresh" = isTRUE(min(ltrunc) >= thresh[1])
+      "`ltrunc` should be smaller or equal to `dat`" = isTRUE(all(ltrunc <= dat))
     )
   }
   if (!is.null(ltrunc) & !is.null(rtrunc)) {
@@ -197,37 +202,34 @@ np.ecdf <- function(dat,
   } else{
     covmat <- NULL
   }
-  list(x = unex,
+  ecdf <- .wecdf(x = unex, w = p)
+  list(ecdf = ecdf,
+       x = unex,
        par = p,
        vcov = covmat)
-  # TODO
-  # determine how to obtain confidence intervals
-  #  Delta-method gives variance for the sum - can be used for normal intervals
-  #  (a) Hall-Wellner (1980) type bands
-  #  (b) Some methods based on Monte Carlo methods for Brownian motion (Kendall, Marin, Robert)
-  #  (c) empirical likelihood?
-}
-
-#' Create a survival function using weights and intervals
-#' @param npi output from np.surv, a list with components \code{interval}, \code{par} and \code{vcov}
-#' @param conf.type transformation for the pointwise confidence intervals;
-#' @param cumhaz plot the cumulative hazard rather than the probability in state or survival
-#' @param ... additional arguments passed to plot
-plot.np.surv <- function(npi,
-                         conf.type = c("log", "log-log", "plain", "logit", "arcsin"),
-                         cumhaz = FALSE,
-                         ...){
-  if(isTRUE(any(is.null(interval), is.null(par)))){
-    stop("Intervals or vector of probability missing in `npi`.")
-  }
-  S_fn <- stepfun(x = npi$interval, y = 1 - c(0, cumsum(npi$par), 1), right = FALSE)
-  np <- length(npi$par) - 1
-  if(!is.null(npi$vcov)){
-    var_S <- sapply(1:np, function(i){sum(npi$vcov[1:i, 1:i])})
-  }
+  # TODO return weighted empirical distribution function
 
 }
-
+#
+# #' Create a survival function using weights and intervals
+# #' @param npi output from np.surv, a list with components \code{interval}, \code{par} and \code{vcov}
+# #' @param conf.type transformation for the pointwise confidence intervals;
+# #' @param cumhaz plot the cumulative hazard rather than the probability in state or survival
+# #' @param ... additional arguments passed to plot
+# plot.np.surv <- function(npi,
+#                          conf.type = c("log", "log-log", "plain", "logit", "arcsin"),
+#                          cumhaz = FALSE,
+#                          ...){
+#   if(isTRUE(any(is.null(interval), is.null(par)))){
+#     stop("Intervals or vector of probability missing in `npi`.")
+#   }
+#   S_fn <- stepfun(x = npi$interval, y = 1 - c(0, cumsum(npi$par), 1), right = FALSE)
+#   np <- length(npi$par) - 1
+#   if(!is.null(npi$vcov)){
+#     var_S <- sapply(1:np, function(i){sum(npi$vcov[1:i, 1:i])})
+#   }
+#
+# }
 
 #' Marginal log likelihood function of the nonparametric multinomial with censoring and truncation
 #' @param p vector of \code{D-1} parameters
@@ -272,4 +274,50 @@ expit <- function(x) {
 #' @keywords internal
 logit <- function(x) {
   log(x) - log(1 - x)
+}
+
+#' Weighted empirical distribution function
+#'
+#' @param x vector of length \code{n} of values
+#' @param w vector of weights of length \code{n}
+#' @param type string, one of distribution function (\code{dist}) or survival function (\code{surv})
+#' @author Adapted from spatstat (c) Adrian Baddeley and Rolf Turner
+#' @keywords internal
+.wecdf <- function(x, w, type = c("dist","surv")){
+  # Adapted from spatstat (c) Adrian Baddeley and Rolf Turner
+  type <- match.arg(type)
+  stopifnot(length(x) == length(w))  #also returns error if x is multidimensional
+  nbg <- is.na(x)
+  x <- x[!nbg]
+  w <- w[!nbg]
+  n <- length(x)
+  w <- w / sum(w)
+  if (n < 1)
+    stop("'x' must have 1 or more non-missing values")
+  ox <- order(x)
+  x <- x[ox]
+  w <- w[ox]
+  vals <- sort(unique(x))
+  xmatch <- factor(match(x, vals), levels = seq_along(vals))
+  wmatch <- tapply(w, xmatch, sum)
+  wmatch[is.na(wmatch)] <- 0
+  if(type == "dist"){
+    rval <- approxfun(vals, cumsum(wmatch),
+                      method = "constant",
+                      yleft = 0,
+                      yright = 1,
+                      f = 0,
+                      ties = "ordered")
+  } else{
+    rval <- approxfun(vals, 1-cumsum(wmatch),
+                      method = "constant",
+                      yleft = 1,
+                      yright = 0,
+                      f = 1,
+                      ties = "ordered")
+  }
+  class(rval) <- c("ecdf", "stepfun", class(rval))
+  assign("nobs", n, envir = environment(rval))
+  attr(rval, "call") <- sys.call()
+  invisible(rval)
 }
