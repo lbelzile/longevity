@@ -16,15 +16,17 @@ fitrange_elife(
 )
 }
 \arguments{
-\item{dat}{vector of exceedances of length \code{n}, i.e., observations that are larger than the thresh}
+\item{dat}{vector of threshold exceedances}
 
 \item{thresh}{a vector of thresholds}
 
-\item{ltrunc}{vector of size \code{n} of lower truncation time}
+\item{ltrunc}{lower truncation limit, possibly zero}
 
-\item{rtrunc}{vector of size \code{n} of upper truncation time}
+\item{rtrunc}{upper truncation limit}
 
-\item{rcens}{logical vector of length \code{n}, where \code{rcens} is \code{TRUE} for right-censored observation and \code{FALSE} otherwise.}
+\item{rcens}{logical indicating right-censoring (\code{TRUE} for censored)}
+
+\item{type}{string, either \code{ltrt} for left- and right-truncated data or \code{ltrc} for left-truncated right-censored data}
 
 \item{family}{string, one of \code{exp}, \code{gp}, \code{gomp} or \code{ext} for exponential, generalized Pareto, Gompertz or extended family, respectively.}
 

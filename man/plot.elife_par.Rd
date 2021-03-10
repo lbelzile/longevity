@@ -57,7 +57,7 @@ fitted <- fit_elife(
  type = "ltrc",
  family = "exp",
  export = TRUE)
-plot(fitted)
+plot(fitted, plot.type = "ggplot")
 # Left- and right-truncated data
 samp <- samp_elife(
  n = 200,
@@ -65,15 +65,15 @@ samp <- samp_elife(
  shape = 0.3,
  family = "gp",
  lower = ltrunc <- runif(200),
- upper = rtrunc <- runif(200, 0, 10),
- type = "ltrc")
+ upper = rtrunc <- ltrunc + runif(200, 0, 10),
+ type = "ltrt")
 fitted <- fit_elife(
- dat = samp$dat,
+ dat = samp,
  thresh = 0,
  ltrunc = ltrunc,
  rtrunc = rtrunc,
  type = "ltrt",
  family = "gp",
  export = TRUE)
-plot(fitted)
+plot(fitted, plot.type = "ggplot")
 }
