@@ -25,3 +25,26 @@
 #'
 #' @source https://doi.org/10.1080/01621459.2018.1537912
 "dutch"
+
+#' Japanese survival data
+#'
+#' This data frame contains information about the counts
+#' of dead Japanese by gender and year of birth (cohort), categorized
+#' by the whole part of age attained at death.
+#'
+#' These data were obtained from the Annual Vital Statistics Report of Japan, released by the
+#' Japanese government every year since 1947. The authors note that "#' All the members of that cohort have died
+#' by the end of the observation period, a procedure referred to as the
+#' extinct cohort method". The data were obtained from the Human Mortality Database by the authors.
+#'
+#' @format A data frame with 1508 rows and 4 variables:
+#' \describe{
+#' \item{age}{integer, age (to the smallest year) at death (in years)}
+#' \item{byear}{integer, birth year}
+#' \item{count}{intreger, number of death for cohort at given age}
+#' \item{gender}{factor, the gender of the individuals; either \code{male} or \code{female}}
+#' }
+#' @references Hanayama, N. and M. Sibuya (2016). Estimating the Upper Limit of Lifetime Probability Distribution, Based on Data of Japanese Centenarians, \emph{The Journals of Gerontology: Series A}, 71(\bold{8}), 1014–1021.
+#'
+#' @source https://doi.org/10.1093/gerona/glv113
+"japanese"
