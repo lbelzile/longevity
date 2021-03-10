@@ -83,7 +83,7 @@ qgpd <- function(p,
                  scale = 1,
                  shape = 0,
                  lower.tail = TRUE){
-  if (min(p, na.rm = TRUE) <= 0 || max(p, na.rm = TRUE) >= 1)
+  if (min(p, na.rm = TRUE) < 0 || max(p, na.rm = TRUE) > 1)
     stop("`p' must contain probabilities in (0,1)")
   if (length(scale) != 1L || scale <= 0) {
     stop("invalid scale")
@@ -300,9 +300,6 @@ nll_elife <- function(par,
     if(!is.null(ltrunc)){ #both ltrc and ltrt
       ltrunc <- pmax(0, ltrunc[ind] - thresh[1])
     }
-    if(family == "gppiece"){
-      thresh <- thresh - thresh[1]
-    }
     if(type == "ltrc"){
       if(is.null(rcens) || is.null(ltrunc)){
         stop("Missing inputs for left-truncated and right-censored data (`rcens` or `ltrunc`).")
@@ -315,6 +312,7 @@ nll_elife <- function(par,
       rtrunc <- rtrunc[ind] - thresh[1]
     }
   }
+  thresh <- thresh - thresh[1]
   if(family == "gomp"){
     family = "extgp"
     par <- c(par, 0)
@@ -389,7 +387,7 @@ nll_elife <- function(par,
     scale <- par[1]
     shape <- par[-1]
     m <- length(shape)
-    stopifnot(length(thresh) == length(shape))
+    stopifnot("Threshold and shape parameter should be of the same length." = length(thresh) == m)
     w <- as.numeric(diff(thresh))
     sigma <- scale + c(0, cumsum(shape[-m]*w))
     fail <- !isTRUE(all(sigma > 0,
@@ -481,6 +479,9 @@ fit_elife <- function(dat,
             "Only a single threshold is allowed" = length(thresh) == 1L || family == "gppiece",
             "Only a single sampling scheme in `type` is allowed" = length(type) == 1L
   )
+  if(family == "gpppiece" && length(thresh) == 1L){
+    family <- "gp"
+  }
   if(!is.null(ltrunc) && !is.null(rtrunc)){
     stopifnot("`dat` and `ltrunc` must be of the same length." = n == length(ltrunc),
               "`ltrunc` must be lower than `dat`" = isTRUE(all(ltrunc <= dat))
@@ -695,7 +696,7 @@ fit_elife <- function(dat,
 #' for a range of parametric models suitable for the analysis of longevity data.
 #' These can be estimated simultaneously for a range of thresholds.
 #'
-#' @inheritParams np.ecdf
+#' @inheritParams nll_elife
 #' @param family string, one of \code{exp}, \code{gp}, \code{gomp} or \code{ext} for exponential, generalized Pareto, Gompertz or extended family, respectively.
 #' @param thresh a vector of thresholds
 #' @param weights vector of weights, defaults to one for each observation.
