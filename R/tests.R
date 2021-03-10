@@ -170,6 +170,7 @@ anova.elife_par <- function(object,
 #'
 #' The reference distribution is chi-square
 #' @inheritParams fit_elife
+#' @export
 #' @param thresh a vector of thresholds
 #' @return a data frame with the following variables:
 #' \itemize{
@@ -268,20 +269,25 @@ ks_test <- function(dat,
                      type = c("none", "ltrc", "ltrt"),
                      family = c("exp", "gp", "weibull", "gomp", "extgp","gppiece"),
                      B = 999L){
-  #TODO implement simulation from ltrc
-  #TODO handle cases with more than 2K observation np.ecdf
   family <- match.arg(family)
   type <- match.arg(type)
+  ntot <- length(dat)
   wexc <- dat > thresh[1]
-  if(sum(wexc) > 2500L){
-    stop("The `np.ecdf` used in `ks_test` function cannot handle large datasets currently. Aborting (n < 2500 hardcoded limit to avoid crashing R).")
-  }
   dat <- dat[wexc] - thresh[1]
+  n <- length(dat)
   if(!is.null(ltrunc)){
     ltrunc <- pmax(0, ltrunc[wexc] - thresh[1])
   }
   if(!is.null(rtrunc)){
     rtrunc <- rtrunc[wexc] - thresh[1]
+  }
+  if(type == "ltrc"){
+    stopifnot("Right-censoring indicator is lacking." = !is.null(rcens) && length(rcens) == ntot)
+    rcens <- rcens[wexc]
+    status <- as.integer(!rcens)
+  } else{
+    rcens <- NULL
+    status <- rep(1L, n)
   }
   thresh <- 0
   # Fit parametric model
@@ -297,25 +303,26 @@ ks_test <- function(dat,
     stop("Could not estimate the parametric model.")
   }
   # Fit NPMLE of ECDF
-  Fn <- np.ecdf(dat = dat,
-                thresh = thresh,
-                rcens = rcens,
-                ltrunc = ltrunc,
-                rtrunc = rtrunc)
+  Fn <- npsurv(time = dat,
+               type = "interval",
+               event = status,
+               ltrunc = ltrunc,
+               rtrunc = rtrunc)
  # Compute test statistic
- ks <- max(abs(Fn$ecdf(Fn$x) - pelife(q = Fn$x, scale = F0$par[1], shape = F0$par[-1], family = family)))
+ ks <- max(abs(Fn$cdf(Fn$x) - pelife(q = Fn$x, scale = F0$par[1], shape = F0$par[-1], family = family)))
  stat <- rep(NA, B + 1L)
  stat[B + 1] <- ks
  for(b in 1:B){
    bootconv <- FALSE
    while(!bootconv){
  if(type == "ltrt"){
-   bootsamp <- r_dtrunc_elife(n = length(dat),
+   bootsamp <- samp_elife(n = length(dat),
                   scale = F0$par[1],
                   shape = F0$par[-1],
                   lower = ltrunc,
                   upper = rtrunc,
-                  family = family)
+                  family = family,
+                  type = type)
    bootrcens <- NULL
  } else if(type == "none"){
   bootsamp <- relife(n = length(dat),
@@ -323,10 +330,17 @@ ks_test <- function(dat,
                  shape = F0$par[-1],
                  family = family)
   bootrcens <- NULL
- } else if(type == "rcens"){
-   stop("Currently not implemented for right-censored data.")
+ } else if(type == "ltrc"){
+   boot_sim <- samp_elife(n = length(dat),
+                          scale = F0$par[1],
+                          shape = F0$par[-1],
+                          lower = ltrunc,
+                          upper = rtrunc,
+                          family = family,
+                          type = type)
+   bootsamp <- boot_sim$dat
+   bootrcens <- boot_sim$rcens
  }
-
    # bootstrap loop
    F0_b <- try(fit_elife(dat = bootsamp,
                    thresh = thresh,
@@ -336,14 +350,20 @@ ks_test <- function(dat,
                    type = type,
                    family = family))
    # Fit NPMLE of ECDF
-   Fn_b <- try(np.ecdf(dat = bootsamp,
-                 thresh = thresh,
-                 rcens = bootrcens,
-                 ltrunc = ltrunc,
-                 rtrunc = rtrunc))
+   if(type == "ltrc"){
+   Fn_b <- try(npsurv(time = bootsamp,
+                      event = as.integer(!bootrcens),
+                      ltrunc = ltrunc,
+                      rtrunc = rtrunc,
+                      type = "interval"))
+   } else{
+     Fn_b <- try(npsurv(time = bootsamp,
+                        ltrunc = ltrunc,
+                        rtrunc = rtrunc))
+   }
 
    # Compute test statistic
-   ks_boot <- try(max(abs(Fn_b$ecdf(Fn_b$x) - pelife(q = Fn_b$x, scale = F0_b$par[1], shape = F0_b$par[-1], family = family))))
+   ks_boot <- try(max(abs(Fn_b$cdf(Fn_b$x) - pelife(q = Fn_b$x, scale = F0_b$par[1], shape = F0_b$par[-1], family = family))))
    if(is.numeric(ks_boot)){
      stat[b] <- ks_boot
      bootconv <- TRUE

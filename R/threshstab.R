@@ -155,7 +155,8 @@ plot.elife_tstab <- function(object,
                                              x)),
                   aes(x = thresh, y = estimate)) +
         geom_pointrange(aes(ymin=lower, ymax=upper), size = 0.5, shape = 20) +
-        labs(x = "threshold", y = ylab, main = "threshold stability plot")
+        labs(x = "threshold", y = ylab, main = "threshold stability plot") +
+        scale_x_continuous(breaks = thresh, minor_breaks = NULL)
       return(g)
     }
     graphs <- list()
@@ -190,7 +191,7 @@ plot.elife_tstab <- function(object,
       }
     graphs$g1 <- g1
     }
-
+    return(invisible(graphs))
   } else{ # Default to base plot
     base_tstab_plot <- function(x, thresh, ylab = "scale"){
       plot(x = thresh, x[,1],
