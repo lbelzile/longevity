@@ -29,14 +29,13 @@ Pareto), with
     extending Northrop and Coleman (2014)
 -   [x] nonparametric maximum likelihood estimate of the distribution
     function with arbitrary truncation and censoring using the EM
-    algorithm of Turnbull (1976).
+    algorithm of Turnbull (1976) - C++ implementation.
 
 **TODO** list:
 
--   C++ implementation of the nonparametric MLE for the distribution
-    function of Turnbull (1976)
 -   profile likelihood for generalized Pareto (endpoint)
 -   uncertainty for diagnostic plots (via bootstrap)
+-   survival and hazard curves
 -   local hazard models (with associated plots)
 -   bootstrap *p*-values for nested models (`anova`)
 -   unit tests

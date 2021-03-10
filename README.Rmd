@@ -32,13 +32,13 @@ Parametric models for excess lifetime (exponential, Gompertz, Weibull, generaliz
 - [x] likelihood ratio tests for nested models
 - [x] likelihood ratio tests for a categorical explanatory
 - [x] score tests for piecewise generalized Pareto distribution, extending Northrop and Coleman (2014)
-- [x] nonparametric maximum likelihood estimate of the distribution function with arbitrary truncation and censoring using the EM algorithm of Turnbull (1976).
+- [x] nonparametric maximum likelihood estimate of the distribution function with arbitrary truncation and censoring using the EM algorithm of Turnbull (1976) - C++ implementation.
 
 **TODO** list:
 
-- C++ implementation of the nonparametric MLE for the distribution function of Turnbull (1976)
 - profile likelihood for generalized Pareto (endpoint)
 - uncertainty for diagnostic plots (via bootstrap)
+- survival and hazard curves
 - local hazard models (with associated plots)
 - bootstrap *p*-values for nested models (`anova`)
 - unit tests

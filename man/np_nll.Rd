@@ -9,15 +9,15 @@ np_nll(p, omega_lb, omega_ub, eta_lb, eta_ub, transform = TRUE)
 \arguments{
 \item{p}{vector of \code{D-1} parameters}
 
-\item{omega_lb}{index of interval in which death occurs}
-
-\item{omega_ub}{index of interval in which death occurs (if death is observed), or else the largest interval.}
-
-\item{eta_lb}{vector of largest index for the lower truncation}
-
-\item{eta_ub}{vector of smallest index for the upper truncation}
-
 \item{transform}{logical; are parameters on logit scale? Default to \code{TRUE}}
+
+\item{cens_lb}{index of interval in which death occurs}
+
+\item{cens_ub}{index of interval in which death occurs (if death is observed), or else the largest interval.}
+
+\item{trunc_lb}{vector of largest index for the lower truncation}
+
+\item{trunc_ub}{vector of smallest index for the upper truncation}
 }
 \description{
 Marginal log likelihood function of the nonparametric multinomial with censoring and truncation
