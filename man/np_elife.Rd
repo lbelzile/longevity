@@ -5,9 +5,11 @@
 \title{Nonparametric estimation of the survival function}
 \usage{
 np_elife(
-  dat,
-  thresh,
-  rcens = NULL,
+  time,
+  time2 = NULL,
+  event = NULL,
+  type = c("right", "left", "interval", "interval2"),
+  thresh = 0,
   ltrunc = NULL,
   rtrunc = NULL,
   tol = 1e-12,
@@ -15,15 +17,17 @@ np_elife(
 )
 }
 \arguments{
-\item{dat}{vector of \code{n} raw observations}
+\item{time}{excess time of the event of follow-up time, depending on the value of event}
+
+\item{time2}{ending excess time of the interval for interval censored data only.}
+
+\item{event}{status indicator, normally 0=alive, 1=dead. Other choices are \code{TRUE}/\code{FALSE} (\code{TRUE} for death).
+For interval censored data, the status indicator is 0=right censored, 1=event at time, 2=left censored, 3=interval censored.
+Although unusual, the event indicator can be omitted, in which case all subjects are assumed to have an event.}
+
+\item{type}{character string specifying the type of censoring. Possible values are "\code{right}", "\code{left}", "\code{interval}", "\code{interval2}".}
 
 \item{thresh}{double thresh}
-
-\item{rcens}{logical vector length \code{n}, where \code{rcens} is \code{TRUE} for right-censored observation and \code{FALSE} otherwise.}
-
-\item{ltrunc}{vector of size \code{n} of lower truncation time}
-
-\item{rtrunc}{vector of size \code{n} of upper truncation time}
 
 \item{tol}{double, relative tolerance for convergence of the EM algorithm}
 
@@ -44,15 +48,15 @@ The survival function is obtained through the EM algorithm
 described in Turnbull (1976) for left-truncated right-censored
 or else doubly truncated observations; censoring is assumed to be
 non-informative. The survival function changes only
-at the J distinct exceedances \eqn{y_i-u} and truncation points.
+at the \code{J} distinct exceedances \eqn{y_i-u} and truncation points.
 }
 \note{
 This function is a vanilla R implementation of the EM algorithm;
 the function \link{npsurv} uses a backbone Cpp implementation
-and will be faster for most settings. The function can return
-the variance covariance matrix of the \code{J-1} estimated probabilities,
-which is computed by inverting the negative hessian of the incomplete
-log likelihood.
+and will be faster for most settings (but it doesn't account for thresholds).
+The function can return  the variance covariance matrix of the \code{J-1}
+estimated probabilities, which is computed by inverting the negative
+hessian of the incomplete log likelihood.
 
 The method is currently limited to 2500 unique failure time, since
 the implementation has a heavy memory footprint of the order O(\eqn{J^2})
@@ -71,8 +75,9 @@ dat <- samp_elife(n = n, scale = 1,
                lower = ltrunc,
                upper = rtrunc,
                family = "gp",
-               type = "ltrt")
-thresh <- 0
-npi <- np_elife(dat = dat, thresh = thresh,
-rtrunc = rtrunc, ltrunc = ltrunc, vcov = TRUE)
+               type2 = "ltrt")
+npi <- np_elife(time = dat,
+                rtrunc = rtrunc,
+                ltrunc = ltrunc,
+                vcov = TRUE)
 }

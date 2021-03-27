@@ -8,10 +8,10 @@
 A data frame with 305143 rows and 11 variables:
 \describe{
 \item{ndays}{survival time (in days)}
-\item{bdate}{the smallest plausible birth date given information about month of birth and death and survival (in days)}
+\item{bdate}{the smallest plausible birth date given information about month of birth and death and survival (\code{Date})}
 \item{bmonth}{month of birth}
 \item{byear}{year of birth}
-\item{ddate}{the largest plausible death date given information about month of birth and death and survival (in days)}
+\item{ddate}{the largest plausible death date given information about month of birth and death and survival (\code{Date})}
 \item{dmonth}{month of death}
 \item{dyear}{year of death}
 \item{ltrunc}{minimum age (in days); the maximum of either 92 years or the number of days reached in 1986}
@@ -21,7 +21,7 @@ A data frame with 305143 rows and 11 variables:
 }
 }
 \source{
-https://doi.org/10.1080/01621459.2018.1537912
+Statistics Netherlands (CBS). Accessed via the Supplemental material of Einmahl, Einmahl and de Haan (2019)
 }
 \usage{
 dutch
@@ -35,6 +35,6 @@ There are 226 records that are interval-censored and interval-truncated
 for which \code{bdate}, \code{ddate} and \code{ndays} is missing (\code{NA}).
 }
 \references{
-Einmahl, J.J., J.H.J. Einmahl and L. de Haan (2019). \emph{Limits to Human Life Span Through Extreme Value Theory}, Journal of the American Statistical Association, \bold{114}(527), 1075-1080.
+Einmahl, J.J., J.H.J. Einmahl and L. de Haan (2019). \emph{Limits to Human Life Span Through Extreme Value Theory}, Journal of the American Statistical Association, \bold{114}(527), 1075-1080. \url{https://doi.org/10.1080/01621459.2018.1537912}
 }
 \keyword{datasets}

@@ -10,14 +10,14 @@ samp_elife(
   shape,
   lower = 0,
   upper = Inf,
-  family = c("exp", "gp", "gomp", "weibull", "extgp", "gppiece"),
-  type = c("none", "ltrt", "ltrc")
+  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "gppiece"),
+  type2 = c("none", "ltrt", "ltrc")
 )
 }
 \arguments{
 \item{n}{sample size}
 
-\item{scale}{scale parameter}
+\item{scale}{scale parameter(s)}
 
 \item{shape}{shape parameter(s)}
 
@@ -25,15 +25,15 @@ samp_elife(
 
 \item{upper}{vector of upper bounds}
 
-\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}) or extended generalized Pareto (\code{extgp}).}
+\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).}
 
-\item{type}{string, either \code{none}, \code{ltrt} for left- and right-truncated data or \code{ltrc} for left-truncated right-censored data}
+\item{type2}{string, either \code{none}, \code{ltrt} for left- and right-truncated data or \code{ltrc} for left-truncated right-censored data}
 }
 \value{
-either a vector of observations or, if \code{type=ltrc}, a list with \code{n} observations \code{dat} and a logical vector of the same length with \code{TRUE} for right-censored observations and \code{FALSE} otherwise.
+either a vector of observations or, if \code{type2=ltrc}, a list with \code{n} observations \code{dat} and a logical vector of the same length with \code{TRUE} for right-censored observations and \code{FALSE} otherwise.
 }
 \description{
 This function dispatches simulations accounting for potential left-truncation (remove by setting lower to zero).
-If \code{type=ltrt}, simulated observations will be lower than the upper bounds \code{upper}.
-If \code{type=ltrc}, simulated observations are capped at \code{upper} and the observation is right-censored (\code{rcens=TRUE}).
+If \code{type2=ltrt}, simulated observations will be lower than the upper bounds \code{upper}.
+If \code{type2=ltrc}, simulated observations are capped at \code{upper} and the observation is right-censored (\code{rcens=TRUE}).
 }

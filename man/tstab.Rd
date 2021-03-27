@@ -5,34 +5,40 @@
 \title{Threshold stability plots}
 \usage{
 tstab(
-  dat,
-  thresh,
+  time,
+  time2 = NULL,
+  event = NULL,
+  thresh = 0,
   ltrunc = NULL,
   rtrunc = NULL,
-  rcens = NULL,
-  type = c("none", "ltrt", "ltrc"),
+  type = c("right", "left", "interval", "interval2"),
   family = c("gp", "exp"),
   method = c("wald", "profile"),
   level = 0.95,
   plot = TRUE,
   plot.type = c("base", "ggplot"),
-  which.plot = c("scale", "shape")
+  which.plot = c("scale", "shape"),
+  weights = NULL
 )
 }
 \arguments{
-\item{dat}{vector of threshold exceedances}
+\item{time}{excess time of the event of follow-up time, depending on the value of event}
 
-\item{thresh}{threshold}
+\item{time2}{ending excess time of the interval for interval censored data only.}
 
-\item{ltrunc}{lower truncation limit, possibly zero}
+\item{event}{status indicator, normally 0=alive, 1=dead. Other choices are \code{TRUE}/\code{FALSE} (\code{TRUE} for death).
+For interval censored data, the status indicator is 0=right censored, 1=event at time, 2=left censored, 3=interval censored.
+Although unusual, the event indicator can be omitted, in which case all subjects are assumed to have an event.}
 
-\item{rtrunc}{upper truncation limit}
+\item{thresh}{vector of thresholds}
 
-\item{rcens}{logical indicating right-censoring (\code{TRUE} for censored)}
+\item{ltrunc}{lower truncation limit, default to \code{NULL}}
 
-\item{type}{string, either \code{ltrt} for left- and right-truncated data or \code{ltrc} for left-truncated right-censored data}
+\item{rtrunc}{upper truncation limit, default to \code{NULL}}
 
-\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}) or extended generalized Pareto (\code{extgp}).}
+\item{type}{character string specifying the type of censoring. Possible values are "\code{right}", "\code{left}", "\code{interval}", "\code{interval2}".}
+
+\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).}
 
 \item{method}{string giving the type of pointwise confidence interval, either Wald (\code{wald}) or profile likelihood (\code{lrt})}
 
@@ -43,6 +49,10 @@ tstab(
 \item{plot.type}{string; either \code{base} for base R plots or \code{ggplot} for \code{ggplot2} plots}
 
 \item{which.plot}{string; which parameters to plot;}
+
+\item{weights}{weights for observations}
+
+\item{dist}{string giving the distribution, either generalized Pareto (\code{gp}) or exponential (\code{exp})}
 }
 \value{
 an invisible list with pointwise estimates and confidence intervals for the scale and shape parameters

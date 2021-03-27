@@ -3,13 +3,15 @@
 #' #' @inheritParams hazard_elife
 #' #' @param psi optional vector of endpoints at which to compute the profile
 #' #' @return a vector of length three containing twice the negative log-likelihood value, the endpoint value and the maximum of the nuisance lambda (i.e., the shape parameter).
-#' prof_gp_endpoint <- function(dat,
+#' prof_gp_endpoint <- function(time,
+#'                              time2,
+#'                              event,
 #'                              thresh = 0,
-#'                              type = c("none","ltrt","ltrc"),
+#'                              type = c("right","left","interval","interval2"),
 #'                              rcens,
 #'                              ltrunc,
 #'                              rtrunc,
-#'                              weights = rep(1, length(dat)),
+#'                              weights = rep(1, length(time)),
 #'                              level = 0.95,
 #'                              psi = NULL,
 #'                              plot = FALSE){

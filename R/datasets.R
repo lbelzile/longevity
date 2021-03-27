@@ -10,10 +10,10 @@
 #' @format A data frame with 305143 rows and 11 variables:
 #' \describe{
 #' \item{ndays}{survival time (in days)}
-#' \item{bdate}{the smallest plausible birth date given information about month of birth and death and survival (in days)}
+#' \item{bdate}{the smallest plausible birth date given information about month of birth and death and survival (\code{Date})}
 #' \item{bmonth}{month of birth}
 #' \item{byear}{year of birth}
-#' \item{ddate}{the largest plausible death date given information about month of birth and death and survival (in days)}
+#' \item{ddate}{the largest plausible death date given information about month of birth and death and survival (\code{Date})}
 #' \item{dmonth}{month of death}
 #' \item{dyear}{year of death}
 #' \item{ltrunc}{minimum age (in days); the maximum of either 92 years or the number of days reached in 1986}
@@ -21,10 +21,40 @@
 #' \item{gender}{factor indicating gender of individual, either \code{female} or \code{male}}
 #' \item{valid}{quality flag; \code{A} for individuals born in the Netherlands, \code{B} for individuals born abroad who died in the Netherlands}
 #' }
-#' @references Einmahl, J.J., J.H.J. Einmahl and L. de Haan (2019). \emph{Limits to Human Life Span Through Extreme Value Theory}, Journal of the American Statistical Association, \bold{114}(527), 1075-1080.
+#' @references Einmahl, J.J., J.H.J. Einmahl and L. de Haan (2019). \emph{Limits to Human Life Span Through Extreme Value Theory}, Journal of the American Statistical Association, \bold{114}(527), 1075-1080. \url{https://doi.org/10.1080/01621459.2018.1537912}
 #'
-#' @source https://doi.org/10.1080/01621459.2018.1537912
+#' @source Statistics Netherlands (CBS). Accessed via the Supplemental material of Einmahl, Einmahl and de Haan (2019)
 "dutch"
+
+#' England and Wales semi-supercentenarian
+#'
+#' This data frame contains information about 3866
+#' Welsh and English who died at age ranging from 105 to 110
+#' between 2000 and 2014 (except for two women
+#' who died late in December 1999).
+#' All records for people who died at age 109 and all men,
+#' plus a stratified sample of the women were validated
+#' by the General Register Office (GRO). Observations are
+#' doubly truncated.
+#'
+#' In the original data forwarded by the IDL staff,
+#' there are 7 records that are dubious (missing birth day or month)
+#' that were excluded. The referenced technical reports describes the validation
+#' procedure in more details and includes (approximate) sampling weights for the validation
+#' sample of women who died age 105-108.
+#' @references Office for National Statistics (2016). Accuracy of official high-age population estimates, in England and Wales: an evaluation. Technical report, \url{https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/ageing/methodologies/accuracyofofficialhighagepopulationestimatesinenglandandwalesanevaluation}
+#' @source Ngaire Coombs, Office for National Statistics (ONS)
+#' @format A data frame with 3866 rows and 7 variables:
+#' \describe{
+#' \item{ndays}{survival time (in days)}
+#' \item{bdate}{birth date (\code{Date})}
+#' \item{ddate}{death date (\code{Date})}
+#' \item{ltrunc}{minimum age (in days); the maximum of either 105 years or the number of days reached in 2000}
+#' \item{rtrunc}{maximum age (in days) an individual could have reached by the end of 2014}
+#' \item{gender}{factor indicating gender of individual, either \code{female} or \code{male}}
+#' \item{valid}{quality flag; \code{A} for validated records, \code{B} for unchecked records}
+#' }
+"englandwales"
 
 #' Japanese survival data
 #'
@@ -33,18 +63,20 @@
 #' by the whole part of age attained at death.
 #'
 #' These data were obtained from the Annual Vital Statistics Report of Japan, released by the
-#' Japanese government every year since 1947. The authors note that "#' All the members of that cohort have died
+#' Japanese government every year since 1947. The authors note that "All the members of that cohort have died
 #' by the end of the observation period, a procedure referred to as the
 #' extinct cohort method". The data were obtained from the Human Mortality Database by the authors.
+#' Only positive counts are reported and two records (Misao Okawa and Jiroemon Kimura) are
+#' excluded because they do not correspond to the same selection mechanism.
 #'
-#' @format A data frame with 1508 rows and 4 variables:
+#' @format A data frame with 1038 rows and 4 variables:
 #' \describe{
 #' \item{age}{integer, age (to the smallest year) at death (in years)}
 #' \item{byear}{integer, birth year}
 #' \item{count}{intreger, number of death for cohort at given age}
 #' \item{gender}{factor, the gender of the individuals; either \code{male} or \code{female}}
 #' }
-#' @references Hanayama, N. and M. Sibuya (2016). Estimating the Upper Limit of Lifetime Probability Distribution, Based on Data of Japanese Centenarians, \emph{The Journals of Gerontology: Series A}, 71(\bold{8}), 1014–1021.
+#' @references Hanayama, N. and M. Sibuya (2016). Estimating the Upper Limit of Lifetime Probability Distribution, Based on Data of Japanese Centenarians, \emph{The Journals of Gerontology: Series A}, 71(\bold{8}), 1014–1021. \url{https://doi.org/10.1093/gerona/glv113}
 #'
-#' @source https://doi.org/10.1093/gerona/glv113
+#' @source Table extracted from the Hanamaya & Sibuya (2016).
 "japanese"

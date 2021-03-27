@@ -10,6 +10,7 @@
 #'
 #' @details The shape estimates are constrained
 #' @inheritParams nll_elife
+#' @param dist string giving the distribution, either generalized Pareto (\code{gp}) or exponential (\code{exp})
 #' @param method string giving the type of pointwise confidence interval, either Wald (\code{wald}) or profile likelihood (\code{lrt})
 #' @param level probability level for the pointwise confidence intervals
 #' @param plot.type string; either \code{base} for base R plots or \code{ggplot} for \code{ggplot2} plots
@@ -18,21 +19,24 @@
 #' @seealso \code{\link[mev]{tstab.gpd}}, \code{\link[ismev]{gpd.fitrange}}, \code{\link[evd]{tcplot}}
 #' @export
 #' @return an invisible list with pointwise estimates and confidence intervals for the scale and shape parameters
-tstab <- function(dat,
-                  thresh,
+tstab <- function(time,
+                  time2 = NULL,
+                  event = NULL,
+                  thresh = 0,
                   ltrunc = NULL,
                   rtrunc = NULL,
-                  rcens = NULL,
-                  type = c("none","ltrt","ltrc"),
+                  type = c("right","left","interval","interval2"),
                   family = c('gp','exp'),
                   method = c("wald","profile"),
                   level = 0.95,
                   plot = TRUE,
                   plot.type = c("base","ggplot"),
-                  which.plot = c("scale","shape")
+                  which.plot = c("scale","shape"),
+                  weights = NULL
                   ){
   family <- match.arg(family)
   method <- match.arg(method)
+  type <- match.arg(type)
   if(plot){
     plot.type <- match.arg(plot.type)
     which.plot <- match.arg(which.plot, choices = c("scale","shape"), several.ok = TRUE)
@@ -46,35 +50,41 @@ tstab <- function(dat,
     shape_par_mat <- matrix(NA, nrow = length(thresh), ncol = 3)
   }
   for(i in 1:length(thresh)){
-    opt_mle <- fit_elife(dat = dat,
-                           thresh = thresh[i],
-                           ltrunc = ltrunc,
-                           rtrunc = rtrunc,
-                           rcens = rcens,
-                           type = type,
-                           family = family)
+    opt_mle <- fit_elife(time = time,
+                         time2 = time2,
+                         event = event,
+                         thresh = thresh[i],
+                         ltrunc = ltrunc,
+                         rtrunc = rtrunc,
+                         type = type,
+                         family = family,
+                         export = TRUE,
+                         weights = weights)
+    opt_mle$mdat <- max(c(opt_mle$time, opt_mle$time2), na.rm = TRUE)
     if(method == "profile"){
       if(family == "gp"){
         if("shape" %in% which.plot){
           shape_i <- try(prof_gp_shape_confint(mle = opt_mle,
-                                        dat = dat,
-                                        thresh = thresh[i],
-                                        ltrunc = ltrunc,
-                                        rtrunc = rtrunc,
-                                        rcens = rcens,
-                                        type = type,
-                                        level = level))
+                                               time = time,
+                                               time2 = time2,
+                                               event = event,
+                                                thresh = thresh[i],
+                                                ltrunc = ltrunc,
+                                                rtrunc = rtrunc,
+                                                type = type,
+                                                level = level))
           if(!is.character(shape_i)){
             shape_par_mat[i,] <- shape_i
           }
         }
         if("scale" %in% which.plot){
          scalet_i <- try(prof_gp_scalet_confint(mle = opt_mle,
-                                               dat = dat,
+                                                time = time,
+                                                time2 = time2,
+                                                event = event,
                                                thresh = thresh[i],
                                                ltrunc = ltrunc,
                                                rtrunc = rtrunc,
-                                               rcens = rcens,
                                                type = type,
                                                level = level))
          if(!is.character(scalet_i)){
@@ -83,11 +93,12 @@ tstab <- function(dat,
         }
       } else if(family == "exp"){
         scale_i <- try(prof_exp_scale_confint(mle = opt_mle,
-                                           dat = dat,
+                                              time = time,
+                                              time2 = time2,
+                                              event = event,
                                            thresh = thresh[i],
                                            ltrunc = ltrunc,
                                            rtrunc = rtrunc,
-                                           rcens = rcens,
                                            type = type,
                                            level = level))
         if(!is.character(scale_i)){
@@ -133,9 +144,10 @@ tstab <- function(dat,
                      class = "elife_tstab")
   }
   if(plot){
-    plot(res, plot.type = plot.type, which.plot = which.plot)
+    plot(res, plot.type = plot.type, which.plot = which.plot, plot = TRUE)
   }
-  res$nexc <- as.integer(sapply(thresh, function(u){sum(dat > u, na.rm = TRUE)}))
+  #TODO check this for left-truncated data
+  res$nexc <- as.integer(sapply(thresh, function(u){sum(time > u, na.rm = TRUE)}))
   invisible(res)
 }
 
@@ -155,8 +167,8 @@ plot.elife_tstab <- function(object,
                                              x)),
                   aes(x = thresh, y = estimate)) +
         geom_pointrange(aes(ymin=lower, ymax=upper), size = 0.5, shape = 20) +
-        labs(x = "threshold", y = ylab, main = "threshold stability plot") +
-        scale_x_continuous(breaks = thresh, minor_breaks = NULL)
+        labs(x = "threshold", y = ylab, main = "threshold stability plot") #+
+        # scale_x_continuous(breaks = thresh, minor_breaks = NULL)
       return(g)
     }
     graphs <- list()
@@ -178,7 +190,7 @@ plot.elife_tstab <- function(object,
       if(length(which.plot) == 2L && plot){
         if(requireNamespace("patchwork", quietly = TRUE)){
           library(patchwork)
-          g1 + g2
+          print(g1 + g2)
         } else{
           print(g1)
           print(g2)
@@ -235,13 +247,18 @@ plot.elife_tstab <- function(object,
 #' @return a vector of length three with the maximum likelihood of the shape and profile-based confidence interval
 prof_gp_shape_confint <-
   function(mle = NULL,
-           dat,
+           time,
+           time2 = NULL,
+           event = NULL,
            thresh,
-           ltrunc,
-           rtrunc,
-           rcens,
-           type = c("none","ltrt","ltrc"),
-           level = 0.95){
+           ltrunc = NULL,
+           rtrunc = NULL,
+           type = c("right","left","interval","interval2"),
+           level = 0.95,
+           weights = NULL){
+    if(is.null(weights)){
+      weights <- rep(1, length(time))
+    }
     type <- match.arg(type)
     stopifnot("Provide a single value for the level" = length(level) == 1L,
               "Level should be a probability" = level < 1 && level > 0,
@@ -249,27 +266,32 @@ prof_gp_shape_confint <-
     if(!is.null(mle)){
       stopifnot("`mle` should be an object of class `elife_par` as returned by `fit_elife`" =  inherits(mle, "elife_par"))
     } else{
-      mle <- fit_elife(dat = dat,
-                         thresh = thresh,
-                         ltrunc = ltrunc,
-                         rtrunc = rtrunc,
-                         rcens = rcens,
-                         type = type,
-                         family = "gp")
+      mle <- fit_elife(time = time,
+                       time2 = time2,
+                       event = event,
+                       thresh = thresh,
+                       ltrunc = ltrunc,
+                       rtrunc = rtrunc,
+                       type = type,
+                       family = "gp",
+                       export = TRUE,
+                       weights = weights)
+      mle$mdat <- max(c(mle$time, mle$time2), na.rm = TRUE)
     }
-
   xis <- seq(-0.99, 2, length = 100L)
-  mdat <- max(dat)
+  mdat <- mle$mdat
   dev <- sapply(xis, function(xi){
     opt <- optimize(f = function(lambda){
       nll_elife(par = c(lambda, xi),
-                dat = dat,
+                time = time,
+                time2 = time2,
+                event = event,
                 thresh = thresh,
                 type = type,
-                rcens = rcens,
                 ltrunc = ltrunc,
                 rtrunc = rtrunc,
-                family = "gp")
+                family = "gp",
+                weights = weights)
       },
       interval = c(ifelse(xi < 0, mdat*abs(xi), 1e-8), 10*mdat), tol = 1e-10)
     c(-2*opt$objective, opt$minimum)
@@ -291,13 +313,18 @@ prof_gp_shape_confint <-
 #' @return confidence interval
 prof_gp_scalet_confint <-
   function(mle = NULL,
-           dat,
-           thresh,
-           ltrunc,
-           rtrunc,
-           rcens,
-           type = c("none","ltrt","ltrc"),
-           level = 0.95){
+           time,
+           time2 = NULL,
+           event = NULL,
+           thresh = 0,
+           ltrunc = NULL,
+           rtrunc = NULL,
+           type = c("right","left","interval","interval2"),
+           level = 0.95,
+           weights = NULL){
+    if(is.null(weights)){
+      weights <- rep(1, length(time))
+    }
     type <- match.arg(type)
     stopifnot("Provide a single value for the level" = length(level) == 1L,
               "Level should be a probability" = level < 1 && level > 0,
@@ -305,15 +332,20 @@ prof_gp_scalet_confint <-
     if(!is.null(mle)){
       stopifnot("`mle` should be an object of class `elife_par` as returned by `fit_elife`" =  inherits(mle, "elife_par"))
     } else{
-      mle <- fit_elife(dat = dat,
-                         thresh = thresh,
-                         ltrunc = ltrunc,
-                         rtrunc = rtrunc,
-                         rcens = rcens,
-                         type = type,
-                         family = "gp")
+      mle <- fit_elife(time = time,
+                       time2 = time2,
+                       event = event,
+                       thresh = thresh,
+                       ltrunc = ltrunc,
+                       rtrunc = rtrunc,
+                       type = type,
+                       family = "gp",
+                       export = TRUE,
+                       weights = weights
+                        )
+      mle$mdat <- max(c(mle$time, mle$time2), na.rm = TRUE)
     }
-    mdat <- max(dat)
+    mdat <- mle$mdat
     sigma_t_mle <- mle$par[1] - mle$par[2]*thresh
     dV <- matrix(c(1, -thresh), ncol = 1)
     sigma_t_se <- sqrt(as.numeric(t(dV) %*% mle$vcov %*% dV))
@@ -329,10 +361,11 @@ prof_gp_scalet_confint <-
     #                                      dev[i+1,2]),
     #                        fun = function(xi){
     #                          nll_elife(par = c(scalet + xi * thresh, xi),
-    #                                    dat = dat,
+    #                                    time = time,
+    #                                    time2 = time2,
+    #                                    event = event,
     #                                    thresh = thresh,
     #                                    type = type,
-    #                                    rcens = rcens,
     #                                    ltrunc = ltrunc,
     #                                    rtrunc = rtrunc,
     #                                    family = "gp")
@@ -348,13 +381,15 @@ prof_gp_scalet_confint <-
     dev <- t(sapply(psi, function(scalet){
       opt <- optimize(f = function(xi){
         nll_elife(par = c(scalet + xi * thresh, xi),
-                  dat = dat,
+                  time = time,
+                  time2 = time2,
+                  event = event,
                   thresh = thresh,
                   type = type,
-                  rcens = rcens,
                   ltrunc = ltrunc,
                   rtrunc = rtrunc,
-                  family = "gp")
+                  family = "gp",
+                  weights = weights)
       },
       interval = c(pmax(-1, ifelse(thresh == 0, -scalet/thresh, -scalet/mdat)), 3),
       tol = 1e-10)
@@ -381,38 +416,47 @@ prof_gp_scalet_confint <-
 #' @return a vector of length three with the maximum likelihood of the scale and profile-based confidence interval
 #' @keywords internal
 prof_exp_scale_confint <- function(mle = NULL,
-                                   dat,
-                                   thresh,
-                                   ltrunc,
-                                   rtrunc,
-                                   rcens,
-                                   type = c("none","ltrt","ltrc"),
-                                   level = 0.95){
+                                   time,
+                                   time2 = NULL,
+                                   event = NULL,
+                                   thresh = 0,
+                                   ltrunc = NULL,
+                                   rtrunc = NULL,
+                                   type = c("right","left","interval","interval2"),
+                                   level = 0.95,
+                                   weights = NULL){
   type <- match.arg(type)
   stopifnot("Provide a single value for the level" = length(level) == 1L,
             "Level should be a probability" = level < 1 && level > 0,
             "Provide a single threshold" = length(thresh) == 1L)
+  if(is.null(weights)){
+    weights <- rep(1, length(time))
+  }
   if(!is.null(mle)){
     stopifnot("`mle` should be an object of class `elife_par` as returned by `fit_elife`" =  inherits(mle, "elife_par"))
   } else{
-    mle <- fit_elife(dat = dat,
-                       thresh = thresh,
-                       ltrunc = ltrunc,
-                       rtrunc = rtrunc,
-                       rcens = rcens,
-                       type = type,
-                       family = "exp")
+    mle <- fit_elife(time = time,
+                     time2 = time2,
+                     event = event,
+                     thresh = thresh,
+                     ltrunc = ltrunc,
+                     rtrunc = rtrunc,
+                     type = type,
+                     family = "exp",
+                     weights = weights)
   }
   psi <- mle$par + seq(pmax(-mle$par + 1e-4, -4*mle$std.error), 4*mle$std.error, length.out = 201)
   pll <- sapply(psi, function(scale){
     nll_elife(par = scale,
-              dat = dat,
+              time = time,
+              time2 = time2,
+              event = event,
               thresh = thresh,
               type = type,
-              rcens = rcens,
               ltrunc = ltrunc,
               rtrunc = rtrunc,
-              family = "exp")
+              family = "exp",
+              weights = weights)
   })
   conf_interv(list(psi = psi,
                    pll = -2*(mle$loglik + pll),

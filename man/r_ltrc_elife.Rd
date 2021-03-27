@@ -10,7 +10,7 @@ r_ltrc_elife(
   shape,
   lower,
   upper,
-  family = c("exp", "gp", "gomp", "weibull", "extgp")
+  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp")
 )
 }
 \arguments{

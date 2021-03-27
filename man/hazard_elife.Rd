@@ -6,14 +6,16 @@
 \usage{
 hazard_elife(
   x,
-  dat,
+  time,
+  time2 = NULL,
+  event = NULL,
+  status = NULL,
   thresh = 0,
-  type = c("none", "ltrt", "ltrc"),
-  rcens,
-  ltrunc,
-  rtrunc,
-  family = c("exp", "gp", "gomp", "weibull", "extgp"),
-  weights = rep(1, length(dat)),
+  ltrunc = NULL,
+  rtrunc = NULL,
+  type = c("right", "left", "interval", "interval2"),
+  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp"),
+  weights = NULL,
   level = 0.95,
   psi = NULL,
   plot = FALSE
@@ -22,19 +24,25 @@ hazard_elife(
 \arguments{
 \item{x}{value of the threshold exceedance at which to estimate the hazard}
 
-\item{dat}{vector of threshold exceedances}
+\item{time}{excess time of the event of follow-up time, depending on the value of event}
 
-\item{thresh}{threshold}
+\item{time2}{ending excess time of the interval for interval censored data only.}
 
-\item{type}{string, either \code{ltrt} for left- and right-truncated data or \code{ltrc} for left-truncated right-censored data}
+\item{event}{status indicator, normally 0=alive, 1=dead. Other choices are \code{TRUE}/\code{FALSE} (\code{TRUE} for death).
+For interval censored data, the status indicator is 0=right censored, 1=event at time, 2=left censored, 3=interval censored.
+Although unusual, the event indicator can be omitted, in which case all subjects are assumed to have an event.}
 
-\item{rcens}{logical indicating right-censoring (\code{TRUE} for censored)}
+\item{status}{integer vector giving status of an observation. If \code{NULL} (default), this argument is computed internally based on \code{type}.}
 
-\item{ltrunc}{lower truncation limit, possibly zero}
+\item{thresh}{vector of thresholds}
 
-\item{rtrunc}{upper truncation limit}
+\item{ltrunc}{lower truncation limit, default to \code{NULL}}
 
-\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}) or extended generalized Pareto (\code{extgp}).}
+\item{rtrunc}{upper truncation limit, default to \code{NULL}}
+
+\item{type}{character string specifying the type of censoring. Possible values are "\code{right}", "\code{left}", "\code{interval}", "\code{interval2}".}
+
+\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).}
 
 \item{weights}{weights for observations}
 
@@ -50,11 +58,10 @@ It is also used to provide local hazard plots at varying thresholds.
 }
 \examples{
 n <- 2500
-dat <- rdtrunc_elife(n = n, scale = 2,
+time <- samp_elife(n = n, scale = 2,
 family = "gp", shape = 0.1,
 lower = ltrunc <- runif(n),
-upper = rtrunc <- (5 + runif(n)))
-hazard_elife(x = 2, dat = dat,
- ltrunc = ltrunc, rtrunc = rtrunc,
- type = "ltrt", family = "gp")
+upper = rtrunc <- (5 + runif(n)), type2 = "ltrt")
+hazard_elife(x = 2, time = time,
+ ltrunc = ltrunc, rtrunc = rtrunc, family = "gp")
 }

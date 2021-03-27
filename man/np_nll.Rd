@@ -4,12 +4,10 @@
 \alias{np_nll}
 \title{Marginal log likelihood function of the nonparametric multinomial with censoring and truncation}
 \usage{
-np_nll(p, omega_lb, omega_ub, eta_lb, eta_ub, transform = TRUE)
+np_nll(p, cens_lb, cens_ub, trunc_lb, trunc_ub, transform = TRUE)
 }
 \arguments{
 \item{p}{vector of \code{D-1} parameters}
-
-\item{transform}{logical; are parameters on logit scale? Default to \code{TRUE}}
 
 \item{cens_lb}{index of interval in which death occurs}
 
@@ -18,6 +16,8 @@ np_nll(p, omega_lb, omega_ub, eta_lb, eta_ub, transform = TRUE)
 \item{trunc_lb}{vector of largest index for the lower truncation}
 
 \item{trunc_ub}{vector of smallest index for the upper truncation}
+
+\item{transform}{logical; are parameters on logit scale? Default to \code{TRUE}}
 }
 \description{
 Marginal log likelihood function of the nonparametric multinomial with censoring and truncation

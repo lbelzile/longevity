@@ -5,30 +5,35 @@
 \title{Goodness-of-fit diagnostics}
 \usage{
 ks_test(
-  dat,
-  thresh,
+  time,
+  time2 = NULL,
+  event = NULL,
+  thresh = 0,
   ltrunc = NULL,
   rtrunc = NULL,
-  rcens = NULL,
-  type = c("none", "ltrc", "ltrt"),
+  type = c("right", "left", "interval", "interval2"),
   family = c("exp", "gp", "weibull", "gomp", "extgp", "gppiece"),
   B = 999L
 )
 }
 \arguments{
-\item{dat}{vector of threshold exceedances}
+\item{time}{excess time of the event of follow-up time, depending on the value of event}
 
-\item{thresh}{threshold}
+\item{time2}{ending excess time of the interval for interval censored data only.}
 
-\item{ltrunc}{lower truncation limit, possibly zero}
+\item{event}{status indicator, normally 0=alive, 1=dead. Other choices are \code{TRUE}/\code{FALSE} (\code{TRUE} for death).
+For interval censored data, the status indicator is 0=right censored, 1=event at time, 2=left censored, 3=interval censored.
+Although unusual, the event indicator can be omitted, in which case all subjects are assumed to have an event.}
 
-\item{rtrunc}{upper truncation limit}
+\item{thresh}{vector of thresholds}
 
-\item{rcens}{logical indicating right-censoring (\code{TRUE} for censored)}
+\item{ltrunc}{lower truncation limit, default to \code{NULL}}
 
-\item{type}{string, either \code{ltrt} for left- and right-truncated data or \code{ltrc} for left-truncated right-censored data}
+\item{rtrunc}{upper truncation limit, default to \code{NULL}}
 
-\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}) or extended generalized Pareto (\code{extgp}).}
+\item{type}{character string specifying the type of censoring. Possible values are "\code{right}", "\code{left}", "\code{interval}", "\code{interval2}".}
+
+\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).}
 
 \item{B}{number of bootstrap simulations}
 }

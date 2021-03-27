@@ -5,7 +5,7 @@
 \alias{japanese}
 \title{Japanese survival data}
 \format{
-A data frame with 1508 rows and 4 variables:
+A data frame with 1038 rows and 4 variables:
 \describe{
 \item{age}{integer, age (to the smallest year) at death (in years)}
 \item{byear}{integer, birth year}
@@ -14,7 +14,7 @@ A data frame with 1508 rows and 4 variables:
 }
 }
 \source{
-https://doi.org/10.1093/gerona/glv113
+Table extracted from the Hanamaya & Sibuya (2016).
 }
 \usage{
 japanese
@@ -26,11 +26,13 @@ by the whole part of age attained at death.
 }
 \details{
 These data were obtained from the Annual Vital Statistics Report of Japan, released by the
-Japanese government every year since 1947. The authors note that "#' All the members of that cohort have died
+Japanese government every year since 1947. The authors note that "All the members of that cohort have died
 by the end of the observation period, a procedure referred to as the
 extinct cohort method". The data were obtained from the Human Mortality Database by the authors.
+Only positive counts are reported and two records (Misao Okawa and Jiroemon Kimura) are
+excluded because they do not correspond to the same selection mechanism.
 }
 \references{
-Hanayama, N. and M. Sibuya (2016). Estimating the Upper Limit of Lifetime Probability Distribution, Based on Data of Japanese Centenarians, \emph{The Journals of Gerontology: Series A}, 71(\bold{8}), 1014–1021.
+Hanayama, N. and M. Sibuya (2016). Estimating the Upper Limit of Lifetime Probability Distribution, Based on Data of Japanese Centenarians, \emph{The Journals of Gerontology: Series A}, 71(\bold{8}), 1014–1021. \url{https://doi.org/10.1093/gerona/glv113}
 }
 \keyword{datasets}

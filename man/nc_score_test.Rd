@@ -5,27 +5,32 @@
 \title{Score test of Northrop and Coleman}
 \usage{
 nc_score_test(
-  dat,
-  thresh,
+  time,
+  time2 = NULL,
+  event = NULL,
+  thresh = 0,
   ltrunc = NULL,
   rtrunc = NULL,
-  rcens = NULL,
-  type = c("none", "ltrc", "ltrt"),
-  weights = rep(1, length(dat))
+  type = c("right", "left", "interval", "interval2"),
+  weights = rep(1, length(time))
 )
 }
 \arguments{
-\item{dat}{vector of threshold exceedances}
+\item{time}{excess time of the event of follow-up time, depending on the value of event}
+
+\item{time2}{ending excess time of the interval for interval censored data only.}
+
+\item{event}{status indicator, normally 0=alive, 1=dead. Other choices are \code{TRUE}/\code{FALSE} (\code{TRUE} for death).
+For interval censored data, the status indicator is 0=right censored, 1=event at time, 2=left censored, 3=interval censored.
+Although unusual, the event indicator can be omitted, in which case all subjects are assumed to have an event.}
 
 \item{thresh}{a vector of thresholds}
 
-\item{ltrunc}{lower truncation limit, possibly zero}
+\item{ltrunc}{lower truncation limit, default to \code{NULL}}
 
-\item{rtrunc}{upper truncation limit}
+\item{rtrunc}{upper truncation limit, default to \code{NULL}}
 
-\item{rcens}{logical indicating right-censoring (\code{TRUE} for censored)}
-
-\item{type}{string, either \code{ltrt} for left- and right-truncated data or \code{ltrc} for left-truncated right-censored data}
+\item{type}{character string specifying the type of censoring. Possible values are "\code{right}", "\code{left}", "\code{interval}", "\code{interval2}".}
 
 \item{weights}{weights for observations}
 }

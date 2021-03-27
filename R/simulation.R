@@ -1,40 +1,40 @@
 #' Simulate excess lifetime with truncation or right-censoring
 #'
 #' This function dispatches simulations accounting for potential left-truncation (remove by setting lower to zero).
-#' If \code{type=ltrt}, simulated observations will be lower than the upper bounds \code{upper}.
-#' If \code{type=ltrc}, simulated observations are capped at \code{upper} and the observation is right-censored (\code{rcens=TRUE}).
+#' If \code{type2=ltrt}, simulated observations will be lower than the upper bounds \code{upper}.
+#' If \code{type2=ltrc}, simulated observations are capped at \code{upper} and the observation is right-censored (\code{rcens=TRUE}).
 #'
 #' @param n sample size
-#' @param scale scale parameter
+#' @param scale scale parameter(s)
 #' @param shape shape parameter(s)
-#' @param family string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}) or extended generalized Pareto (\code{extgp}).
+#' @param family string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).
 #' @param lower vector of lower bounds
 #' @param upper vector of upper bounds
-#' @param type string, either \code{none}, \code{ltrt} for left- and right-truncated data or \code{ltrc} for left-truncated right-censored data
+#' @param type2 string, either \code{none}, \code{ltrt} for left- and right-truncated data or \code{ltrc} for left-truncated right-censored data
 #' @export
-#' @return either a vector of observations or, if \code{type=ltrc}, a list with \code{n} observations \code{dat} and a logical vector of the same length with \code{TRUE} for right-censored observations and \code{FALSE} otherwise.
+#' @return either a vector of observations or, if \code{type2=ltrc}, a list with \code{n} observations \code{dat} and a logical vector of the same length with \code{TRUE} for right-censored observations and \code{FALSE} otherwise.
 samp_elife <- function(n,
                        scale,
                        shape,
                        lower = 0,
                        upper = Inf,
-                       family = c("exp","gp","gomp","weibull","extgp","gppiece"),
-                       type = c("none","ltrt","ltrc")){
+                       family = c("exp","gp","gomp","gompmake","weibull","extgp","gppiece"),
+                       type2 = c("none","ltrt","ltrc")){
   family <- match.arg(family)
-  type <- match.arg(type)
-  if(type == "none"){
+  type2 <- match.arg(type2)
+  if(type2 == "none"){
     relife(n = n,
            scale = scale,
            shape = shape,
            family = family)
-  } else if(type == "ltrt"){
+  } else if(type2 == "ltrt"){
     r_dtrunc_elife(n = n,
                    scale = scale,
                    shape = shape,
                    lower = lower,
                    upper = upper,
                    family = family)
-  } else if(type == "ltrc"){
+  } else if(type2 == "ltrc"){
     r_ltrc_elife(n = n,
                  scale = scale,
                  shape = shape,
@@ -65,7 +65,7 @@ r_dtrunc_elife <- function(n,
                           shape,
                           lower,
                           upper,
-                          family = c("exp","gp","gomp","weibull","extgp")
+                          family = c("exp","gp","gomp","gompmake","weibull","extgp")
                           ){
   family <- match.arg(family)
   if(length(lower) > 1){
@@ -73,6 +73,21 @@ r_dtrunc_elife <- function(n,
   }
   if(length(upper) > 1){
     stopifnot("Sample size should match length of 'upper'" = length(upper) == n)
+  }
+  if(family == "gompmake"){
+    stopifnot("Scale and shape parameters must be positive" = isTRUE(all(c(scale[1] > 0, scale[2] >= 0, shape[1] >= 0))))
+    if(isTRUE(all.equal(shape[1], 0, ignore.attributes = TRUE))){
+      family == "gp"
+      shape[1] <- 0
+    } else if(isTRUE(all.equal(scale[2], 0, ignore.attributes = TRUE))){
+      family == "gomp"
+      scale <- scale[1]
+    } else{
+      return(qgompmake(pgompmake(q = lower, scale = scale[1], lambda = scale[2], shape = shape[1]) +
+                     runif(n)*(pgompmake(upper,  scale = scale[1], lambda = scale[2], shape = shape[1]) - pgompmake(lower, scale = scale[1], lambda = scale[2], shape = shape[1])),
+                     scale = scale[1], lambda = scale[2], shape = shape[1])
+      )
+    }
   }
   if(family == "gomp"){
     stopifnot("Scale and shape parameters must be positive" = isTRUE(scale > 0 && shape[1] >= 0))
@@ -142,7 +157,7 @@ r_ltrc_elife <- function(n,
                          shape,
                          lower,
                          upper,
-                         family = c("exp","gp","gomp","weibull","extgp")
+                         family = c("exp","gp","gomp","gompmake","weibull","extgp")
 ){
   family <- match.arg(family)
   if(length(lower) > 1){
@@ -150,6 +165,21 @@ r_ltrc_elife <- function(n,
   }
   if(length(upper) > 1){
     stopifnot("Sample size should match length of 'upper'" = length(upper) == n)
+  }
+  if(family == "gompmake"){
+    stopifnot("Scale and shape parameters must be positive" = isTRUE(all(c(scale[1] > 0, scale[2] >=0, shape >= 0))))
+    if(isTRUE(all.equal(shape[1], 0, ignore.attributes = TRUE))){
+      family == "gp"
+      shape[1] <- 0
+    } else if(isTRUE(all.equal(scale[2], 0, ignore.attributes = TRUE))){
+      family == "gomp"
+      scale <- scale[1]
+    } else{
+      samp <- qgompmake(pgompmake(lower, scale = scale[1], lambda = scale[2], shape = shape[1]) +
+                      runif(n)*(1 - pgompmake(lower, scale = scale[1], lambda = scale[2], shape = shape[1])),
+                    scale = scale[1], lambda = scale[2], shape = shape[1])
+
+    }
   }
   if(family == "gomp"){
     stopifnot("Scale and shape parameters must be positive" = isTRUE(scale > 0 && shape[1] >= 0))
@@ -163,6 +193,7 @@ r_ltrc_elife <- function(n,
 
     }
   }
+
   if(family == "exp"){
     stopifnot("Scale parameter must be positive" = isTRUE(scale > 0))
     shape <- 0
@@ -217,7 +248,7 @@ r_ltrc_elife <- function(n,
 samp2_elife <- function(n,
                          scale,
                          shape,
-                         family = c("exp","gp","gomp","weibull","extgp"),
+                         family = c("exp","gp","gomp","gompmake","weibull","extgp"),
                          xcal,
                          c1,
                          c2){

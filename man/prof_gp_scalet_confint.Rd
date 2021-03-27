@@ -6,31 +6,39 @@
 \usage{
 prof_gp_scalet_confint(
   mle = NULL,
-  dat,
-  thresh,
-  ltrunc,
-  rtrunc,
-  rcens,
-  type = c("none", "ltrt", "ltrc"),
-  level = 0.95
+  time,
+  time2 = NULL,
+  event = NULL,
+  thresh = 0,
+  ltrunc = NULL,
+  rtrunc = NULL,
+  type = c("right", "left", "interval", "interval2"),
+  level = 0.95,
+  weights = NULL
 )
 }
 \arguments{
 \item{mle}{an object of class \code{elife_par}}
 
-\item{dat}{vector of threshold exceedances}
+\item{time}{excess time of the event of follow-up time, depending on the value of event}
 
-\item{thresh}{threshold}
+\item{time2}{ending excess time of the interval for interval censored data only.}
 
-\item{ltrunc}{lower truncation limit, possibly zero}
+\item{event}{status indicator, normally 0=alive, 1=dead. Other choices are \code{TRUE}/\code{FALSE} (\code{TRUE} for death).
+For interval censored data, the status indicator is 0=right censored, 1=event at time, 2=left censored, 3=interval censored.
+Although unusual, the event indicator can be omitted, in which case all subjects are assumed to have an event.}
 
-\item{rtrunc}{upper truncation limit}
+\item{thresh}{vector of thresholds}
 
-\item{rcens}{logical indicating right-censoring (\code{TRUE} for censored)}
+\item{ltrunc}{lower truncation limit, default to \code{NULL}}
 
-\item{type}{string, either \code{ltrt} for left- and right-truncated data or \code{ltrc} for left-truncated right-censored data}
+\item{rtrunc}{upper truncation limit, default to \code{NULL}}
+
+\item{type}{character string specifying the type of censoring. Possible values are "\code{right}", "\code{left}", "\code{interval}", "\code{interval2}".}
 
 \item{level}{level of the confidence interval}
+
+\item{weights}{weights for observations}
 }
 \value{
 confidence interval

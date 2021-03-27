@@ -4,26 +4,22 @@
 #' described in Turnbull (1976) for left-truncated right-censored
 #' or else doubly truncated observations; censoring is assumed to be
 #' non-informative. The survival function changes only
-#' at the J distinct exceedances \eqn{y_i-u} and truncation points.
+#' at the \code{J} distinct exceedances \eqn{y_i-u} and truncation points.
 #'
 #' @note This function is a vanilla R implementation of the EM algorithm;
 #' the function \link{npsurv} uses a backbone Cpp implementation
-#' and will be faster for most settings. The function can return
-#' the variance covariance matrix of the \code{J-1} estimated probabilities,
-#' which is computed by inverting the negative hessian of the incomplete
-#' log likelihood.
+#' and will be faster for most settings (but it doesn't account for thresholds).
+#'The function can return  the variance covariance matrix of the \code{J-1}
+#' estimated probabilities, which is computed by inverting the negative
+#' hessian of the incomplete log likelihood.
 #'
 #' The method is currently limited to 2500 unique failure time, since
 #' the implementation has a heavy memory footprint of the order O(\eqn{J^2})
 #'
 #' The unknown parameters of the model are \eqn{p_j (j=1, \ldots, J)}
 #' subject to the constraint that \eqn{\sum_{j=1}^J p_j=1}.
-#'
-#' @param dat vector of \code{n} raw observations
+#' @inheritParams npsurv
 #' @param thresh double thresh
-#' @param rcens logical vector length \code{n}, where \code{rcens} is \code{TRUE} for right-censored observation and \code{FALSE} otherwise.
-#' @param ltrunc vector of size \code{n} of lower truncation time
-#' @param rtrunc vector of size \code{n} of upper truncation time
 #' @param tol double, relative tolerance for convergence of the EM algorithm
 #' @param vcov logical; should the observed information matrix be computed? Default to \code{FALSE}
 #' @return a list with elements
@@ -48,97 +44,122 @@
 #'                lower = ltrunc,
 #'                upper = rtrunc,
 #'                family = "gp",
-#'                type = "ltrt")
-#' thresh <- 0
-#' npi <- np_elife(dat = dat, thresh = thresh,
-#' rtrunc = rtrunc, ltrunc = ltrunc, vcov = TRUE)
-np_elife <- function(dat,
-                    thresh,
-                    rcens = NULL,
-                    ltrunc = NULL,
-                    rtrunc = NULL,
-                    tol = 1e-12,
-                    vcov = FALSE) {
+#'                type2 = "ltrt")
+#' npi <- np_elife(time = dat,
+#'                 rtrunc = rtrunc,
+#'                 ltrunc = ltrunc,
+#'                 vcov = TRUE)
+np_elife <- function(time,
+                     time2 = NULL,
+                     event = NULL,
+                     type = c("right","left","interval","interval2"),
+                     thresh = 0,
+                     ltrunc = NULL,
+                     rtrunc = NULL,
+                     tol = 1e-12,
+                     vcov = FALSE) {
   stopifnot(
-    "Data must be either right-censored or right-truncated." = is.null(rcens) |
-      is.null(rtrunc),
-    "Argument `thresh` is missing." = !missing(thresh),
     "Argument `thresh` should be positive." = min(thresh) >= 0,
-    "Argument `dat` missing." = !missing(dat),
-    "Argument `dat` should be a vector" = is.vector(dat),
+    "Argument `thresh` should be a vector of length 1." = length(thresh) == 1L,
+    "Argument `time` missing." = !missing(time),
+    "Argument `time` should be a vector" = is.vector(dat),
     "Argument `tol` should be of length one." = length(tol) == 1L,
     "Argument `tol` should be positive." = isTRUE(tol > 0),
     "Argument `tol` should be smaller." = isTRUE(tol < 1e-4)
   )
-  wexc <- dat > thresh
-  dat <- dat[wexc] - thresh
-  n <- length(dat)
-  cens <- !is.null(rcens)
-  if (cens) {
-    stopifnot(
-      "`rcens` should be a vector" = is.vector(rcens),
-      "`rcens` should be the same length as `dat`" =  length(rcens) == n,
-      "`rcens` should be of type `logical`" = is.logical(rcens)
-    )
-    rcens <- as.logical(rcens)
-    rcens <- rcens[wexc]
+  survout <- .check_surv(time = time,
+                         time2 = time2,
+                         event = event,
+                         type = type)
+  time <- survout$time
+  time2 <- survout$time2
+  status <- survout$status
+  if(!is.null(ltrunc) && length(ltrunc) == 1L){
+    ltrunc <- rep(ltrunc, length(time))
   }
-  if (!is.null(rtrunc)) {
-    if(length(rtrunc) == 1L){
-      rtrunc <- rep(rtrunc, length.out = n)
-    } else{
-      rtrunc <- rtrunc[wexc] - thresh
+  if(!is.null(rtrunc) && length(rtrunc) == 1L){
+    rtrunc <- rep(rtrunc, length(time))
+  }
+  if(thresh[1] > 0){
+    # Keep only exceedances, shift observations
+    # We discard left truncated observations and interval censored
+    # if we are unsure whether there is an exceedance
+    ind <- ifelse(status == 2, FALSE, time > thresh[1])
+    weights <- weights[ind] # in this order
+    time <- time[ind] - thresh[1]
+    time2 <- time2[ind] - thresh[1]
+    status <- status[ind]
+    if(!is.null(ltrunc)){
+      ltrunc <- pmax(0, ltrunc[ind] - thresh[1])
     }
+    if(!is.null(rtrunc)){
+      rtrunc <- rtrunc[ind] - thresh[1]
+    }
+  }
+  if(!is.null(ltrunc)){
+    if(isTRUE(any(ltrunc > time, ltrunc > time2, na.rm = TRUE))){
+      stop("Left-truncation must be lower than observation times.")
+    }
+  }
+  if(!is.null(rtrunc)){
+    if(isTRUE(any(rtrunc < time, rtrunc < time2, na.rm = TRUE))){
+      stop("Right-truncation must be lower than observation times.")
+    }
+  }
+  n <- length(time)
+  cens <- !isTRUE(all(status == 1L, na.rm = TRUE))
+  if (!is.null(rtrunc)) {
     stopifnot(
       "`rtrunc`` should be a vector" = is.vector(rtrunc),
-      "`rtrunc` should be the same length as `dat`" =  length(rtrunc) == n,
-      "`rtrunc` should be greater or equal to `dat`" = isTRUE(all(rtrunc >= dat))
+      "`rtrunc` should be the same length as `time`" =  length(rtrunc) == n
     )
   }
   if (!is.null(ltrunc)) {
-    if(length(ltrunc) == 1L){
-      ltrunc <- rep(x = ltrunc, length.out = n)
-    } else{
-      ltrunc <- pmax(0, ltrunc[wexc] - thresh)
-    }
-    stopifnot(
+      stopifnot(
       "`ltrunc` should be a vector" = is.vector(ltrunc),
-      "`ltrunc` should be the same length as `dat`" =  length(ltrunc) == n,
-      "`ltrunc` should be smaller or equal to `dat`" = isTRUE(all(ltrunc <= dat))
+      "`ltrunc` should be the same length as `dat`" =  length(ltrunc) == n
     )
   }
   if (!is.null(ltrunc) & !is.null(rtrunc)) {
     "`ltrunc` should be smaller than `rtrunc`" = isTRUE(all(ltrunc < rtrunc))
   }
+  if(is.null(ltrunc) && is.null(rtrunc)){
+    trunc <- FALSE
+  } else{
+    trunc <- TRUE
+  }
   # Two scenarios:
   if(cens){
-    unex <- sort(unique(dat)[!rcens])
+    unex <- sort(unique(time[status == 1L]))
   } else{
-    unex <- sort(unique(dat))
+    unex <- sort(unique(time))
   }
   J <- length(unex)
   if (length(unex) < 2) {
     stop("Only one interval: consider increasing the size of `delta`.")
   }
   if(length(J) > 2500L){
-    stop("The method is currently limited to 2500 unique failure times for memory reasons.")
+    stop("The R implementation is currently limited to 2500 unique failure times for memory reasons.")
   }
   # Find in which interval the observation lies
   cens_lb <- pmin(J-1, findInterval(
-    x = dat + rcens*1e-10,
+    x = time + (status %in% c(0L,3L))*1e-10,
     vec = unex,
     left.open = TRUE,
     all.inside = FALSE)) + 1L
   # get the first observation
   cens_lb[is.na(cens_lb)] <- 1L
-  if (!is.null(rcens)) {
-    # For right-censored data,
-    # this should be 1 for all subsequent intervals
-    cens_ub <- ifelse(rcens, J, cens_lb)
-  } else{
-    # otherwise, it is the interval in which death occurs
+  # values before first observation
+  if(!cens){
     cens_ub <- cens_lb
+  } else{
+    cens_ub <- pmax(0, findInterval(x = time2 - (status %in% c(2,3))*1e-10,
+                                    vec = unex,
+                                    left.open = TRUE,
+                                    all.inside = FALSE)) + 1L
+    cens_ub[is.na(cens_ub)] <- J
   }
+
   if(is.null(ltrunc) & is.null(rtrunc)){
     trunc <- FALSE
     trunc_lb <- rep(1L, n)
@@ -154,10 +175,10 @@ np_elife <- function(dat,
       trunc_lb <- rep(1L, n)
     }
     if(!is.null(rtrunc)){
-      trunc_ub <- findInterval(x = rtrunc,
+      trunc_ub <- pmin(J, findInterval(x = rtrunc,
                                vec = unex,
                                left.open = TRUE,
-                               all.inside = FALSE) + 1L
+                               all.inside = FALSE) + 1L)
     } else{
       trunc_ub <- rep(J, n)
     }
@@ -165,9 +186,6 @@ np_elife <- function(dat,
   p <- rep(1/J, J)
   pnew <- rep(0, J)
   C_mat <- D_mat <- matrix(0, nrow = n, ncol = J)
-  if (!is.null(rcens)) {
-    which_rcens <- which(rcens)
-  }
   n_iter <- 0L
   n_iter_max <- 1e4L
   for (i in 1:n) {
@@ -178,12 +196,10 @@ np_elife <- function(dat,
     n_iter <- n_iter + 1L
     # E-step
     # Update C_mat (only relevant for right-censored data)
-    if (!is.null(rcens)){
+    if (!cens){
       for (i in 1:n) {
-        if (rcens[i]) {
           ij <- cens_lb[i]:cens_ub[i]
           C_mat[i, ij] <- p[ij] / sum(p[ij])
-        }
       }
     }
     # Update D_mat
@@ -335,6 +351,55 @@ logit <- function(x) {
   invisible(rval)
 }
 
+#' @keywords internal
+.check_surv <- function(time,
+                        time2 = NULL,
+                        event = NULL,
+                        type = c("right","left","interval","interval2")){
+  stopifnot("User must provide a time argument" = !missing(time))
+   time <- as.numeric(time)
+   n <- length(time)
+   type <- match.arg(type)
+   if(!is.null(time2) && type %in% c("interval","interval2")){
+     time2 <- as.numeric(time2)
+     stopifnot("Both `time` and `time2` should be numeric vectors of the same length." = length(time2) == length(time))
+   } else if(!is.null(time2)){
+     stop("`time2` should only be provided for `type=interval`.")
+   }
+   if(type == "right"){
+     #warning("Event should be provided, else all events are assumed to be observed.")
+     if(is.null(event)){
+       time2 <- time
+       status <- rep(1L, length(time))
+     } else{
+       time2 <- ifelse(as.logical(event), time, NA)
+       status <- ifelse(as.logical(event), 1L, 0L)
+     }
+   } else if(type == "left"){
+     time2 <- time
+     time <- ifelse(as.logical(event), time, NA)
+     status <- ifelse(as.logical(event), 1L, 2L)
+   } else if(type == "interval"){
+     stopifnot("Event vector is missing" = !is.null(event))
+     event <- as.integer(event)
+     stopifnot("Event should be a vector of integers between 0 and 3" = isTRUE(all(event %in% 0:3)))
+     time2 <- ifelse(event == 0L, NA, ifelse(event %in% c(1L,2L), time, time2))
+     time <- ifelse(event == 2L, NA, time)
+     status <- event
+   } else if (type == "interval2") {
+     stopifnot("`time2` must be a numeric vector." = is.numeric(time2),
+               "`time` and `time2` must be two vectors of the same length" = length(time2) == length(time))
+     time <- ifelse(is.finite(time), time, NA)
+     time2 <- ifelse(is.finite(time2), time2, NA)
+     unknown <- (is.na(time) & is.na(time2))
+     if(any(unknown)){
+       stop("Invalid data; time is not resolved")
+     }
+   }
+  status <- ifelse(is.na(time), 2L, ifelse(is.na(time2), 0L, ifelse(time == time2, 1L, 3L)))
+  return(list(time = time, time2 = time2, status = status))
+}
+
 #' Nonparametric maximum likelihood estimation for arbitrary truncation
 #'
 #' The syntax is reminiscent of the \link[survival]{Surv} function, with
@@ -343,12 +408,12 @@ logit <- function(x) {
 #' @note Contrary to the Kaplan-Meier estimator, the mass is placed in the interval
 #' [\code{max(time), Inf}) so the resulting distribution function is not deficient.
 #'
-#' @param time time of the event of follow-up time, depending on the value of event
+#' @param time excess time of the event of follow-up time, depending on the value of event
 #' @param event status indicator, normally 0=alive, 1=dead. Other choices are \code{TRUE}/\code{FALSE} (\code{TRUE} for death).
 #' For interval censored data, the status indicator is 0=right censored, 1=event at time, 2=left censored, 3=interval censored.
 #' Although unusual, the event indicator can be omitted, in which case all subjects are assumed to have an event.
-#' @param time2 ending time of the interval for interval censored data only.
-#' @param type character string specifying the type of censoring. Possible values are "right", "left", "interval", "interval2".
+#' @param time2 ending excess time of the interval for interval censored data only.
+#' @param type character string specifying the type of censoring. Possible values are "\code{right}", "\code{left}", "\code{interval}", "\code{interval2}".
 #' @seealso \code{\link[survival]{Surv}}
 #' @return a list with components
 #' \itemize{
@@ -360,55 +425,20 @@ logit <- function(x) {
 #' }
 #' @export
 npsurv <- function(time,
-                   time2,
-                   event,
+                   time2 = NULL,
+                   event = NULL,
                    type = c("right","left","interval","interval2"),
                    ltrunc = NULL,
                    rtrunc = NULL){
-  stopifnot("User must provide a time argument" = !missing(time))
-  time <- as.numeric(time)
-  n <- length(time)
-  type <- match.arg(type)
-if(!missing(time2) && type %in% c("interval","interval2")){
-  time2 <- as.numeric(time2)
-  stopifnot("Both `time` and `time2` should be numeric vectors of the same length." = length(time2) == length(time))
-} else if(!missing(time2)){
- stop("`time2` should only be provided for `type=interval`.")
-}
-if(type == "right"){
-  #warning("Event should be provided, else all events are assumed to be observed.")
-  if(missing(event)){
-    time2 <- time
-    status <- rep(1L, length(time))
-  } else{
-    time2 <- ifelse(as.logical(event), time, NA)
-    status <- ifelse(as.logical(event), 1L, 0L)
-  }
-} else if(type == "left"){
-   time2 <- time
-   time <- ifelse(as.logical(event), time, NA)
-   status <- ifelse(as.logical(event), 1L, 2L)
-} else if(type == "interval"){
- stopifnot("Event vector is missing" = !missing(event))
-  event <- as.integer(event)
-  stopifnot("Event should be a vector of integers between 0 and 3" = isTRUE(all(event %in% 0:3)))
-  time2 <- ifelse(event == 0L, NA, ifelse(event %in% c(1L,2L), time, time2))
-  time <- ifelse(event == 2L, NA, time)
-  status <- event
-}
-if (type == "interval2") {
-  stopifnot("`time2` must be a numeric vector." = is.numeric(time2),
-            "`time` and `time2` must be two vectors of the same length" = length(time2) == length(time))
-  time <- ifelse(is.finite(time), time, NA)
-  time2 <- ifelse(is.finite(time2), time2, NA)
-  unknown <- (is.na(time) & is.na(time2))
-  if(any(unknown)){
-    stop("Invalid data; time is not resolved")
-  }
-  status <- ifelse(is.na(time), 2, ifelse(is.na(time2), 0, ifelse(time == time2, 1, 3)))
-}
-  #Surv <- data.frame(time = time, time2 = time2, status = status)
-  # unique survival time
+  stopifnot("`time` must be a numeric vector." = is.numeric(time))
+  survout <- .check_surv(time = time,
+              time2 = time2,
+              event = event,
+              type = type)
+  time <- survout$time
+  time2 <- survout$time2
+  status <- survout$status
+    # unique survival time
   if(sum(status == 1L) < 2){
     warning("There are not enough uncensored observations to estimate the distribution.")
   }

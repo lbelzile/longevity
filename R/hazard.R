@@ -2,7 +2,7 @@
 #' @export
 hazard_fn_elife <- function(x,
                          par,
-                         family = c("exp","gp","gomp","weibull","extgp")){
+                         family = c("exp","gp","gomp","gompmake","weibull","extgp")){
   family <- match.arg(family)
   stopifnot("`x` must be numeric" = is.numeric(x),
             "`x` must be positive" = isTRUE(all(x > 0)),
@@ -21,7 +21,8 @@ switch(family,
        gp =  1/(par[1] + par[2] * x),
        weibull = par[2]*par[1]^(-par[2])*x^(par[2]-1), #par[1] = scale, par[2] = shape
        extgp =  (1/par[1]) * exp(par[2]*x/par[1])/(1+par[3]*(exp(par[2]*x/par[1])-1)/par[2]),
-       gomp = exp(par[2]*x/par[1])/par[1]
+       gomp = exp(par[2]*x/par[1])/par[1],
+       gompmake = par[3] + exp(par[2]*x/par[1])/par[1]
        )
 }
 
@@ -38,22 +39,23 @@ switch(family,
 #' @export
 #' @examples
 #' n <- 2500
-#' dat <- rdtrunc_elife(n = n, scale = 2,
+#' time <- samp_elife(n = n, scale = 2,
 #' family = "gp", shape = 0.1,
 #' lower = ltrunc <- runif(n),
-#' upper = rtrunc <- (5 + runif(n)))
-#' hazard_elife(x = 2, dat = dat,
-#'  ltrunc = ltrunc, rtrunc = rtrunc,
-#'  type = "ltrt", family = "gp")
+#' upper = rtrunc <- (5 + runif(n)), type2 = "ltrt")
+#' hazard_elife(x = 2, time = time,
+#'  ltrunc = ltrunc, rtrunc = rtrunc, family = "gp")
 hazard_elife <- function(x,
-                        dat,
+                        time,
+                        time2 = NULL,
+                        event = NULL,
+                        status = NULL,
                         thresh = 0,
-                        type = c("none","ltrt","ltrc"),
-                        rcens,
-                        ltrunc,
-                        rtrunc,
-                        family = c("exp","gp","gomp","weibull","extgp"),
-                        weights = rep(1, length(dat)),
+                        ltrunc = NULL,
+                        rtrunc = NULL,
+                        type = c("right","left","interval","interval2"),
+                        family = c("exp","gp","gomp","gompmake","weibull","extgp"),
+                        weights = NULL,
                         level = 0.95,
                         psi = NULL,
                         plot = FALSE){
@@ -67,17 +69,22 @@ hazard_elife <- function(x,
   # 3) return an object with hazard and the log-likelihood value
   # 4) include a @confint and a @plot method to display the profile
   # Compute maximum likelihood estimator
-  mle <- fit_elife(dat = dat,
-                     thresh = thresh,
-                     ltrunc = ltrunc,
-                     rtrunc = rtrunc,
-                     rcens = rcens,
-                     type = type,
-                     family = family,
-                     weights = weights)
+  mle <- fit_elife(time = time,
+                   time2 = time2,
+                   event = event,
+                   status = status,
+                   thresh = thresh,
+                   ltrunc = ltrunc,
+                   rtrunc = rtrunc,
+                   type = type,
+                   family = family,
+                   weights = weights)
   # Compute MLE of hazard
-  mle_haz <- as.numeric(hazard_fn_elife(par = mle$par, x = x, family = family))
-
+  mle_haz <- as.numeric(
+    hazard_fn_elife(par = mle$par,
+                    x = x,
+                    family = family)
+    )
   if(family == "exp"){
     # constant hazard function
     if(is.null(psi)){
@@ -86,15 +93,15 @@ hazard_elife <- function(x,
     psi <- psi[psi>0]
     npll <- sapply(psi, function(par){
       nll_elife(par = 1/par,
-                dat = dat,
+                time = time,
+                time2 = time2,
+                event = event,
                 thresh = thresh,
                 type = type,
-                rcens = rcens,
                 ltrunc = ltrunc,
                 rtrunc = rtrunc,
                 family = family,
                 weights = weights)})
-    # plot(psi, shifted_npll, type = "l");
   } else if(family == "gp"){
     if(mle$par[2] < 0 && x > -mle$par[1]/mle$par[2]){
       stop("Value of x is outside of the range of the distribution evaluated at the maximum likelihood estimate.")
@@ -104,18 +111,28 @@ hazard_elife <- function(x,
     }
     if(is.null(psi)){
       haz_stderror <- sqrt(diag(solve(numDeriv::hessian(func = function(par){
-        nll_elife(par = c(inv_haz(par, xi = mle$par[2], x = x), mle$par[1]), dat = dat, thresh = thresh, type = type, rcens = rcens, ltrunc = ltrunc, rtrunc = rtrunc, family = family, weights = weights)},
+        nll_elife(par = c(inv_haz(par, xi = mle$par[2], x = x), mle$par[1]),
+                  time = time,
+                  time2 = time2,
+                  event = event,
+                  thresh = thresh,
+                  type = type,
+                  ltrunc = ltrunc,
+                  rtrunc = rtrunc,
+                  family = family,
+                  weights = weights)},
         x = mle_haz))))
       psi <- mle_haz + seq(-4*haz_stderror, 4*haz_stderror, length.out = 101L)
     }
       psi <- psi[psi > 0]
-    mdat <- max(dat) - thresh
+    mdat <- max(time, time2, na.rm = TRUE) - thresh
     ubound <- ifelse(x > mdat, x, mdat)
     npll <- sapply(psi, function(haz_i){
       opt <- optimize(f = function(xi){
           nll_elife(par = c(1/haz_i-xi*x, xi),
-                    dat = dat,
-                    rcens = rcens,
+                    time = time,
+                    time2 = time2,
+                    event = event,
                     ltrunc = ltrunc,
                     rtrunc = rtrunc,
                     weights = weights,
@@ -129,13 +146,21 @@ hazard_elife <- function(x,
 
 
   } else if(family == "weibull"){
-
     inv_haz <- function(hazard, alpha, x){
       as.numeric((hazard*x^(1-alpha)/alpha)^(-1/alpha))
     }
     if(is.null(psi)){
     haz_stderror <- sqrt(diag(solve(numDeriv::hessian(func = function(par){
-      nll_elife(par = c(inv_haz(par[1], mle$par[2], x = x), mle$par[2]), dat = dat, thresh = thresh, type = type, rcens = rcens, ltrunc = ltrunc, rtrunc = rtrunc, family = family, weights = weights)},
+      nll_elife(par = c(inv_haz(par[1], mle$par[2], x = x), mle$par[2]),
+                time = time,
+                time2 = time2,
+                event = event,
+                thresh = thresh,
+                type = type,
+                ltrunc = ltrunc,
+                rtrunc = rtrunc,
+                family = family,
+                weights = weights)},
       x = mle_haz)))[1])
     psi <- mle_haz + seq(-5*haz_stderror, 5*haz_stderror, length.out = 101L)
     }
@@ -146,8 +171,9 @@ hazard_elife <- function(x,
       opt <- Rsolnp::solnp(pars = ifelse(i >= mid, ifelse(i==mid, mle$par[2], npll[1,i-1]), npll[1,i+1]),
                            f = function(alpha){
         nll_elife(par = c(inv_haz(hazard = psi[i], alpha = alpha, x = x), alpha),
-                  dat = dat,
-                  rcens = rcens,
+                  time = time,
+                  time2 = time2,
+                  event = event,
                   ltrunc = ltrunc,
                   rtrunc = rtrunc,
                   weights = weights,
@@ -161,7 +187,6 @@ hazard_elife <- function(x,
     }
     npll <- npll[2,]
   } else if(family == "gomp"){
-
     inv_haz <- function(hazard, sigma, x){
       as.numeric(sigma*log(sigma*hazard)/x)
     }
@@ -171,15 +196,8 @@ hazard_elife <- function(x,
     #              to = 1/mle$par[1]+4/mle$par[1],
     #              length.out = 101)
     # } else{
-      haz_stderror <- sqrt(diag(solve(numDeriv::hessian(func = function(par){
-        nll_elife(par = c(mle$par[1],inv_haz(par, mle$par[1], x = x)),
-                  dat = dat, thresh = thresh,
-                  type = type, rcens = rcens,
-                  ltrunc = ltrunc, rtrunc = rtrunc,
-                  family = family, weights = weights)},
-      x = mle_haz,
-      method.args=list(eps=1e-7, d=0.1, zero.tol=sqrt(.Machine$double.eps/7e-7), r=4, v=2, show.details=FALSE))
-      )))[1]
+      jac <- numDeriv::jacobian(func = function(par){hazard_fn_elife(par = par, x = x, family = family)}, x = mle$par)
+      haz_stderror <- sqrt(jac %*% mle$vcov %*% t(jac))[1]
       psi <- mle_haz + seq(-5*haz_stderror, 5*haz_stderror, length.out = 101L)
     }
       psi <- psi[psi > 0]
@@ -191,8 +209,9 @@ hazard_elife <- function(x,
       opt <- Rsolnp::solnp(pars = pmax(1/psi[i]+1e-4, ifelse(i >= mid, ifelse(i==mid, mle$par[1], npll[1,i-1]), npll[1,i+1])),
                            f = function(sigma){
                              nll_elife(par = c(sigma, inv_haz(hazard = psi[i], sigma = sigma, x = x)),
-                                       dat = dat,
-                                       rcens = rcens,
+                                       time = time,
+                                       time2 = time2,
+                                       event = event,
                                        ltrunc = ltrunc,
                                        rtrunc = rtrunc,
                                        weights = weights,
@@ -207,8 +226,7 @@ hazard_elife <- function(x,
     npll <- npll[2,]
 
   } else if(family == "extgp"){
-
-  inv_haz <- function(hazard, beta, sigma, x){
+    inv_haz <- function(hazard, beta, sigma, x){
       if(abs(beta) > 1e-6){
         as.numeric(beta*(exp(beta*x/sigma)/(sigma*hazard)-1)/(exp(beta*x/sigma)-1))
       } else{
@@ -218,8 +236,17 @@ hazard_elife <- function(x,
     # Compute grid of values at which to evaluate the hazard
   if(is.null(psi)){
     haz_stderror <- sqrt(diag(solve(numDeriv::hessian(func = function(par){
-      nll_elife(par = c(mle$par[1:2], inv_haz(par, sigma = mle$par[1], beta = mle$par[2], x = x)),
-                dat = dat, thresh = thresh, type = type, rcens = rcens, ltrunc = ltrunc, rtrunc = rtrunc, family = family, weights = weights)},
+      nll_elife(par = c(mle$par[1:2],
+                        inv_haz(par, sigma = mle$par[1], beta = mle$par[2], x = x)),
+                time = time,
+                time2 = time2,
+                event = event,
+                thresh = thresh,
+                type = type,
+                ltrunc = ltrunc,
+                rtrunc = rtrunc,
+                family = family,
+                weights = weights)},
       x = mle_haz))))
       psi <- seq(from = mle_haz - 5*haz_stderror,
                  to = mle_haz + 5*haz_stderror,
@@ -229,6 +256,7 @@ hazard_elife <- function(x,
 
     npll <- matrix(0, nrow = 3, ncol = length(psi))
     mid <- which.min(abs(psi-mle_haz)) + 1L
+    mdat <- max(time, time2, na.rm = TRUE) - thresh
     for(i in c(mid:length(psi), (mid-1):1)){
       if(i == mid){
         start <- mle$par[1:2]
@@ -238,30 +266,34 @@ hazard_elife <- function(x,
         start <- npll[1:2, i+1]
       }
       # Ensure a feasible solution
+      # NOTE to self: this function doesn't recover from Infinite
+      # starting value
+      ineqfun_extgp <- function(par){
+        sigma = par[1];
+        beta = par[2]
+        xi = inv_haz(hazard = psi[i], sigma = sigma, beta = beta, x = x)
+        c(sigma, beta, xi,
+          1-beta/xi,
+          ifelse(xi < 0, sigma/beta*log(1-beta/xi) - mdat, 1e-5)
+        )
+      }
       opt <- Rsolnp::solnp(pars = start,
                            f = function(par){
                              sigma = par[1];
                              beta = par[2];
                              nll_elife(par = c(sigma, beta, inv_haz(hazard = psi[i], sigma = sigma, beta = beta, x = x)),
-                                       dat = dat,
-                                       rcens = rcens,
+                                       time = time,
+                                       time2 = time2,
+                                       event = event,
                                        ltrunc = ltrunc,
                                        rtrunc = rtrunc,
                                        weights = weights,
                                        family = family,
                                        type = type,
                                        thresh = thresh)},
-                           ineqfun = function(par){
-                             sigma = par[1];
-                             beta = par[2]
-                             xi = inv_haz(hazard = psi[i], sigma = sigma, beta = beta, x = x)
-                             c(sigma, beta, xi,
-                                 ifelse(xi < 0, -beta/xi, 1e-5),
-                                 ifelse(xi < 0, thresh + sigma/beta*log(1-beta/xi) - max(dat), 1e-5)
-                               )
-                             },
+                              ineqfun = ineqfun_extgp,
                              ineqLB = c(0, 0, -1, 0, 0),
-                             ineqUB = c(rep(Inf, 2), 10, rep(Inf, 2)),
+                             ineqUB = c(rep(Inf, 2), 10, Inf,Inf),
                            control = list(trace = 0))
       npll[,i] <- c(opt$pars, opt$values[length(opt$values)])
     }

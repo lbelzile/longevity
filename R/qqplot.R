@@ -28,13 +28,11 @@
 #'  shape = 0.3,
 #'  family = "gomp",
 #'  lower = 0, upper = runif(200, 0, 10),
-#'  type = "ltrc")
+#'  type2 = "ltrc")
 #' fitted <- fit_elife(
-#'  dat = samp$dat,
+#'  time = samp$dat,
 #'  thresh = 0,
-#'  ltrunc = 0,
-#'  rcens = samp$rcens,
-#'  type = "ltrc",
+#'  samp$rcens,
 #'  family = "exp",
 #'  export = TRUE)
 #' plot(fitted, plot.type = "ggplot")
@@ -46,7 +44,7 @@
 #'  family = "gp",
 #'  lower = ltrunc <- runif(200),
 #'  upper = rtrunc <- ltrunc + runif(200, 0, 10),
-#'  type = "ltrt")
+#'  type2 = "ltrt")
 #' fitted <- fit_elife(
 #'  dat = samp,
 #'  thresh = 0,
@@ -63,90 +61,57 @@ plot.elife_par <- function(object,
                            plot = TRUE){
   #TODO incomplete; add uncertainty
   stopifnot("Object should be of class `elife_par`" = inherits(object, what = "elife_par"))
-     if(is.null(object$dat)){
+     if(is.null(object$time)){
           stop("`object` created using a call to `fit_elife` should include the data (`export=TRUE`).")
      }
    plot.type <- match.arg(plot.type)
    which.plot <- match.arg(which.plot, choices = c("pp","qq","erp","exp","tmd"), several.ok = TRUE)
-     thresh <- object$thresh
-     n <- length(object$dat)
-     exc <- object$dat > thresh[1]
-     dat <- object$dat[exc] - thresh[1]
-     nexc <- length(dat)
+   # Fit a nonparametric survival function (Turnbull, 1976)
+   np <- npsurv(time = object$time,
+                time2 = object$time2,
+                event = object$event,
+                type = object$type,
+                ltrunc = object$ltrunc,
+                rtrunc = object$rtrunc)
+     # Create a weighted empirical CDF
+     ecdffun <- np$cdf
+     dat <- object$time[object$status == 1L]
+     cens <- length(dat) == length(object$time)
      if(!is.null(object$ltrunc)){
-       if(length(object$ltrunc) == 1L){
-        ltrunc <- rep(pmax(0, object$ltrunc - thresh[1]), length.out = nexc)
-       } else if(length(object$ltrunc) == n){
-        ltrunc <- pmax(0, object$ltrunc[exc] - thresh[1])
-       } else{
-         stop("Invalid argument: `ltrunc` must be a scalar or a vector of the same length as `dat`")
-       }
+      ltrunc <- object$ltrunc[object$status == 1L]
      } else{
        ltrunc <- NULL
      }
      if(!is.null(object$rtrunc)){
-       if(length(object$rtrunc) == 1L){
-         rtrunc <- rep(object$rtrunc - thresh[1], length.out = nexc)
-       } else if(length(object$rtrunc) == n){
-         rtrunc <- object$rtrunc[exc] - thresh[1]
-       } else{
-        stop("Invalid argument: `rtrunc` must be a scalar or a vector of the same length as `dat`")
-       }
+       rtrunc <- object$rtrunc[object$status == 1L]
      } else{
        rtrunc <- NULL
      }
-     if(!is.null(object$rcens)){
-       stopifnot("`rcens` must be a vector of the same length as `dat`" = length(object$rcens) == n)
-       rcens <- object$rcens[exc]
-     } else{
-       rcens <- NULL
-     }
-    thresh <- object$thresh - object$thresh[1]
-     # Fit a nonparametric survival function (Turnbull, 1976)
-     if(is.null(rcens)){
-       np <- npsurv(time = dat,
-                  type = "right",
-                  ltrunc = ltrunc,
-                  rtrunc = rtrunc)
-     } else{
-       np <- npsurv(time = dat,
-                    event = 1-object$rcens,
-                    type = "right",
-                    ltrunc = ltrunc,
-                    rtrunc = rtrunc)
-     }
-     # Create a weighted empirical CDF
-     ecdffun <- np$cdf
-     if(is.null(rcens)){# no censoring
-        xpos <- length(dat) * ecdffun(dat) / (length(dat) + 1L)
-
-        if(!is.null(ltrunc) && is.null(rtrunc)){
-          xpos <- (xpos - ecdffun(ltrunc))/(1-ecdffun(ltrunc))
-        } else if(!is.null(rtrunc) && is.null(ltrunc)){
-          xpos <- xpos/ecdffun(rtrunc)
-        } else if(!is.null(rtrunc) && !is.null(ltrunc)){
-          xpos <- (xpos - ecdffun(ltrunc))/(ecdffun(rtrunc) - ecdffun(ltrunc))
-        }
-     } else{ #right censoring
-          xpos <- length(dat[!rcens]) * ecdffun(dat[!rcens])  / (length(dat[!rcens]) + 1L)
-         if(!is.null(ltrunc) && is.null(rtrunc)){
-          xpos <- (xpos - ecdffun(ltrunc[!rcens]))/(1-ecdffun(ltrunc[!rcens]))
-        } else if(!is.null(rtrunc) && is.null(ltrunc)){
-          xpos <- xpos/ecdffun(rtrunc[!rcens])
-        } else if(!is.null(rtrunc) && !is.null(ltrunc)){
-          xpos <- (xpos - ecdffun(ltrunc[!rcens]))/(ecdffun(rtrunc[!rcens]) - ecdffun(ltrunc[!rcens]))
-        }
-     }
+     xpos <- length(dat) * ecdffun(dat) / (length(dat) + 1L)
+    if(!is.null(ltrunc) && is.null(rtrunc)){
+      xpos <- (xpos - ecdffun(ltrunc))/(1-ecdffun(ltrunc))
+    } else if(!is.null(rtrunc) && is.null(ltrunc)){
+      xpos <- xpos/ecdffun(rtrunc)
+    } else if(!is.null(rtrunc) && !is.null(ltrunc)){
+      xpos <- (xpos - ecdffun(ltrunc))/(ecdffun(rtrunc) - ecdffun(ltrunc))
+    }
      scale <- as.numeric(object$par[1])
-     shape <- as.numeric(object$par[-1])
+     if(object$family == "gompmake"){
+       shape <- as.numeric(object$par[2])
+       scale <- as.numeric(object$par[-2])
+     } else{
+       scale <- as.numeric(object$par[1])
+      shape <- as.numeric(object$par[-1])
+     }
      pmod <- function(q, scale, shape, family){
        switch(object$family,
                     exp = pexp(q = q, rate = 1/scale),
                     gp = pgpd(q = q, loc = 0, scale = scale, shape = shape),
                     gomp = pgomp(q = q, scale = scale, shape = shape),
+                    gompmake = pgompmake(q = q, scale = scale[1], shape = shape, lambda = scale[2]),
                     weibull = pweibull(q = q, shape = shape, scale = scale),
                     extgp = pextgp(q = q, scale = scale, shape1 = shape[1], shape2 = shape[2]),
-                    gppiece = pgppiece(q = q, scale = scale, shape = shape, thresh = thresh)
+                    gppiece = pgppiece(q = q, scale = scale, shape = shape, thresh = object$thresh)
                     )
      }
      qmod <- function(p, scale, shape, family){
@@ -154,45 +119,33 @@ plot.elife_par <- function(object,
               exp = qexp(p = p, rate = 1/scale),
               gp = qgpd(p = p, loc = 0, scale = scale, shape = shape),
               gomp = qgomp(p = p, scale = scale, shape = shape),
+              gompmake = qgompmake(p = p, scale = scale[1], shape = shape, lambda = scale[2]),
               weibull = qweibull(p = p, shape = shape, scale = scale),
               extgp = qextgp(p = p, scale = scale, shape1 = shape[1], shape2 = shape[2]),
-              gppiece = qgppiece(p = p, scale = scale, shape = shape, thresh = thresh)
+              gppiece = qgppiece(p = p, scale = scale, shape = shape, thresh = object$thresh)
        )
      }
-     if(!is.null(rcens)){
-        ypos <- pmod(q = dat[!rcens], scale = scale, shape = shape, family = family)
-      if(!is.null(ltrunc) && is.null(rtrunc)){
-        ypos <- (ypos - pmod(q = ltrunc[!rcens], scale = scale, shape = shape, family = family))/(1-pmod(q = ltrunc[!rcens], scale = scale, shape = shape, family = family))
-      } else if(!is.null(rtrunc) && is.null(ltrunc)){
-        ypos <- ypos/pmod(q = rtrunc[!rcens], scale = scale, shape = shape, family = family)
-      } else if(!is.null(rtrunc) && !is.null(ltrunc)){
-        ypos <- (ypos - pmod(q = ltrunc[!rcens], scale = scale, shape = shape, family = family))/(pmod(q = rtrunc[!rcens], scale = scale, shape = shape, family = family) - pmod(q = ltrunc[!rcens], scale = scale, shape = shape, family = family))
-      }
-     } else{
-       ypos <- pmod(q = dat, scale = scale, shape = shape, family = family)
-       if(!is.null(ltrunc) && is.null(rtrunc)){
-         ypos <- (ypos - pmod(q = ltrunc, scale = scale, shape = shape, family = family))/(1-pmod(q = ltrunc, scale = scale, shape = shape, family = family))
-       } else if(!is.null(rtrunc) && is.null(ltrunc)){
-         ypos <- ypos/pmod(q = rtrunc, scale = scale, shape = shape, family = family)
-       } else if(!is.null(rtrunc) && !is.null(ltrunc)){
-         ypos <- (ypos - pmod(q = ltrunc, scale = scale, shape = shape, family = family))/(pmod(q = rtrunc, scale = scale, shape = shape, family = family) - pmod(q = ltrunc, scale = scale, shape = shape, family = family))
-       }
+     ypos <- pmod(q = dat, scale = scale, shape = shape, family = family)
+     if(!is.null(ltrunc) && is.null(rtrunc)){
+       ypos <- (ypos - pmod(q = ltrunc, scale = scale, shape = shape, family = family))/(1-pmod(q = ltrunc, scale = scale, shape = shape, family = family))
+     } else if(!is.null(rtrunc) && is.null(ltrunc)){
+       ypos <- ypos/pmod(q = rtrunc, scale = scale, shape = shape, family = family)
+     } else if(!is.null(rtrunc) && !is.null(ltrunc)){
+       ypos <- (ypos - pmod(q = ltrunc, scale = scale, shape = shape, family = family))/(pmod(q = rtrunc, scale = scale, shape = shape, family = family) - pmod(q = ltrunc, scale = scale, shape = shape, family = family))
      }
-     # if(any(c("qq","erp") %in% which.plot)){
      if(any(c("qq","tmd","erp") %in% which.plot)){
        txpos <- xpos
-       ind_rcens <- 1L + !is.null(rcens)  # FALSE = 1, TRUE = 2
        if(!is.null(ltrunc) && !is.null(rtrunc)){
-         txpos <- xpos*pmod(q = switch(ind_rcens, rtrunc, rtrunc[!rcens]), scale = scale, shape = shape, family = object$family) +
-           (1-xpos)*pmod(q = switch(ind_rcens, ltrunc, ltrunc[!rcens]), scale = scale, shape = shape, family = object$family)
+         txpos <- xpos*pmod(q = rtrunc, scale = scale, shape = shape, family = object$family) +
+           (1-xpos)*pmod(q = ltrunc, scale = scale, shape = shape, family = object$family)
        } else if(is.null(ltrunc) && !is.null(rtrunc)){
-         txpos <- xpos*pmod(q = switch(ind_rcens, rtrunc, rtrunc[!rcens]), scale = scale, shape = shape, family = object$family)
+         txpos <- xpos*pmod(q = rtrunc, scale = scale, shape = shape, family = object$family)
        } else if(is.null(rtrunc) && !is.null(ltrunc)){
-         txpos <- xpos + (1-xpos)*pmod(q = switch(ind_rcens, ltrunc, ltrunc[!rcens]), scale = scale, shape = shape, family = object$family)
+         txpos <- xpos + (1-xpos)*pmod(q = ltrunc, scale = scale, shape = shape, family = object$family)
        }
      }
      if("erp" %in% which.plot){
-       if(object$type != "ltrc"){
+       if(isTRUE(all(object$status == 1L))){
          warning("`erp` is only useful for censored data. Use `which.plot = pp` for specifying the equivalent plot.")
          if("pp" %in% which.plot){
            which.plot <- which.plot[which.plot == "erp"]
@@ -200,12 +153,9 @@ plot.elife_par <- function(object,
            which.plot[which.plot == "erp"] <- "pp"
          }
      } else{
-       np2 <- np_elife(dat = dat[!rcens],
-                     thresh = 0,
-                     ltrunc = ltrunc[!rcens],
-                     rtrunc = rtrunc[!rcens],
-                     tol = 1e-12,
-                     vcov = FALSE)
+       np2 <- npsurv(time = dat,
+                     ltrunc = ltrunc,
+                     rtrunc = rtrunc)
        # Create a weighted empirical CDF
        ecdffun2 <- np2$ecdf
        }
@@ -238,7 +188,7 @@ plot.elife_par <- function(object,
               ylab = "empirical quantiles",
               panel.first = {abline(a = 0, b = 1, col = "gray")})
        } else if(pl == "qq"){
-          plot(y = switch(ind_rcens, dat, dat[!rcens]),
+          plot(y = dat,
                x = qmod(p = txpos, scale = scale, shape = shape, family = object$family),
                bty = "l",
                pch = 20,
@@ -246,7 +196,7 @@ plot.elife_par <- function(object,
                ylab = "empirical quantiles",
                panel.first = {abline(a = 0, b = 1, col = "gray")})
        } else if(pl == "tmd"){
-         yp <- switch(ind_rcens, dat, dat[!rcens])
+         yp <- dat
          xp <- qmod(p = txpos, scale = scale, shape = shape, family = object$family)
          plot(y = yp - xp,
               x = (xp+yp)/2,
@@ -255,8 +205,8 @@ plot.elife_par <- function(object,
               xlab = "average quantile",
               ylab = "quantile difference",
               panel.first = {abline(h = 0, col = "gray")})
-       } else if(pl == "erp" && !is.null(rcens)){
-       plot(y = ecdffun2(dat[!rcens]),
+       } else if(pl == "erp" && cens){
+       plot(y = ecdffun2(dat),
            x = ecdffun2(qmod(p = txpos, scale = scale, shape = shape, family = object$family)),
            bty = "l",
            pch = 20,
@@ -290,17 +240,16 @@ plot.elife_par <- function(object,
            # if(confint && object$type != "ltrc"){
            #     # TODO fix this
            #  confint_qq <- uq1_qqplot_elife(B = 1999L,
-           #                                 dat = dat,
+             #                               n = length(object$time)
            #                                 par = object$par,
            #                                 lower = ltrunc,
            #                                 upper = rtrunc,
-           #                                 rcens = rcens,
-           #                                 type = object$type,
+           #                                 type2 = object$type,
            #                                 family = object$family)
            # }
            # if(!confint){
              pl_list[["qq"]] <-
-             ggplot(data = data.frame(y = switch(ind_rcens, dat, dat[!rcens]),
+             ggplot(data = data.frame(y = dat,
                                       x = qmod(p = txpos, scale = scale, shape = shape, family = object$family)),
                   mapping = aes(x = x, y = y)) +
              geom_abline(intercept = 0, slope = 1, col = "gray") +
@@ -309,7 +258,7 @@ plot.elife_par <- function(object,
                   y = "empirical quantiles")
              # } else if(confint){
              #   pl_list[["qq"]] <-
-             #     ggplot(data = data.frame(y = switch(ind_rcens, dat, dat[!rcens]),
+             #     ggplot(data = data.frame(y = dat,
              #                              x = qmod(p = txpos, scale = scale, shape = shape, family = object$family)),
              #            mapping = aes(x = x, y = y)) +
              #     geom_abline(intercept = 0, slope = 1, col = "gray") +
@@ -323,7 +272,7 @@ plot.elife_par <- function(object,
              # }
          } else if(pl == "tmd"){
            pl_list[["tmd"]] <-
-             ggplot(data = data.frame(yp = switch(ind_rcens, dat, dat[!rcens]),
+             ggplot(data = data.frame(yp = dat,
                                       xp = qmod(p = txpos, scale = scale, shape = shape, family = object$family)),
                                      mapping = aes(x = (xp + yp) / 2, y = yp - xp)) +
              geom_hline(yintercept = 0, col = "gray") +
@@ -331,9 +280,9 @@ plot.elife_par <- function(object,
              labs(x = "average quantile",
                   y = "quantile difference")
 
-         } else if(pl == "erp" && !is.null(rcens)){
+         } else if(pl == "erp"){
            pl_list[["erp"]] <-
-             ggplot(data = data.frame(y = ecdffun2(dat[!rcens]),
+             ggplot(data = data.frame(y = ecdffun2(dat),
                                       x = ecdffun2(qmod(p = txpos, scale = scale, shape = shape, family = object$family))),
                    mapping = aes(x = x, y = y)) +
              geom_abline(intercept = 0, slope = 1, col = "gray") +
@@ -361,17 +310,14 @@ plot.elife_par <- function(object,
 #' @keywords internal
 uq1_qqplot_elife <-
   function(B = 9999L,
-           dat,
+           n,
            par,
            lower,
            upper,
-           rcens = NULL,
            level = 0.95,
-           type = c("none","ltrt","ltrc"),
-           family = c("exp","gp","gomp","weibull","extgp")
+           type2 = c("none","ltrt","ltrc"),
+           family = c("exp","gp","gomp","gompmake","weibull","extgp")
   ){
-    cens <- !is.null(rcens)
-    type <- match.arg(type)
     family <- match.arg(family)
     if(missing(lower)){
       ltrunc <- 0
@@ -382,82 +328,82 @@ uq1_qqplot_elife <-
     if(!missing(lower) && !missing(upper)){
       if(length(upper) != 1 && length(upper) != 1){
       stopifnot( "`upper` and `lower` should be vectors of the same length." = length(lower) == length(upper),
-                 "`Length of data `dat` does not match vector of lower and upper bounds." = length(dat) == length(upper))
+                 "`Length of data `dat` does not match vector of lower and upper bounds." = n == length(upper))
       }
     }
-    stopifnot("Invalid `rcens` argument." = (is.null(rcens) && type != "ltrc") || (is.logical(rcens) && type == "ltrc"),
-              "`lower` should be smaller than `upper`." = isTRUE(all(lower <= upper)),
+   stopifnot("`lower` should be smaller than `upper`." = isTRUE(all(lower <= upper)),
               "Number of bootstrap samples must be larger than what is prescribed by the level." = B >= 1/(1-level) - 1L)
     # parametric bootstrap samples
     # - simulate new data with the same sampling scheme
     # - estimate parameters of the distribution
     # - compute quantiles corresponding to plotting positions
-    n <- ifelse(cens, length(dat[!rcens]), length(dat))
     ppos <- matrix(NA, nrow = B, ncol = n)
-    if(cens){
-      ddat <- dat[!rcens]
-      ltrunc <- lower[!rcens]
-      rtrunc <- upper[!rcens]
+    split_pars <- function(par, family){
+    if(family == "gompmake"){
+      scale <- as.numeric(par[-2])
+      shape <- as.numeric(par[2])
+    } else{
+      scale <- as.numeric(par[1])
+      shape <- as.numeric(par[-1])
     }
-    if(type == "none"){
+      return(list(scale = scale, shape = shape))
+    }
+    scale <- split_pars(par, family = family)$scale
+    shape <- split_pars(par, family = family)$shape
+
+    if(type2 == "none"){
       for(b in seq_len(B)){
         dat_boot <- samp_elife(n = n,
-                               scale = par[1],
-                               shape = par[-1],
+                               scale = scale,
+                               shape = shape,
                                family = family,
-                               type = type)
-        fit_boot <- fit_elife(
-          dat = dat_boot,
-          thresh = 0,
-          family = family,
-          type = type)
+                               type2 = "none")
+        fit_boot <- fit_elife(time = dat_boot,
+                              family = family)
         ppos[b,] <- qelife(p = ppoints(n),
-                           scale = fit_boot$par[1],
-                           shape = fit_boot$par[-1],
+                           scale = split_pars(fit_boot$par, family = family)$scale,
+                           shape = split_pars(fit_boot$par, family = family)$shape,
                            family = family)
 
       }
-    } else if(type == "ltrc"){
+    } else if(type2 == "ltrc"){
       for(b in seq_len(B)){
       boot_dat <- samp_elife(n = n,
-                             scale = par[1],
-                             shape = par[-1],
+                             scale = scale,
+                             shape = shape,
                              lower = lower,
                              upper = upper,
                              family = family,
-                             type = type)
+                             type2 = type2)
        fit_boot <- fit_elife(
-        dat = boot_dat$dat,
+        time = boot_dat$dat,
         thresh = 0,
         ltrunc = lower,
-        rcens = boot_dat$rcens,
+        event = !boot_dat$rcens,
         family = family,
-        type = type)
+        type = "right")
        np_boot <- npsurv(time = boot_dat$dat,
                 event = !boot_dat$rcens,
                 type = "right",
                 ltrunc = lower)
        ppos[b,] <- qelife(p = n/(n+1)*np_boot$cdf(dat),
-                          scale = fit_boot$par[1],
-                          shape = fit_boot$par[-1],
+                          scale = split_pars(fit_boot$par, family = family)$scale,
+                          shape = split_pars(fit_boot$par, family = family)$shape,
                           family = family)
       }
-      } else if(type == "ltrt"){
+      } else if(type2 == "ltrt"){
         for(b in seq_len(B)){
           boot_dat <- samp_elife(n = n,
-                                 scale = par[1],
-                                 shape = par[-1],
+                                 scale = scale,
+                                 shape = shape,
                                  lower = lower,
                                  upper = upper,
                                  family = family,
-                                 type = type)
-          fit_boot <- fit_elife(
-            dat = boot_dat,
-            thresh = 0,
-            ltrunc = lower,
-            rtrunc = upper,
-            family = family,
-            type = type)
+                                 type2 = type2)
+          fit_boot <- fit_elife(time = boot_dat,
+                                ltrunc = lower,
+                                rtrunc = upper,
+                                family = family)
           np_boot <- npsurv(time = boot_dat,
                             type = "interval",
                             event = rep(1L, n),
@@ -465,15 +411,15 @@ uq1_qqplot_elife <-
                             rtrunc = upper)$cdf
           xpos <- n / (n + 1) * (np_boot(dat) - np_boot(ltrunc))/(np_boot(rtrunc) - np_boot(ltrunc))
           ppos[b,] <- qelife(p = pelife(q = ltrunc,
-                             scale = fit_boot$par[1],
-                             shape = fit_boot$par[-1],
+                             scale = split_pars(fit_boot$par, family = family)$scale,
+                             shape = split_pars(fit_boot$par, family = family)$shape,
                              family = family)*(1-xpos) +
             xpos * pelife(q = rtrunc,
-                         scale = fit_boot$par[1],
-                         shape = fit_boot$par[-1],
+                         scale = split_pars(fit_boot$par, family = family)$scale,
+                         shape = split_pars(fit_boot$par, family = family)$shape,
                          family = family),
-            scale = fit_boot$par[1],
-            shape = fit_boot$par[-1],
+            scale = split_pars(fit_boot$par, family = family)$scale,
+            shape = split_pars(fit_boot$par, family = family)$shape,
             family = family)
         }
       }

@@ -10,14 +10,15 @@ Imports:
     methods,
     Rcpp (>= 1.0.6),
     Rsolnp,
-    stats
+    stats,
+    gsl
 Suggests: 
     knitr,
     testthat,
     ggplot2,
     patchwork
 LinkingTo: Rcpp, RcppArmadillo
-Description: Parametric and nonparametric methods for the analysis of survival data and semi-supercentenarian, including Gompertz, exponential and generalized Pareto models, nonparametric estimate based on Gampe (2010) <doi:10.1007/978-3-642-11520-2_13>, Rootzén and Zholud (2017) <10.1007/s10687-017-0305-5> and Belzile et al. (2020)
+Description: Parametric and nonparametric methods for the analysis of survival data and semi-supercentenarian, including Gompertz-Makeham, exponential and generalized Pareto models, nonparametric estimate based on Turnbull (1976) <doi:10.1111/j.2517-6161.1976.tb01597.x>, Rootzén and Zholud (2017) <10.1007/s10687-017-0305-5> and Belzile et al. (2020)
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

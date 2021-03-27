@@ -6,20 +6,17 @@
 \usage{
 uq1_qqplot_elife(
   B = 9999L,
-  dat,
+  n,
   par,
   lower,
   upper,
-  rcens = NULL,
   level = 0.95,
-  type = c("none", "ltrt", "ltrc"),
-  family = c("exp", "gp", "gomp", "weibull", "extgp")
+  type2 = c("none", "ltrt", "ltrc"),
+  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp")
 )
 }
 \arguments{
 \item{B}{number of bootstrap samples}
-
-\item{dat}{vector of data}
 
 \item{par}{parameter estimates of the model}
 
@@ -27,13 +24,11 @@ uq1_qqplot_elife(
 
 \item{upper}{upper bound for right-censoring or right-truncation}
 
-\item{rcens}{logical indicating right-censoring (\code{TRUE} for censored)}
-
 \item{level}{level of the confidence intervals}
 
-\item{type}{string, either \code{ltrt} for left- and right-truncated data or \code{ltrc} for left-truncated right-censored data}
+\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).}
 
-\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}) or extended generalized Pareto (\code{extgp}).}
+\item{dat}{vector of data}
 }
 \description{
 Uncertainty quantification for quantile-quantile plots

@@ -20,26 +20,35 @@
 #' thresh = 40178L, covariate = gender,
 #' ltrunc = ltrunc, rtrunc = rtrunc,
 #' family = "exp", type = "ltrt"))
-test_elife <- function(dat,
+test_elife <- function(time,
+                       time2 = NULL,
+                       event = NULL,
                        covariate,
-                       thresh,
+                       thresh = 0,
                        ltrunc = NULL,
                        rtrunc = NULL,
-                       rcens = NULL,
-                       type = c("none", "ltrc", "ltrt"),
-                       family = c("exp", "gp", "weibull", "gomp", "extgp"),
-                       weights = rep(1, length(dat))) {
+                       type = c("right", "left","interval","interval2"),
+                       family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp"),
+                       weights = rep(1, length(time))) {
   family <- match.arg(family)
   type <- match.arg(type)
   stopifnot("Covariate must be provided" = !missing(covariate),
-            "Object `covariate` should be of the same length as `dat`" = length(covariate) == length(dat),
+            "Object `covariate` should be of the same length as `dat`" = length(covariate) == length(time),
             "Provide a single threshold" = !missing(thresh) && length(thresh) == 1L)
   npar <- switch(family,
                "exp" = 1L,
                "gp" = 2L,
                "gomp" = 2L,
+               "gompmake" = 3L,
                "extgp" = 3L,
                "weibull" = 2L)
+  survout <- .check_surv(time = time,
+                         time2 = time2,
+                         event = event,
+                         type = type)
+  time <- survout$time
+  time2 <- survout$time2
+  status <- survout$status
   # Transform to factor
   covariate <- as.factor(covariate)
   nobs_cov <- table(covariate)
@@ -48,26 +57,26 @@ test_elife <- function(dat,
             "There are too few observations (less than 5 times the number of parameters) for some modalities of `covariate`." = min(nobs_cov) >= 5*npar)
   # Fit the pooled model
   labels <- names(nobs_cov)
-  if(is.null(weights)){
-    weights <- rep(1, length(dat))
-  }
-  fit_null <- try(fit_elife(dat = dat,
-                          thresh = thresh,
-                          ltrunc = ltrunc,
-                          rtrunc = rtrunc,
-                          rcens = rcens,
-                          type = type,
-                          family = family,
-                          weights = weights))
+  fit_null <- try(fit_elife(time = time,
+                            time2 = time2,
+                            event = event,
+                            status = status,
+                            thresh = thresh,
+                            ltrunc = ltrunc,
+                            rtrunc = rtrunc,
+                            type = type,
+                            family = family,
+                            weights = weights))
   loglik0 <- ifelse(is.character(fit_null), NA, fit_null$loglik)
   fit_alternative <- list()
   loglik1 <- rep(0, m)
   for(i in 1:m){
-    fit_alternative[[i]] <- try(fit_elife(dat = dat[covariate == labels[i]],
+    fit_alternative[[i]] <- try(fit_elife(time = time[covariate == labels[i]],
+                                          time2 = time2[covariate == labels[i]],
+                                          status = status[covariate == labels[i]],
                                 thresh = thresh,
                                 ltrunc = ltrunc[covariate == labels[i]],
                                 rtrunc = rtrunc[covariate == labels[i]],
-                                rcens = rcens[covariate == labels[i]],
                                 type = type,
                                 family = family,
                                 weights = weights[covariate == labels[i]]))
@@ -103,12 +112,14 @@ anova.elife_par <- function(object,
   dev <- rep(0, length(models))
   thresh <- nobs <- rep(0, length(models))
   family <- rep("", length(models))
+  conv <- rep(FALSE, 2)
   for (i in 1:narg) {
     elifemod <- get(models[i], envir = parent.frame())
     dev[i] <- 2*elifemod$loglik
     npar[i] <- length(elifemod$par)
     thresh[i] <- elifemod$thresh[1]
     nobs[i] <- elifemod$nexc
+    conv[i] <- elifemod$convergence
     family[i] <- elifemod$family
   }
   if(npar[1] < npar[2]){
@@ -118,6 +129,9 @@ anova.elife_par <- function(object,
   }
   if(!isTRUE(all.equal(thresh[1], thresh[2]))){
     stop("Invalid arguments: the thresholds should be the same.")
+  }
+  if(!isTRUE(all(conv))){
+    stop("At least one of the optimization failed to converge.")
   }
   if(!isTRUE(all.equal(nobs[1], nobs[2]))){
     stop("Invalid arguments: the observations should be the same.")
@@ -132,6 +146,8 @@ anova.elife_par <- function(object,
     c("exp","gppiece","regular"),
     c("gomp","extgp","regular"),
     c("gp","gppiece","regular"),
+    c("gomp","gompmake","regular"),
+    c("exp","gompmake","boundary"),
     c("exp","gomp","boundary"),
     c("exp","extgp","boundary"),
     c("gp","extgp","boundary")
@@ -141,6 +157,10 @@ anova.elife_par <- function(object,
 
   df <- -diff(npar)
   dvdiff <- -diff(dev)
+  if(dvdiff < 0 && dvdiff > -1e-4){
+    # Numerical tolerance for zero
+    dvdiff <- 0
+  }
   if(dvdiff < 0){
     stop("The alternative model has a lower likelihood value than the null model, indicating convergence problems.")
   }
@@ -180,13 +200,14 @@ anova.elife_par <- function(object,
 #' \item{\code{df}: }{degrees of freedom}
 #' \item{\code{pval}: }{the p-value obtained from the asymptotic chi-square approximation.}
 #' }
-nc_score_test <- function(dat,
-                          thresh,
+nc_score_test <- function(time,
+                          time2 = NULL,
+                          event = NULL,
+                          thresh = 0,
                           ltrunc = NULL,
                           rtrunc = NULL,
-                          rcens = NULL,
-                          type = c("none", "ltrc", "ltrt"),
-                          weights = rep(1, length(dat))){
+                          type = c("right", "left", "interval", "interval2"),
+                          weights = rep(1, length(time))){
   stopifnot("Threshold is missing" = !missing(thresh))
   nt <- length(thresh)
   thresh <- sort(unique(thresh))
@@ -194,21 +215,23 @@ nc_score_test <- function(dat,
   res <- as.data.frame(matrix(NA, ncol = 5, nrow = nt - 1L))
   colnames(res) <- c("thresh","nexc","score","df","pval")
   for(i in 1:(nt-1L)){
-    fit0 <- fit_elife(dat = dat,
+    fit0 <- fit_elife(time = time,
+                      time2 = time2,
+                      event = event,
                       thresh = thresh[i],
                       ltrunc = ltrunc,
                       rtrunc = rtrunc,
-                      rcens = rcens,
                       type = type,
                       family = "gp",
                       weights = weights,
                       export = FALSE)
     score0 <- try(numDeriv::grad(func = function(x){
                      nll_elife(par = x,
-                               dat = dat,
+                               time = time,
+                               time2 = time2,
+                               event = event,
                                thresh = thresh[i:nt],
                                type = type,
-                               rcens = rcens,
                                ltrunc = ltrunc,
                                rtrunc = rtrunc,
                                family = "gppiece",
@@ -218,12 +241,13 @@ nc_score_test <- function(dat,
                    ))
     hess0 <- try(numDeriv::hessian(func = function(x){
                     nll_elife(par = x,
-                              dat = dat,
+                              time = time,
+                              time2 = time2,
+                              event = event,
                               thresh = thresh[i:nt],
                               type = type,
                               ltrunc = ltrunc,
                               rtrunc = rtrunc,
-                              rcens = rcens,
                               family = "gppiece",
                               weights = weights
                     )},
@@ -261,43 +285,53 @@ nc_score_test <- function(dat,
 #' \item{\code{pval}: }{p-value obtained via simulation}
 #' }
 #' @export
-ks_test <- function(dat,
-                     thresh,
-                     ltrunc = NULL,
-                     rtrunc = NULL,
-                     rcens = NULL,
-                     type = c("none", "ltrc", "ltrt"),
-                     family = c("exp", "gp", "weibull", "gomp", "extgp","gppiece"),
-                     B = 999L){
+ks_test <- function(time,
+                    time2 = NULL,
+                    event = NULL,
+                    thresh = 0,
+                    ltrunc = NULL,
+                    rtrunc = NULL,
+                    type = c("right", "left","interval","interval2"),
+                    family = c("exp", "gp", "weibull", "gomp", "extgp","gppiece"),
+                    B = 999L){
   family <- match.arg(family)
   type <- match.arg(type)
-  ntot <- length(dat)
-  wexc <- dat > thresh[1]
-  dat <- dat[wexc] - thresh[1]
-  n <- length(dat)
-  if(!is.null(ltrunc)){
-    ltrunc <- pmax(0, ltrunc[wexc] - thresh[1])
-  }
-  if(!is.null(rtrunc)){
-    rtrunc <- rtrunc[wexc] - thresh[1]
-  }
-  if(type == "ltrc"){
-    stopifnot("Right-censoring indicator is lacking." = !is.null(rcens) && length(rcens) == ntot)
-    rcens <- rcens[wexc]
-    status <- as.integer(!rcens)
-  } else{
-    rcens <- NULL
-    status <- rep(1L, n)
+  n <- length(time)
+  survout <- .check_surv(time = time,
+                         time2 = time2,
+                         event = event,
+                         type = type)
+  time <- survout$time
+  time2 <- survout$time2
+  status <- survout$status
+  if(thresh[1] > 0){
+    # Keep only exceedances, shift observations
+    # We discard left truncated observations and interval censored
+    # if we are unsure whether there is an exceedance
+    ind <- ifelse(status == 2, FALSE, time > thresh[1])
+    weights <- weights[ind] # in this order
+    time <- time[ind] - thresh[1]
+    time2 <- time2[ind] - thresh[1]
+    status <- status[ind]
+    if(!is.null(ltrunc)){ #both ltrc and ltrt
+      stopifnot("`ltrunc` must be of the same length as `time`." = length(ltrunc) == n)
+      ltrunc <- pmax(0, ltrunc[ind] - thresh[1])
+    }
+    if(!is.null(rtrunc)){
+      stopifnot("`rtrunc` must be of the same length as `time`." = length(rtrunc) == n)
+      rtrunc <- rtrunc[ind] - thresh[1]
+    }
   }
   thresh <- 0
   # Fit parametric model
-  F0 <- try(fit_elife(dat = dat,
-                  thresh = thresh,
-                  rcens = rcens,
-                  ltrunc = ltrunc,
-                  rtrunc = rtrunc,
-                  type = type,
-                  family = family
+  F0 <- try(fit_elife(time = time,
+                      time2 = time2,
+                      status = status,
+                      thresh = thresh,
+                      ltrunc = ltrunc,
+                      rtrunc = rtrunc,
+                      type = type,
+                      family = family
                   ))
   if(is.character(F0) || !F0$convergence){
     stop("Could not estimate the parametric model.")
@@ -309,61 +343,83 @@ ks_test <- function(dat,
                ltrunc = ltrunc,
                rtrunc = rtrunc)
  # Compute test statistic
- ks <- max(abs(Fn$cdf(Fn$x) - pelife(q = Fn$x, scale = F0$par[1], shape = F0$par[-1], family = family)))
+  if(family == "gompmake"){
+    scale <- c(F0$par[1], F0$par[3])
+    shape <- F0$par[2]
+  } else{
+    scale <- F0$par[1]
+    shape <- F0$par[-1]
+  }
+ ks <- max(abs(Fn$cdf(Fn$x) - pelife(q = Fn$x, scale = scale, shape = shape, family = family)))
  stat <- rep(NA, B + 1L)
  stat[B + 1] <- ks
+ if(is.null(ltrunc) && is.null(rtrunc) && isTRUE(all(status == 1L))){
+   type2 <- "none"
+ } else if(isTRUE(all(status == 1L)) && (!is.null(rtrunc) || !is.null(ltrunc))){
+   type2 <- "ltrt"
+ } else if(is.null(rtrunc) && isTRUE(all(status == c(0L,1L)))){
+   type2 <- "ltrc"
+ }
  for(b in 1:B){
    bootconv <- FALSE
    while(!bootconv){
- if(type == "ltrt"){
-   bootsamp <- samp_elife(n = length(dat),
-                  scale = F0$par[1],
-                  shape = F0$par[-1],
+ if(type2 == "ltrt"){
+   boottime <- samp_elife(n = length(time),
+                  scale = scale,
+                  shape = shape,
                   lower = ltrunc,
                   upper = rtrunc,
                   family = family,
-                  type = type)
-   bootrcens <- NULL
- } else if(type == "none"){
-  bootsamp <- relife(n = length(dat),
-                 scale = F0$par[1],
-                 shape = F0$par[-1],
+                  type2 = type2)
+   bootstatus <- rep(1L, length(time))
+ } else if(type2 == "none"){
+  boottime <- relife(n = length(time),
+                 scale = scale,
+                 shape = shape,
                  family = family)
-  bootrcens <- NULL
- } else if(type == "ltrc"){
-   boot_sim <- samp_elife(n = length(dat),
-                          scale = F0$par[1],
-                          shape = F0$par[-1],
+  bootstatus <- rep(1L, length(time))
+ } else if(type2 == "ltrc"){
+   boot_sim <- samp_elife(n = length(time),
+                          scale = scale,
+                          shape = shape,
                           lower = ltrunc,
                           upper = rtrunc,
                           family = family,
-                          type = type)
-   bootsamp <- boot_sim$dat
-   bootrcens <- boot_sim$rcens
+                          type2 = type2)
+   boottime <- boot_sim$dat
+   boottime2 <- ifelse(boot_sim$rcens, NA, boot_sim$dat)
+   bootstatus <- as.integer(!boot_sim$rcens)
  }
    # bootstrap loop
-   F0_b <- try(fit_elife(dat = bootsamp,
-                   thresh = thresh,
-                   rcens = bootrcens,
-                   ltrunc = ltrunc,
-                   rtrunc = rtrunc,
-                   type = type,
-                   family = family))
+   F0_b <- try(fit_elife(time = boottime,
+                         time2 = boottime2,
+                         status = bootstatus,
+                         thresh = thresh,
+                         ltrunc = ltrunc,
+                         rtrunc = rtrunc,
+                         type = "right",
+                         family = family))
    # Fit NPMLE of ECDF
-   if(type == "ltrc"){
-   Fn_b <- try(npsurv(time = bootsamp,
-                      event = as.integer(!bootrcens),
+   if(type2 == "ltrc"){
+   Fn_b <- try(npsurv(time = boottime,
+                      event = bootstatus,
                       ltrunc = ltrunc,
                       rtrunc = rtrunc,
                       type = "interval"))
    } else{
-     Fn_b <- try(npsurv(time = bootsamp,
+     Fn_b <- try(npsurv(time = boottime,
                         ltrunc = ltrunc,
                         rtrunc = rtrunc))
    }
-
+   if(family == "gompmake"){
+     scale_boot <- c(F0_b$par[1], F0_b$par[3])
+     shape_boot <- F0_b$par[2]
+   } else{
+     scale_boot <- F0_b$par[1]
+     shape_boot <- F0_b$par[-1]
+   }
    # Compute test statistic
-   ks_boot <- try(max(abs(Fn_b$cdf(Fn_b$x) - pelife(q = Fn_b$x, scale = F0_b$par[1], shape = F0_b$par[-1], family = family))))
+   ks_boot <- try(max(abs(Fn_b$cdf(Fn_b$x) - pelife(q = Fn_b$x, scale = scale_boot, shape = shape_boot, family = family))))
    if(is.numeric(ks_boot)){
      stat[b] <- ks_boot
      bootconv <- TRUE

@@ -8,7 +8,7 @@ samp2_elife(
   n,
   scale,
   shape,
-  family = c("exp", "gp", "gomp", "weibull", "extgp"),
+  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp"),
   xcal,
   c1,
   c2
@@ -17,11 +17,11 @@ samp2_elife(
 \arguments{
 \item{n}{sample size}
 
-\item{scale}{scale parameter}
+\item{scale}{scale parameter(s)}
 
 \item{shape}{shape parameter(s)}
 
-\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}) or extended generalized Pareto (\code{extgp}).}
+\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).}
 
 \item{xcal}{date at which individual reaches \code{u} years}
 

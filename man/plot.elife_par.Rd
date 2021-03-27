@@ -48,13 +48,11 @@ samp <- samp_elife(
  shape = 0.3,
  family = "gomp",
  lower = 0, upper = runif(200, 0, 10),
- type = "ltrc")
+ type2 = "ltrc")
 fitted <- fit_elife(
- dat = samp$dat,
+ time = samp$dat,
  thresh = 0,
- ltrunc = 0,
- rcens = samp$rcens,
- type = "ltrc",
+ samp$rcens,
  family = "exp",
  export = TRUE)
 plot(fitted, plot.type = "ggplot")
@@ -66,7 +64,7 @@ samp <- samp_elife(
  family = "gp",
  lower = ltrunc <- runif(200),
  upper = rtrunc <- ltrunc + runif(200, 0, 10),
- type = "ltrt")
+ type2 = "ltrt")
 fitted <- fit_elife(
  dat = samp,
  thresh = 0,
