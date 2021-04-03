@@ -10,6 +10,7 @@ fitrange_elife(
   event = NULL,
   ltrunc = NULL,
   rtrunc = NULL,
+  thresh,
   type = c("right", "left", "interval", "interval2"),
   family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp"),
   weights = NULL
@@ -28,13 +29,13 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 
 \item{rtrunc}{upper truncation limit, default to \code{NULL}}
 
+\item{thresh}{a vector of thresholds}
+
 \item{type}{character string specifying the type of censoring. Possible values are "\code{right}", "\code{left}", "\code{interval}", "\code{interval2}".}
 
 \item{family}{string, one of \code{exp}, \code{gp}, \code{gomp} or \code{ext} for exponential, generalized Pareto, Gompertz or extended family, respectively.}
 
 \item{weights}{vector of weights, defaults to one for each observation.}
-
-\item{thresh}{a vector of thresholds}
 }
 \value{
 a list containing

@@ -5,7 +5,7 @@
 \title{Goodness-of-fit plots for parametric models}
 \usage{
 \method{plot}{elife_par}(
-  object,
+  x,
   plot.type = c("base", "ggplot"),
   which.plot = c("pp", "qq"),
   confint = FALSE,
@@ -13,7 +13,7 @@
 )
 }
 \arguments{
-\item{object}{a parametric model of class \code{elife_par}}
+\item{x}{a parametric model of class \code{elife_par}}
 
 \item{plot.type}{string, one of \code{base} for base R or \code{ggplot}}
 
@@ -52,7 +52,8 @@ samp <- samp_elife(
 fitted <- fit_elife(
  time = samp$dat,
  thresh = 0,
- samp$rcens,
+ event = ifelse(samp$rcens, 0L, 1L),
+ type = "right",
  family = "exp",
  export = TRUE)
 plot(fitted, plot.type = "ggplot")
@@ -66,11 +67,10 @@ samp <- samp_elife(
  upper = rtrunc <- ltrunc + runif(200, 0, 10),
  type2 = "ltrt")
 fitted <- fit_elife(
- dat = samp,
+ time = samp,
  thresh = 0,
  ltrunc = ltrunc,
  rtrunc = rtrunc,
- type = "ltrt",
  family = "gp",
  export = TRUE)
 plot(fitted, plot.type = "ggplot")

@@ -1,3 +1,9 @@
+#' Hazard function for various parametric models
+#'
+#' @param par vector of scale and shape parameters
+#' @param x vector of points at which to evaluate the hazard function
+#' @inheritParams nll_elife
+#' @return a vector with the value of the hazard function at \code{x}
 #' @keywords internal
 #' @export
 hazard_fn_elife <- function(x,
@@ -18,7 +24,7 @@ hazard_fn_elife <- function(x,
   # Define hazard functions for various parametric models
 switch(family,
        exp = rep(1/par[1], length.out = length(x)),
-       gp =  1/(par[1] + par[2] * x),
+       gp =  ifelse(par[2] < 0 & (par[1] + par[2] * x) < 0, 0, 1/(par[1] + par[2] * x)),
        weibull = par[2]*par[1]^(-par[2])*x^(par[2]-1), #par[1] = scale, par[2] = shape
        extgp =  (1/par[1]) * exp(par[2]*x/par[1])/(1+par[3]*(exp(par[2]*x/par[1])-1)/par[2]),
        gomp = exp(par[2]*x/par[1])/par[1],
@@ -34,6 +40,8 @@ switch(family,
 #'
 #' @param x value of the threshold exceedance at which to estimate the hazard
 #' @param plot logical; if true, display the profile log-likelihood. Default to \code{FALSE}.
+#' @param psi optional vector of hazard at which to compute the profile log likelihood
+#' @param level numeric; the level for the confidence intervals. Default to 0.95
 #' @inheritParams nll_elife
 #' @return an invisible object of class \code{elife_hazard} containing information about the profile likelihood
 #' @export
@@ -44,7 +52,7 @@ switch(family,
 #' lower = ltrunc <- runif(n),
 #' upper = rtrunc <- (5 + runif(n)), type2 = "ltrt")
 #' hazard_elife(x = 2, time = time,
-#'  ltrunc = ltrunc, rtrunc = rtrunc, family = "gp")
+#'  ltrunc = ltrunc, rtrunc = rtrunc, family = "exp")
 hazard_elife <- function(x,
                         time,
                         time2 = NULL,
@@ -55,7 +63,7 @@ hazard_elife <- function(x,
                         rtrunc = NULL,
                         type = c("right","left","interval","interval2"),
                         family = c("exp","gp","gomp","gompmake","weibull","extgp"),
-                        weights = NULL,
+                        weights = rep(1, length(time)),
                         level = 0.95,
                         psi = NULL,
                         plot = FALSE){
@@ -63,7 +71,9 @@ hazard_elife <- function(x,
             "Level should be a numeric of length one" = length(level) == 1L,
             "The value of `x` should be numeric." = is.numeric(x)
             )
-   # This function should
+  type <- match.arg(type)
+  family <- match.arg(family)
+  # This function should
   # 1) create a wrapper function to reparametrize the likelihood in terms of hazard
   # 2) compute the restricted maximum likelihood at each point
   # 3) return an object with hazard and the log-likelihood value
@@ -110,8 +120,8 @@ hazard_elife <- function(x,
         as.numeric((1/hazard)-xi*x)
     }
     if(is.null(psi)){
-      haz_stderror <- sqrt(diag(solve(numDeriv::hessian(func = function(par){
-        nll_elife(par = c(inv_haz(par, xi = mle$par[2], x = x), mle$par[1]),
+      haz_stderror <- try(sqrt(diag(solve(numDeriv::hessian(func = function(par){
+        nll_elife(par = c(inv_haz(par, xi = mle$par[2], x = x), mle$par[2]),
                   time = time,
                   time2 = time2,
                   event = event,
@@ -121,7 +131,10 @@ hazard_elife <- function(x,
                   rtrunc = rtrunc,
                   family = family,
                   weights = weights)},
-        x = mle_haz))))
+        x = mle_haz)))))
+      if(is.character(haz_stderror)){
+        stop("Could not find a grid of values for the hazard confidence interval: please provide `psi` argument.")
+      }
       psi <- mle_haz + seq(-4*haz_stderror, 4*haz_stderror, length.out = 101L)
     }
       psi <- psi[psi > 0]
@@ -129,7 +142,7 @@ hazard_elife <- function(x,
     ubound <- ifelse(x > mdat, x, mdat)
     npll <- sapply(psi, function(haz_i){
       opt <- optimize(f = function(xi){
-          nll_elife(par = c(1/haz_i-xi*x, xi),
+            nll_elife(par = c(1/haz_i-xi*x, xi),
                     time = time,
                     time2 = time2,
                     event = event,

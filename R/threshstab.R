@@ -10,8 +10,8 @@
 #'
 #' @details The shape estimates are constrained
 #' @inheritParams nll_elife
-#' @param dist string giving the distribution, either generalized Pareto (\code{gp}) or exponential (\code{exp})
-#' @param method string giving the type of pointwise confidence interval, either Wald (\code{wald}) or profile likelihood (\code{lrt})
+#' @param family string; distribution, either generalized Pareto (\code{gp}) or exponential (\code{exp})
+#' @param method string; the type of pointwise confidence interval, either Wald (\code{wald}) or profile likelihood (\code{lrt})
 #' @param level probability level for the pointwise confidence intervals
 #' @param plot.type string; either \code{base} for base R plots or \code{ggplot} for \code{ggplot2} plots
 #' @param which.plot string; which parameters to plot;
@@ -152,11 +152,12 @@ tstab <- function(time,
 }
 
 #' @export
-plot.elife_tstab <- function(object,
+plot.elife_tstab <- function(x,
                              plot.type = c("base","ggplot"),
                              which.plot = c("scale","shape"),
                              plot = TRUE,
                              ...){
+  object <- x
   plot.type <- match.arg(plot.type)
   which.plot <- match.arg(which.plot, choices = c("scale","shape"), several.ok = TRUE)
   if(plot.type == "ggplot" && requireNamespace("ggplot2", quietly = TRUE)){

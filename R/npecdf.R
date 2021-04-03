@@ -351,6 +351,7 @@ logit <- function(x) {
   invisible(rval)
 }
 
+#' @export
 #' @keywords internal
 .check_surv <- function(time,
                         time2 = NULL,
@@ -414,6 +415,8 @@ logit <- function(x) {
 #' Although unusual, the event indicator can be omitted, in which case all subjects are assumed to have an event.
 #' @param time2 ending excess time of the interval for interval censored data only.
 #' @param type character string specifying the type of censoring. Possible values are "\code{right}", "\code{left}", "\code{interval}", "\code{interval2}".
+#' @param ltrunc lower truncation limit, default to \code{NULL}
+#' @param rtrunc upper truncation limit, default to \code{NULL}
 #' @seealso \code{\link[survival]{Surv}}
 #' @return a list with components
 #' \itemize{
@@ -438,6 +441,7 @@ npsurv <- function(time,
   time <- survout$time
   time2 <- survout$time2
   status <- survout$status
+  n <- length(time)
     # unique survival time
   if(sum(status == 1L) < 2){
     warning("There are not enough uncensored observations to estimate the distribution.")
@@ -474,18 +478,18 @@ npsurv <- function(time,
   } else{
     trunc <- TRUE
   if(!is.null(ltrunc)){
-    trunc_lb <- findInterval(x = ltrunc,
+    trunc_lb <- rep(x = findInterval(x = ltrunc,
                              vec = unex,
                              left.open = TRUE,
-                             all.inside = FALSE)
+                             all.inside = FALSE), length.out = n)
   } else{
     trunc_lb <- rep(0L, n)
   }
     if(!is.null(rtrunc)){
-      trunc_ub <- pmin(J-1, findInterval(x = rtrunc,
+      trunc_ub <- rep(pmin(J-1, findInterval(x = rtrunc,
                                vec = unex,
                                left.open = TRUE,
-                               all.inside = FALSE))
+                               all.inside = FALSE)), length.out = n)
     } else{
       trunc_ub <- rep(J-1, n)
     }

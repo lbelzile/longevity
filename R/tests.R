@@ -70,6 +70,7 @@ test_elife <- function(time,
   loglik0 <- ifelse(is.character(fit_null), NA, fit_null$loglik)
   fit_alternative <- list()
   loglik1 <- rep(0, m)
+  n_levels <- rep(0L, m)
   for(i in 1:m){
     fit_alternative[[i]] <- try(fit_elife(time = time[covariate == labels[i]],
                                           time2 = time2[covariate == labels[i]],
@@ -81,12 +82,39 @@ test_elife <- function(time,
                                 family = family,
                                 weights = weights[covariate == labels[i]]))
     loglik1[i] <- ifelse(is.character(fit_alternative[[i]]), NA, fit_alternative[[i]]$loglik)
+    n_levels[i] <- fit_alternative[[i]]$nexc
   }
   lrt_stat <- 2*as.numeric((sum(loglik1)-loglik0))
+  names(n_levels) <- labels
   p_value <- pchisq(q = lrt_stat, df = (m - 1) * npar, lower.tail = FALSE)
-  return(list(stat = lrt_stat,
+    invisible(structure(list(stat = lrt_stat,
               df = (m - 1) * npar,
-              pval = p_value))
+              pval = p_value,
+              nobs_covariate = n_levels,
+              thresh = thresh,
+              family = family),
+    class = "elife_par_test"))
+}
+#' @export
+print.elife_par_test <-   function(x,
+             digits = min(3, getOption("digits")),
+             na.print = "", ...){
+      cat("Model:", switch(x$family,
+                           exp = "exponential",
+                           gomp = "Gompertz",
+                           gompmake = "Gompertz-Makeham",
+                           weibull = "Weibull",
+                           extgp = "extended generalized Pareto",
+                           gp = "generalized Pareto",
+                           gppiece = "piecewise generalized Pareto"),
+          "distribution.", "\n")
+      cat("Threshold:", round(x$thresh, digits), "\n")
+      cat("Number of exceedances per covariate level:\n")
+      print.default(x$nobs_covariate)
+      cat("\nLikelihood ratio statistic:", format(x$stat, digits = digits))
+      cat(paste0("\nNull distribution: chi-square (", x$df, ")\n"))
+      cat("Asymptotic p-value: ", format(x$pval, digits = digits),"\n")
+      invisible(x)
 }
 
 #' @export
@@ -268,7 +296,8 @@ nc_score_test <- function(time,
 
 #' Goodness-of-fit diagnostics
 #'
-#' Compute the Kolmogorov-Smirnov or the Anderson-Darling
+#' Warning: EXPERIMENTAL
+#' Compute the Kolmogorov-Smirnov
 #' test statistic and compare it with a simulated null
 #' distribution obtained via a parametric bootstrap.
 #'

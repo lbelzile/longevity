@@ -31,25 +31,26 @@
 #' This data frame contains information about 3866
 #' Welsh and English who died at age ranging from 105 to 110
 #' between 2000 and 2014 (except for two women
-#' who died late in December 1999).
+#' who died late in December 1999) and a subset of UK supercentenarians from
+#' the IDL database (5 male, 80 female) who died during the same period.
 #' All records for people who died at age 109 and all men,
 #' plus a stratified sample of the women were validated
 #' by the General Register Office (GRO). Observations are
 #' doubly truncated.
 #'
 #' In the original data forwarded by the IDL staff,
-#' there are 7 records that are dubious (missing birth day or month)
+#' there were 7 dubious records (missing birth day or month)
 #' that were excluded. The referenced technical reports describes the validation
 #' procedure in more details and includes (approximate) sampling weights for the validation
 #' sample of women who died age 105-108.
 #' @references Office for National Statistics (2016). Accuracy of official high-age population estimates, in England and Wales: an evaluation. Technical report, \url{https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/ageing/methodologies/accuracyofofficialhighagepopulationestimatesinenglandandwalesanevaluation}
 #' @source Ngaire Coombs, Office for National Statistics (ONS)
-#' @format A data frame with 3866 rows and 7 variables:
+#' @format A data frame with 3951 rows and 7 variables:
 #' \describe{
 #' \item{ndays}{survival time (in days)}
 #' \item{bdate}{birth date (\code{Date})}
 #' \item{ddate}{death date (\code{Date})}
-#' \item{ltrunc}{minimum age (in days); the maximum of either 105 years or the number of days reached in 2000}
+#' \item{ltrunc}{minimum age (in days); the maximum of 38350 days (approximately 105 years) or the number of days reached in 2000}
 #' \item{rtrunc}{maximum age (in days) an individual could have reached by the end of 2014}
 #' \item{gender}{factor indicating gender of individual, either \code{female} or \code{male}}
 #' \item{valid}{quality flag; \code{A} for validated records, \code{B} for unchecked records}
@@ -80,3 +81,49 @@
 #'
 #' @source Table extracted from the Hanamaya & Sibuya (2016).
 "japanese"
+
+
+#' Italian semi-supercentenarian
+#'
+#' This data frame contains information about 3836 Italians
+#' individually validated survival lifetimes times in days
+#' of all persons in Italy who were at least 105 years old at some point in the period from 1 January 2009
+#' to 31 December 2015.
+#' Observations are left-truncated and right-censored.
+#' These data are not publicly available, but can be purchased
+#' from the Italian National Institute of Statistics by
+#' registering at the Contact Center and mentioning the Semi-supercentenarian Survey and Marco Marsili
+#' as contact person.
+#'
+#' @references Istituto Nazionale di Statistica
+#' @format A data frame with 3836 rows and 6 variables:
+#' \describe{
+#' \item{ndays}{survival time (in days)}
+#' \item{bdate}{birth date (\code{Date})}
+#' \item{ddate}{death date (\code{Date}), or \code{NA_Date_} if the person is alive at the end of the sampling}
+#' \item{ltrunc}{minimum age (in days); the maximum of 38351 days (approximately 105 years) or the number of days reached in 2009}
+#' \item{event}{integer indicating the censoring pattern; \code{0} for right-censored records, \code{1} for fully observed}
+#' \item{gender}{factor indicating gender of individual, either \code{female} or \code{male}}
+#' }
+"italian"
+
+
+#' French semi-supercentenarian
+#'
+#' This data frame contains information about 9853 French semi-supercentenarian,
+#' part of the International Database on Longevity (IDL). All
+#' supercentenarian records were validate, but only a random sample
+#' of semisupercentenarians were validate. Lifetimes are interval truncated;
+#' only people above 110 born after 1978 and people above 105 born after 1987 are included.
+#'
+#' @references International Database on Longevity
+#' @format A data frame with 9853 rows and 6 variables:
+#' \describe{
+#' \item{ndays}{survival time (in days)}
+#' \item{bdate}{birth date (\code{Date})}
+#' \item{ddate}{death date (\code{Date}) if the person is alive at the end of the sampling}
+#' \item{ltrunc}{minimum age (in days); the maximum of 38350 days (approximately 105 years) or the number of days reached on January 1st 1978 (supercentenerian) or 1987 (semi-supercentenarians)}
+#' \item{rtrunc}{maximum age (in days) an individual could have reached by the end of 2017}
+#' \item{gender}{factor indicating gender of individual, either \code{female} or \code{male}}
+#' }
+"french"

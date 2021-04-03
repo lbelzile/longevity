@@ -38,9 +38,9 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 
 \item{type}{character string specifying the type of censoring. Possible values are "\code{right}", "\code{left}", "\code{interval}", "\code{interval2}".}
 
-\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).}
+\item{family}{string; distribution, either generalized Pareto (\code{gp}) or exponential (\code{exp})}
 
-\item{method}{string giving the type of pointwise confidence interval, either Wald (\code{wald}) or profile likelihood (\code{lrt})}
+\item{method}{string; the type of pointwise confidence interval, either Wald (\code{wald}) or profile likelihood (\code{lrt})}
 
 \item{level}{probability level for the pointwise confidence intervals}
 
@@ -51,8 +51,6 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 \item{which.plot}{string; which parameters to plot;}
 
 \item{weights}{weights for observations}
-
-\item{dist}{string giving the distribution, either generalized Pareto (\code{gp}) or exponential (\code{exp})}
 }
 \value{
 an invisible list with pointwise estimates and confidence intervals for the scale and shape parameters

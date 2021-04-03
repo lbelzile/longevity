@@ -45,7 +45,8 @@ a list with elements
 }
 }
 \description{
-Compute the Kolmogorov-Smirnov or the Anderson-Darling
+Warning: EXPERIMENTAL
+Compute the Kolmogorov-Smirnov
 test statistic and compare it with a simulated null
 distribution obtained via a parametric bootstrap.
 }

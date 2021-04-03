@@ -5,12 +5,12 @@
 \alias{englandwales}
 \title{England and Wales semi-supercentenarian}
 \format{
-A data frame with 3866 rows and 7 variables:
+A data frame with 3951 rows and 7 variables:
 \describe{
 \item{ndays}{survival time (in days)}
 \item{bdate}{birth date (\code{Date})}
 \item{ddate}{death date (\code{Date})}
-\item{ltrunc}{minimum age (in days); the maximum of either 105 years or the number of days reached in 2000}
+\item{ltrunc}{minimum age (in days); the maximum of 38350 days (approximately 105 years) or the number of days reached in 2000}
 \item{rtrunc}{maximum age (in days) an individual could have reached by the end of 2014}
 \item{gender}{factor indicating gender of individual, either \code{female} or \code{male}}
 \item{valid}{quality flag; \code{A} for validated records, \code{B} for unchecked records}
@@ -26,7 +26,8 @@ englandwales
 This data frame contains information about 3866
 Welsh and English who died at age ranging from 105 to 110
 between 2000 and 2014 (except for two women
-who died late in December 1999).
+who died late in December 1999) and a subset of UK supercentenarians from
+the IDL database (5 male, 80 female) who died during the same period.
 All records for people who died at age 109 and all men,
 plus a stratified sample of the women were validated
 by the General Register Office (GRO). Observations are
@@ -34,7 +35,7 @@ doubly truncated.
 }
 \details{
 In the original data forwarded by the IDL staff,
-there are 7 records that are dubious (missing birth day or month)
+there were 7 dubious records (missing birth day or month)
 that were excluded. The referenced technical reports describes the validation
 procedure in more details and includes (approximate) sampling weights for the validation
 sample of women who died age 105-108.

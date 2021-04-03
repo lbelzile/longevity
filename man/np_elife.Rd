@@ -29,6 +29,10 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 
 \item{thresh}{double thresh}
 
+\item{ltrunc}{lower truncation limit, default to \code{NULL}}
+
+\item{rtrunc}{upper truncation limit, default to \code{NULL}}
+
 \item{tol}{double, relative tolerance for convergence of the EM algorithm}
 
 \item{vcov}{logical; should the observed information matrix be computed? Default to \code{FALSE}}

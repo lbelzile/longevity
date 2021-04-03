@@ -41,14 +41,14 @@ nll_elife <- function(par,
     time2 <- survout$time2
     status <- survout$status
   }
-  stopifnot("Status could not be resolved." = isTRUE(all(status %in% 1:4)),
+  stopifnot("Status could not be resolved." = isTRUE(all(status %in% 0:3)),
             "Incorrect `ltrunc` argument." = is.null(ltrunc) || (!is.null(ltrunc) && length(ltrunc) %in% c(1L, length(time))),
             "Incorrect `ltrunc` argument." = is.null(rtrunc) || (!is.null(rtrunc) && length(rtrunc) %in% c(1L, length(time))))
   if(thresh[1] > 0){
     # Keep only exceedances, shift observations
     # We discard left truncated observations and interval censored
     # if we are unsure whether there is an exceedance
-    ind <- ifelse(status == 2, FALSE, time >= thresh[1])
+    ind <- ifelse(status == 2, FALSE, ifelse(status == 3, time >= thresh[1], time > thresh[1]))
     weights <- weights[ind] # in this order
     time <- time[ind] - thresh[1]
     time2 <- time2[ind] - thresh[1]
@@ -82,8 +82,12 @@ nll_elife <- function(par,
     if(!isTRUE(par > 0)){
       return(1e20)
     }
-    ldensf <- function(par, dat){ dexp(x = dat, rate = 1/par[1], log = TRUE)}
-    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){ pexp(q = dat, rate = 1/par[1], lower.tail = lower.tail, log.p = log.p)}
+    ldensf <- function(par, dat){
+      dexp(x = dat, rate = 1/par[1], log = TRUE)
+      }
+    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
+      pexp(q = dat, rate = 1/par[1], lower.tail = lower.tail, log.p = log.p)
+      }
   } else if(family == "gp"){
     maxdat <- max(ifelse(status == 2L, time2, time))
     stopifnot("Length of parameters for generalized Pareto family is two." = length(par) == 2)
@@ -108,16 +112,16 @@ nll_elife <- function(par,
     maxdat <- max(ifelse(status == 2L, time2, time))
     # both shape parameters can be negative, but the data
     # must lie inside the support of the distribution
-    if(abs(par[3]) <= 1e-8 && abs(par[2]) <= 1e-8){
+    if(abs(par[3]) <= 1e-8 && par[2] <= 1e-8){
       bounds <- par[1]
-    } else if(abs(par[3]) > 1e-8 && abs(par[2]) < 1e-8){
+    } else if(abs(par[3]) > 1e-8 && par[2] == 0){
       bounds <- c(par[1], ifelse(par[3] < 0, 1+par[3]*maxdat/par[1], Inf))
     } else if(abs(par[3]) < 1e-8 && abs(par[2]) > 1e-8){
       bounds <- par[1:2]
     } else {
       bounds <- c(par[1:2], 1+par[3]*(exp(par[2]*maxdat/par[1])-1)/par[2])
     }
-    if(isTRUE(any(bounds <= 0))){
+    if(isTRUE(any(bounds < 0))){
       return(1e20)
     }
     lsurvf <- function(dat, par, lower.tail = FALSE, log.p = TRUE){
@@ -199,18 +203,23 @@ nll_elife <- function(par,
 #' Fit excess lifetime models
 #'
 #' This function is a wrapper around constrained optimization
-#' routines for different models with noninformative
+#' routines for different models with non-informative
 #' censoring and truncation patterns.
 #'
 #' @note The extended generalized Pareto model is constrained
 #' to avoid regions where the likelihood is flat so \eqn{\xi \in [-1, 10]} in
 #' the optimization algorithm.
 #'
+#' The standard errors are obtained via the observed information matrix, calculated
+#' using the hessian. In many instances, such as when the shape parameter is zero
+#' or negative, the hessian is singular and no estimates are returned.
+#'
 #' @importFrom Rsolnp solnp
 #' @inheritParams nll_elife
 #' @param export logical; should data be included in the returned object to produce diagnostic plots? Default to \code{FALSE}.
 #' @param start vector of starting values for the optimization routine. If \code{NULL}, the algorithm attempts to find default values and returns a warning with
 #' false convergence diagnostic if it cannot.
+#' @param restart logical; should multiple starting values be attempted? Default to \code{FALSE}.
 #' @return an object of class \code{elife_par}
 #' @export
 fit_elife <- function(time,
@@ -224,8 +233,10 @@ fit_elife <- function(time,
                       family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp","gppiece"),
                       weights = NULL,
                       export = FALSE,
-                      start = NULL
+                      start = NULL,
+                      restart = FALSE
                       ){
+  stopifnot("Argument `restart` should be a logical vector" = is.logical(restart) & length(restart) == 1L)
   if(is.null(status)){
     survout <- .check_surv(time = time,
                            time2 = time2,
@@ -269,7 +280,7 @@ if(thresh[1] > 0){
   # Keep only exceedances, shift observations
   # We discard left truncated observations and interval censored
   # if we are unsure whether there is an exceedance
-  ind <- ifelse(status == 2, FALSE, time >= thresh[1])
+  ind <- ifelse(status == 2, FALSE, ifelse(status == 3, time >= thresh[1], time > thresh[1]))
   weights <- weights[ind] # in this order
   time <- pmax(0, time[ind] - thresh[1])
   time2 <- pmax(0, time2[ind] - thresh[1])
@@ -313,6 +324,8 @@ if(thresh[1] > 0){
       se_mle <- mle/sqrt(sum(weights[status == 1L]))
       ll <- - nll_elife(par = mle,
                         time = time,
+                        time2 = time2,
+                        event = event,
                         status = status,
                         ltrunc = ltrunc,
                         thresh = 0,
@@ -336,6 +349,7 @@ if(thresh[1] > 0){
                        time = time,
                        time2 = time2,
                        status = status,
+                       event = event,
                        ltrunc = ltrunc,
                        rtrunc = rtrunc,
                        weights = weights,
@@ -356,6 +370,8 @@ if(thresh[1] > 0){
       }
       ineqLB <- c(0, -1, 0)
       ineqUB <- c(Inf, 2, Inf)
+      LB <- c(0, -1)
+      UB <- c(Inf, 2)
       # hardcode upper bound for shape parameter, to prevent optim from giving nonsensical output
       if(is.null(start)){
        start <- c(mean(dat, na.rm = TRUE), 0.1)
@@ -379,8 +395,8 @@ if(thresh[1] > 0){
       }
     } else if(family == "gompmake"){
       hin <- function(par, ...){par[1:3] }
-      ineqLB <- c(0,1e-3,0)
-      ineqUB <- rep(Inf, 3)
+      ineqLB <- LB <- c(0,1e-3,0)
+      ineqUB <- UB <- rep(Inf, 3)
       if(is.null(start)){
         start <- c(mean(dat, na.rm = TRUE), 0.1, 0.5)
       } else{
@@ -392,8 +408,8 @@ if(thresh[1] > 0){
       # If shape1=0, then exponential model (but only the sum "1/par[1]+par[3]" is identifiable)
       } else if(family == "gomp"){
       hin <- function(par, ...){ par[1:2] }
-      ineqLB <- c(0,0)
-      ineqUB <- rep(Inf, 2)
+      ineqLB <- LB <- rep(0,2)
+      ineqUB <- UB <- rep(Inf, 2)
       if(is.null(start)){
         start <- c(mean(dat, na.rm = TRUE), 0.1)
       } else{
@@ -404,20 +420,22 @@ if(thresh[1] > 0){
     } else if(family == "extgp"){
       #parameters are (1) scale > 0, (2) beta >= 0 (3) gamma
       hin <- function(par, maxdat, thresh = 0, ...){
-        c(par[1:2],
-          ifelse(par[3] < 0, -par[2]/par[3], 1e-5),
-          ifelse(par[3] < 0, thresh + par[1]/par[2]*log(1-par[2]/par[3]) - maxdat, 1e-5),
-          par[3]
+        c(par,
+          ifelse(par[3] < 0, 1 - par[2]/par[3], 1e-5),
+          ifelse(par[3] < 0 & par[2] > 0, thresh + par[1]/par[2]*log(1-par[2]/par[3]) - maxdat, 1e-5),
+          ifelse(par[3] < 0 & par[2] == 0, thresh + -par[1]/par[3] - maxdat, 1e-5)
         )
       }
-      ineqLB <- c(rep(0, 4), -1) # Constraints for xi...
-      ineqUB <- c(rep(Inf, 4), 10) # Careful, these are for GPD
+      ineqLB <- c(rep(0, 2), -1, rep(0, 3))
+      ineqUB <- c(rep(Inf, 2), 2, rep(Inf, 3))
+      LB <- c(0,0,-1)
+      UB <- c(rep(Inf, 2), 2)
       if(is.null(start)){
         start <- c(mean(dat, na.rm = TRUE), 0.1, 0.1)
       } else{
         stopifnot("Incorrect parameter length." = length(start) == 3L)
         ineq <- hin(start, maxdat = maxdat)
-        stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
+        stopifnot("Invalid starting values" = isTRUE(all(ineq >= ineqLB, ineq <= ineqUB)))
       }
       #TODO try also fitting the GP/EXP/Gompertz and see which is best?
     } else if(family == "gppiece"){
@@ -433,6 +451,8 @@ if(thresh[1] > 0){
           ifelse(shape[m] < 0, thresh[m] - sigma[m]/shape[m] - maxdat, 1e-5)
         )
       }
+      LB <- c(0, rep(-1, m))
+      UB <- c(Inf, rep(2, m))
       ineqLB <- c(rep(0, m), rep(-1, m), rep(0, m)) # Constraints for xi...
       ineqUB <- c(rep(Inf, m), rep(4, m), rep(Inf, m)) # Careful, these are for GPD
       if(is.null(start)){
@@ -450,12 +470,23 @@ if(thresh[1] > 0){
       } else{
         start <- c(mean(dat, na.rm = TRUE), rep(0.04, m))
       }
-      } else{
+     } else{
         stopifnot("Incorrect parameter length." = length(start) == (m + 1L))
         ineq <- hin(start, maxdat = maxdat, thresh = thresh-thresh[1])
         stopifnot("Invalid starting values." = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
       }
     }
+    stopifnot("Invalid starting values." =
+                nll_elife(par = start,
+                          family = family,
+                          ltrunc = ltrunc,
+                          rtrunc = rtrunc,
+                          time = time,
+                          time2 = time2,
+                          status = status,
+                          thresh = thresh - thresh[1],
+                          type = type,
+                          weights = weights) < 1e20)
     opt_mle <- Rsolnp::solnp(pars = start,
                              family = family,
                              ltrunc = ltrunc,
@@ -472,6 +503,27 @@ if(thresh[1] > 0){
                              ineqLB = ineqLB,
                              ineqUB = ineqUB,
                              control = list(trace = 0))
+    if(opt_mle$convergence != 0 | restart){
+      opt_mle <- Rsolnp::gosolnp(LB = LB,
+                                 UB = ifelse(is.finite(UB), UB, 10*maxdat),
+                               family = family,
+                               ltrunc = ltrunc,
+                               rtrunc = rtrunc,
+                               time = time,
+                               time2 = time2,
+                               status = status,
+                               fun = nll_elife,
+                               ineqfun = hin,
+                               maxdat = maxdat,
+                               thresh = thresh - thresh[1],
+                               type = type,
+                               weights = weights,
+                               ineqLB = ineqLB,
+                               ineqUB = ineqUB,
+                               control = list(trace = 0),
+                               n.sim = 200L,
+                               n.restarts = 10L)
+    }
     mle <- opt_mle$pars
     vcov <- try(solve(opt_mle$hessian[-(1:length(ineqLB)),-(1:length(ineqLB))]))
     if(is.character(vcov)){
@@ -520,7 +572,8 @@ if(thresh[1] > 0){
     warning("Algorithm did not converge: try changing the starting values.")
   }
   if(isTRUE(export)){
-    structure(list(par = mle,
+
+    ret <- structure(list(par = mle,
                    std.error = se_mle,
                    loglik = ll,
                    nexc = sum(weights),
@@ -539,6 +592,10 @@ if(thresh[1] > 0){
                    cens_type = cens_type,
                    trunc_type = trunc_type),
               class = "elife_par")
+    if(type != "interval"){
+      ret$time2 <- NULL
+    }
+    return(ret)
   } else{
     structure(list(par = mle,
                    std.error = se_mle,
@@ -572,11 +629,14 @@ fitrange_elife <- function(time,
                             event = NULL,
                             ltrunc = NULL,
                             rtrunc = NULL,
+                            thresh,
                             type = c("right","left","interval","interval2"),
                             family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp"),
                             weights = NULL) {
 # Return a list of tables with parameter estimates as
 # a function of the different thresholds
+stopifnot("Threshold should be a vector of length greater than one." = length(thresh) > 1,
+            "Thresholds should be positive" = isTRUE(all(thresh>0)))
 results <- list()
 results$par <- results$std.error <-
   matrix(NA,

@@ -2,7 +2,6 @@
 output: github_document
 ---
 
-
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}
@@ -14,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# longevity <img src="tools/longevity_sticker.png" align="right" />
+# longevity <img src="tools/longevity_sticker.png" align="right"/>
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
@@ -33,12 +32,10 @@ Parametric models for excess lifetime (exponential, Gompertz, Weibull, generaliz
 - [x] likelihood ratio tests for a categorical explanatory
 - [x] score tests for piecewise generalized Pareto distribution, extending Northrop and Coleman (2014)
 - [x] nonparametric maximum likelihood estimate of the distribution function with arbitrary truncation and censoring using the EM algorithm of Turnbull (1976) - C++ implementation.
+- [x] profile likelihood for generalized Pareto (endpoint)
 
 **TODO** list:
 
-- profile likelihood for generalized Pareto (endpoint)
-- uncertainty for diagnostic plots (via bootstrap)
-- survival and hazard curves
 - local hazard models (with associated plots)
 - bootstrap *p*-values for nested models (`anova`)
 - unit tests

@@ -15,7 +15,7 @@ hazard_elife(
   rtrunc = NULL,
   type = c("right", "left", "interval", "interval2"),
   family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp"),
-  weights = NULL,
+  weights = rep(1, length(time)),
   level = 0.95,
   psi = NULL,
   plot = FALSE
@@ -46,6 +46,10 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 
 \item{weights}{weights for observations}
 
+\item{level}{numeric; the level for the confidence intervals. Default to 0.95}
+
+\item{psi}{optional vector of hazard at which to compute the profile log likelihood}
+
 \item{plot}{logical; if true, display the profile log-likelihood. Default to \code{FALSE}.}
 }
 \value{
@@ -63,5 +67,5 @@ family = "gp", shape = 0.1,
 lower = ltrunc <- runif(n),
 upper = rtrunc <- (5 + runif(n)), type2 = "ltrt")
 hazard_elife(x = 2, time = time,
- ltrunc = ltrunc, rtrunc = rtrunc, family = "gp")
+ ltrunc = ltrunc, rtrunc = rtrunc, family = "exp")
 }

@@ -16,7 +16,8 @@ fit_elife(
   family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp", "gppiece"),
   weights = NULL,
   export = FALSE,
-  start = NULL
+  start = NULL,
+  restart = FALSE
 )
 }
 \arguments{
@@ -46,17 +47,23 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 
 \item{start}{vector of starting values for the optimization routine. If \code{NULL}, the algorithm attempts to find default values and returns a warning with
 false convergence diagnostic if it cannot.}
+
+\item{restart}{logical; should multiple starting values be attempted? Default to \code{FALSE}.}
 }
 \value{
 an object of class \code{elife_par}
 }
 \description{
 This function is a wrapper around constrained optimization
-routines for different models with noninformative
+routines for different models with non-informative
 censoring and truncation patterns.
 }
 \note{
 The extended generalized Pareto model is constrained
 to avoid regions where the likelihood is flat so \eqn{\xi \in [-1, 10]} in
 the optimization algorithm.
+
+The standard errors are obtained via the observed information matrix, calculated
+using the hessian. In many instances, such as when the shape parameter is zero
+or negative, the hessian is singular and no estimates are returned.
 }
