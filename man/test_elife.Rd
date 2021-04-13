@@ -50,13 +50,13 @@ a list with elements
 }
 \description{
 This function fits separate models for each distinct
-value of covariate and computes a likelihood ratio test
-to test whether there are significante differences between
+value of the factor \code{covariate} and computes a likelihood ratio test
+to test whether there are significant differences between
 groups.
 }
 \examples{
 with(uk110,
-test_elife(dat = ndays,
+test_elife(time = ndays,
 thresh = 40178L, covariate = gender,
 ltrunc = ltrunc, rtrunc = rtrunc,
 family = "exp", type = "ltrt"))

@@ -127,3 +127,37 @@
 #' \item{gender}{factor indicating gender of individual, either \code{female} or \code{male}}
 #' }
 "french"
+
+
+#' International Database on Longevity (2021)
+#'
+#' This database contains data downloaded from \url{supercentenarian.org},
+#' including third first waves, new data provided by ONS for semisupercentenarian,
+#' data for Switzerland and Italy previously available for download and removed
+#' for confidentiality. Data from Japan and from people aged less than 110 from the USA are excluded
+#' because they are of dubious quality. For the USA, the semisupercentenarian records are validated,
+#' but this is only a fraction of a cohort whose size is unknown and they are not representative of the whole population.
+#' The birth and death dates of the USA people are unknown (only years are given,
+#' so the largest plausible range is recorded given the survival in years).
+#'
+#' Only dead individuals are included, so the records are truncated.
+#' For countries with semisupercentarians and with different collection period for
+#' semisupercentenarians (105-109) and supercentenarians (110+), there
+#' are some configurations leading to double interval truncation, in which case
+#' data are defined in \eqn{[\code{ltrunc1}, \code{rtrunc1}] \cup [\code{ltrunc2},\code{rtrunc2}]}.
+#'
+#' @references International Database on Longevity
+#' @format A data frame with 17721 rows and 10 variables:
+#' \describe{
+#' \item{country}{factor, one of \code{CH} (Switzerland), \code{OS} (Austria), \code{BE} (Belgium), \code{QC} (Quebec), \code{DE} (Germany), \code{DN} (Denmark), \code{ES} (Spain), \code{FI} (Finland), \code{FR} (France), \code{NO} (Norway), \code{SV} (Sweden), \code{EW} (England and Wales), \code{IT} (Italy) and \code{US} (United States of America)}
+#' \item{ndays}{ integer; survival (in days)}
+#' \item{ageyear}{ integer; floor of maximum age (in years) reached at death}
+#' \item{gender}{factor; \code{male} or \code{female}}
+#' \item{bdate}{Date; birth date (except for US)}
+#' \item{ddate}{Date; death date (except for US)}
+#' \item{ltrunc1}{integer; lower truncation limit (in days); the minimum number of days someone would have survived to be included in the sampling frame (first interval)}
+#' \item{rtrunc1}{integer; upper truncation limit (in days); the maximum number of days someone would have survived to be included in the sampling frame (first interval)}
+#' \item{ltrunc2}{integer; lower truncation limit (in days); the minimum number of days someone would have survived to be included in the sampling frame (second interval) if applicable, \code{NA} otherwise}
+#' \item{rtrunc2}{integer; upper truncation limit (in days); the maximum number of days someone would have survived to be included in the sampling frame (second interval) if applicable, \code{NA} otherwise}
+#' }
+"idl"

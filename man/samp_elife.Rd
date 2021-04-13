@@ -7,11 +7,11 @@
 samp_elife(
   n,
   scale,
-  shape,
+  shape = NULL,
   lower = 0,
   upper = Inf,
   family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "gppiece"),
-  type2 = c("none", "ltrt", "ltrc")
+  type2 = c("none", "ltrt", "ltrc", "ditrunc")
 )
 }
 \arguments{

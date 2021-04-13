@@ -15,12 +15,15 @@
 #' @return either a vector of observations or, if \code{type2=ltrc}, a list with \code{n} observations \code{dat} and a logical vector of the same length with \code{TRUE} for right-censored observations and \code{FALSE} otherwise.
 samp_elife <- function(n,
                        scale,
-                       shape,
+                       shape = NULL,
                        lower = 0,
                        upper = Inf,
                        family = c("exp","gp","gomp","gompmake","weibull","extgp","gppiece"),
-                       type2 = c("none","ltrt","ltrc")){
+                       type2 = c("none","ltrt","ltrc","ditrunc")){
   family <- match.arg(family)
+  if(family != "exp" & is.null(shape)){
+    stop("Invalid shape parameter.")
+  }
   type2 <- match.arg(type2)
   if(type2 == "none"){
     relife(n = n,
@@ -41,12 +44,19 @@ samp_elife <- function(n,
                  lower = lower,
                  upper = upper,
                  family = family)
+  } else if(type2 == "ditrunc"){
+    r_ditrunc_elife(n = n,
+                    scale = scale,
+                    shape = shape,
+                    lower = lower,
+                    upper = upper,
+                    family = family)
   }
 }
 
 
 
-#' Sample observations from a doubly truncated excess lifetime distribution
+#' Sample observations from an interval truncated excess lifetime distribution
 #'
 #' @inheritParams samp_elife
 #' @return a vector of \code{n} observations
@@ -133,7 +143,97 @@ r_dtrunc_elife <- function(n,
   }
 }
 
-#' Sample observations from a doubly truncated excess lifetime distribution
+
+
+#' Sample observations from an interval truncated excess lifetime distribution
+#'
+#' @inheritParams samp_elife
+#' @return a vector of \code{n} observations
+#' @export
+#' @keywords internal
+#' @examples
+#' n <- 100L
+#' # the lower and upper bound are either scalar,
+#' # or else vectors of length n
+#' r_dtrunc_elife(n = n, scale = 1, shape = -0.1,
+#'                lower = pmax(0, runif(n, -0.5, 1)),
+#'                upper = runif(n, 6, 10),
+#'                family = "gp")
+r_ditrunc_elife <- function(n,
+                           scale,
+                           shape,
+                           lower,
+                           upper,
+                           family = c("exp","gp","gomp","gompmake","weibull","extgp")
+){
+  stopifnot("`lower` should be a matrix." = is.matrix(lower),
+            "`upper` should be a matrix." = is.matrix(upper),
+            "`lower` must be a matrix with 2 columns." = ncol(lower) == 2,
+            "`upper` must be a matrix with 2 columns." = ncol(upper) == 2,
+            "`lower` and `upper` should have the same number of rows." = nrow(lower) == nrow(upper),
+            "`lower` and `upper` should have 1 or n rows." = nrow(upper) == 1 | nrow(upper) == n)
+  family <- match.arg(family)
+  if(family == "exp"){
+    quantf <- function(par, dat){
+      qexp(p = dat, rate = 1/par[1])
+    }
+    cdf <- function(par, dat, lower.tail = TRUE, log.p = FALSE){
+      pexp(q = dat, rate = 1/par[1], lower.tail = lower.tail, log.p = log.p)
+    }
+  } else if(family == "gp"){
+    quantf <- function(par, dat){
+      qgpd(p = dat, loc = 0, scale = par[1], shape = par[2])
+      }
+    cdf <- function(par, dat, lower.tail = TRUE, log.p = FALSE){
+      pgpd(q = dat, loc = 0, scale = par[1], shape = par[2], lower.tail = lower.tail, log.p = log.p)
+      }
+  } else if(family == "weibull"){
+    quantf <- function(par, dat){
+      qweibull(p = dat, scale = par[1], shape = par[2])
+      }
+    cdf <- function(par, dat, lower.tail = TRUE, log.p = FALSE){
+      pweibull(q = dat, scale = par[1], shape = par[2], lower.tail = lower.tail, log.p = log.p)
+      }
+  } else if(family == "extgp"){
+    quantf <- function(dat, par){
+      qextgp(p = dat, scale = par[1], shape1 = par[2], shape2 = par[3])
+    }
+    cdf <- function(dat, par, lower.tail = TRUE, log.p = FALSE){
+      pextgp(q = dat, scale = par[1], shape1 = par[2], shape2 = par[3], lower.tail = lower.tail, log.p = log.p)
+    }
+  } else if(family == "gompmake"){
+    quantf <- function(dat, par){
+      qgompmake(p = dat, scale = par[1], shape = par[2], lambda = par[3])
+    }
+    cdf <- function(dat, par, lower.tail = TRUE, log.p = FALSE){
+      pgompmake(q = dat, scale = par[1], shape = par[2], lambda = par[3], lower.tail = lower.tail, log.p = log.p)
+    }
+  }
+  # Not all records are doubly truncated records...
+  # If there are NAs, then second interval has prob zero
+
+  if(family == "gompmake"){
+    par <- c(scale[1], shape, scale[2])
+  } else{
+    par <- c(scale, shape)
+  }
+  probint1 <- cdf(dat = upper[,1], par = par) - cdf(dat = lower[,1], par = par)
+  probint2 <- ifelse(is.na(lower[,2]), 0,
+                     cdf(upper[,2], par = par) - cdf(lower[,2], par = par))
+  if(isTRUE(any((probint1 + probint2) > 1))){
+    stop("Invalid input")
+  }
+
+  cutoff <- probint1 / (probint1 + probint2)
+  unif <- runif(n)
+  quantf(ifelse(unif < cutoff,
+         unif*(probint1 + probint2) + cdf(lower[,1], par = par),
+         unif*(probint1 + probint2) + cdf(lower[,2], par = par) - probint1),
+    par = par)
+}
+
+
+#' Sample observations from a left-truncated right-censored excess lifetime distribution
 #'
 #' @param n sample size
 #' @param scale scale parameter

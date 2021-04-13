@@ -1,6 +1,6 @@
 #' Profile likelihood for the endpoint of the generalized Pareto distribution
 #'
-#' This function returns
+#' This function returns the profile log likelihood over a grid of values of \code{psi}, the endpoints.
 #'
 #' @export
 #' @inheritParams hazard_elife
@@ -80,5 +80,3 @@ prof_gp_endpt <- function(time,
     return(prof)
   }
 }
-#
-# plot.elife_profile <- function()

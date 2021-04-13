@@ -30,20 +30,41 @@ nll_elife <- function(par,
   type <- match.arg(type)
   stopifnot("Threshold must be non-negative" = thresh >= 0,
             "Only a single threshold value is allowed" = family == "gppiece" || length(thresh) == 1L
-            )
+  )
+  if(isTRUE(all(is.matrix(ltrunc),
+         is.matrix(rtrunc),
+         ncol(ltrunc) == ncol(rtrunc),
+         ncol(rtrunc) == 2L))){
+    # Doubly truncated data
+    stopifnot("Censoring is not currently handled for doubly truncated data." = is.null(event) | isTRUE(all(event == 1L)),
+              "Argument `time2` not used for doubly truncated data" = is.null(time2)
+              )
+    nll_ditrunc_elife(
+      par = par,
+      time = time,
+      ltrunc1 = ltrunc[,1],
+      rtrunc1 = rtrunc[,1],
+      ltrunc2 = ltrunc[,2],
+      rtrunc2 = rtrunc[,2],
+      family = family,
+      thresh = thresh,
+      weights = weights)
+
+  } else{
+
   # Format time entry and check for input
   if(is.null(status)){
-      survout <- .check_surv(time = time,
-                             time2 = time2,
-                             event = event,
-                             type = type)
+    survout <- .check_surv(time = time,
+                           time2 = time2,
+                           event = event,
+                           type = type)
     time <- survout$time
     time2 <- survout$time2
     status <- survout$status
   }
   stopifnot("Status could not be resolved." = isTRUE(all(status %in% 0:3)),
             "Incorrect `ltrunc` argument." = is.null(ltrunc) || (!is.null(ltrunc) && length(ltrunc) %in% c(1L, length(time))),
-            "Incorrect `ltrunc` argument." = is.null(rtrunc) || (!is.null(rtrunc) && length(rtrunc) %in% c(1L, length(time))))
+            "Incorrect `rtrunc` argument." = is.null(rtrunc) || (!is.null(rtrunc) && length(rtrunc) %in% c(1L, length(time))))
   if(thresh[1] > 0){
     # Keep only exceedances, shift observations
     # We discard left truncated observations and interval censored
@@ -53,7 +74,7 @@ nll_elife <- function(par,
     time <- time[ind] - thresh[1]
     time2 <- time2[ind] - thresh[1]
     status <- status[ind]
-    if(!is.null(ltrunc)){ #both ltrc and ltrt
+    if(!is.null(ltrunc)){
       ltrunc <- pmax(0, ltrunc[ind] - thresh[1])
     }
     if(!is.null(rtrunc)){
@@ -84,10 +105,10 @@ nll_elife <- function(par,
     }
     ldensf <- function(par, dat){
       dexp(x = dat, rate = 1/par[1], log = TRUE)
-      }
+    }
     lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
       pexp(q = dat, rate = 1/par[1], lower.tail = lower.tail, log.p = log.p)
-      }
+    }
   } else if(family == "gp"){
     maxdat <- max(ifelse(status == 2L, time2, time))
     stopifnot("Length of parameters for generalized Pareto family is two." = length(par) == 2)
@@ -95,7 +116,7 @@ nll_elife <- function(par,
       return(1e20)
     }
     if(par[2] < 0 && (-par[1]/par[2] < maxdat)){
-       return(1e20)
+      return(1e20)
     }
     ldensf <- function(par, dat){ dgpd(x = dat, loc = 0, scale = par[1], shape = par[2], log = TRUE)}
     lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){ pgpd(q = dat, loc = 0, scale = par[1], shape = par[2], lower.tail = lower.tail, log.p = log.p)}
@@ -103,8 +124,8 @@ nll_elife <- function(par,
     if(par[1] <= 0 || par[2] <= 0){
       return(1e20)
     }
-      ldensf <- function(par, dat){dweibull(x = dat, scale = par[1], shape = par[2], log = TRUE)}
-      lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){pweibull(q = dat, scale = par[1], shape = par[2], lower.tail = lower.tail, log.p = log.p)}
+    ldensf <- function(par, dat){dweibull(x = dat, scale = par[1], shape = par[2], log = TRUE)}
+    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){pweibull(q = dat, scale = par[1], shape = par[2], lower.tail = lower.tail, log.p = log.p)}
   } else if(family == "extgp"){
     # scale par[1]
     # beta = par[2]; if zero, recover generalized Pareto
@@ -164,9 +185,9 @@ nll_elife <- function(par,
     w <- as.numeric(diff(thresh))
     sigma <- scale + c(0, cumsum(shape[-m]*w))
     fail <- !isTRUE(all(sigma > 0,
-                       shape >= -1,
-                       ifelse(shape[-m] < 0, thresh[-1] <= thresh[-m] - sigma[-m]/shape[-m], TRUE),
-                       ifelse(shape[m] < 0, maxdat <= thresh[m] - sigma[m]/shape[m], TRUE)))
+                        shape >= -1,
+                        ifelse(shape[-m] < 0, thresh[-1] <= thresh[-m] - sigma[-m]/shape[-m], TRUE),
+                        ifelse(shape[m] < 0, maxdat <= thresh[m] - sigma[m]/shape[m], TRUE)))
     if(fail){
       return(1e20)
     }
@@ -189,14 +210,15 @@ nll_elife <- function(par,
   }
   # Likelihoods, depending on the sampling scheme (left- and right-truncated, left-truncated and right-censored, none)
   ll <- sum(weights*(ifelse(status == 1L, ldensf(dat = time, par = par),
-                ifelse(status == 0L, log(pmax(0, rtr_cont - lsurvf(dat = time, par = par, lower.tail = TRUE, log.p = FALSE))),
-                ifelse(status == 2L, log(pmax(0, lsurvf(dat = time2, par = par, lower.tail = TRUE, log.p = FALSE) - ltr_cont)),
-                       log(pmin(rtr_cont, lsurvf(dat = time2, par = par, lower.tail = TRUE, log.p = FALSE)) - pmax(ltr_cont, lsurvf(dat = time, par = par, lower.tail = TRUE, log.p = FALSE)))))) -
-                  log(rtr_cont - ltr_cont)))
+                            ifelse(status == 0L, log(pmax(0, rtr_cont - lsurvf(dat = time, par = par, lower.tail = TRUE, log.p = FALSE))),
+                                   ifelse(status == 2L, log(pmax(0, lsurvf(dat = time2, par = par, lower.tail = TRUE, log.p = FALSE) - ltr_cont)),
+                                          log(pmin(rtr_cont, lsurvf(dat = time2, par = par, lower.tail = TRUE, log.p = FALSE)) - pmax(ltr_cont, lsurvf(dat = time, par = par, lower.tail = TRUE, log.p = FALSE)))))) -
+                       log(rtr_cont - ltr_cont)))
   if (!is.finite(ll)) {
     return(1e20)
   }  else {
     return(-ll)
+  }
   }
 }
 
@@ -235,8 +257,29 @@ fit_elife <- function(time,
                       export = FALSE,
                       start = NULL,
                       restart = FALSE
-                      ){
+){
   stopifnot("Argument `restart` should be a logical vector" = is.logical(restart) & length(restart) == 1L)
+  if(isTRUE(all(is.matrix(ltrunc),
+                is.matrix(rtrunc),
+                ncol(ltrunc) == ncol(rtrunc),
+                ncol(rtrunc) == 2L))){
+    # Doubly truncated data
+    stopifnot("Censoring is not currently handled for doubly truncated data." = is.null(event) | isTRUE(all(event == 1L)),
+              "Argument `time2` not used for doubly truncated data" = is.null(time2)
+    )
+    fit_ditrunc_elife(
+      time = time,
+      ltrunc1 = ltrunc[,1],
+      rtrunc1 = rtrunc[,1],
+      ltrunc2 = ltrunc[,2],
+      rtrunc2 = rtrunc[,2],
+      family = family,
+      thresh = thresh,
+      weights = weights,
+      export = export,
+      start = start,
+      restart = restart)
+  } else{
   if(is.null(status)){
     survout <- .check_surv(time = time,
                            time2 = time2,
@@ -276,25 +319,25 @@ fit_elife <- function(time,
   if(!is.null(ltrunc) && !is.null(rtrunc)){
     stopifnot("`ltrunc` must be larger than `ltrunc" = isTRUE(all(rtrunc > ltrunc)))
   }
-if(thresh[1] > 0){
-  # Keep only exceedances, shift observations
-  # We discard left truncated observations and interval censored
-  # if we are unsure whether there is an exceedance
-  ind <- ifelse(status == 2, FALSE, ifelse(status == 3, time >= thresh[1], time > thresh[1]))
-  weights <- weights[ind] # in this order
-  time <- pmax(0, time[ind] - thresh[1])
-  time2 <- pmax(0, time2[ind] - thresh[1])
-  status <- status[ind]
-  if(!is.null(event)){
-    event <- event[ind]
+  if(thresh[1] > 0){
+    # Keep only exceedances, shift observations
+    # We discard left truncated observations and interval censored
+    # if we are unsure whether there is an exceedance
+    ind <- ifelse(status == 2, FALSE, ifelse(status == 3, time >= thresh[1], time > thresh[1]))
+    weights <- weights[ind] # in this order
+    time <- pmax(0, time[ind] - thresh[1])
+    time2 <- pmax(0, time2[ind] - thresh[1])
+    status <- status[ind]
+    if(!is.null(event)){
+      event <- event[ind]
+    }
+    if(!is.null(ltrunc)){ #both ltrc and ltrt
+      ltrunc <- pmax(0, ltrunc[ind] - thresh[1])
+    }
+    if(!is.null(rtrunc)){
+      rtrunc <- rtrunc[ind] - thresh[1]
+    }
   }
-  if(!is.null(ltrunc)){ #both ltrc and ltrt
-    ltrunc <- pmax(0, ltrunc[ind] - thresh[1])
-  }
-  if(!is.null(rtrunc)){
-    rtrunc <- rtrunc[ind] - thresh[1]
-  }
-}
   # Keep maximum and sample size
   n <- length(time) #number of exceedances
   dat <- ifelse(status == 2L, time2, time)
@@ -374,7 +417,7 @@ if(thresh[1] > 0){
       UB <- c(Inf, 2)
       # hardcode upper bound for shape parameter, to prevent optim from giving nonsensical output
       if(is.null(start)){
-       start <- c(mean(dat, na.rm = TRUE), 0.1)
+        start <- c(mean(dat, na.rm = TRUE), 0.1)
       } else{
         stopifnot("Incorrect parameter length." = length(start) == 2L)
         ineq <- hin(start, maxdat = maxdat)
@@ -406,7 +449,7 @@ if(thresh[1] > 0){
       }
 
       # If shape1=0, then exponential model (but only the sum "1/par[1]+par[3]" is identifiable)
-      } else if(family == "gomp"){
+    } else if(family == "gomp"){
       hin <- function(par, ...){ par[1:2] }
       ineqLB <- LB <- rep(0,2)
       ineqUB <- UB <- rep(Inf, 2)
@@ -445,7 +488,7 @@ if(thresh[1] > 0){
         w <- as.numeric(diff(thresh))
         shape <- par[-1]
         sigma <- par[1] + c(0, cumsum(shape[-m]*w))
-          c(sigma,
+        c(sigma,
           shape,
           ifelse(shape[-m] < 0, thresh[-m] - sigma[-m]/shape[-m] - thresh[-1], 1e-5),
           ifelse(shape[m] < 0, thresh[m] - sigma[m]/shape[m] - maxdat, 1e-5)
@@ -456,21 +499,21 @@ if(thresh[1] > 0){
       ineqLB <- c(rep(0, m), rep(-1, m), rep(0, m)) # Constraints for xi...
       ineqUB <- c(rep(Inf, m), rep(4, m), rep(Inf, m)) # Careful, these are for GPD
       if(is.null(start)){
-      st <- try(fit_elife(time = time,
-                          status = status,
-                          time2 = time2,
-                          thresh = 0,
-                          ltrunc = ltrunc,
-                          rtrunc = rtrunc,
-                          type = type,
-                          family = "gp",
-                          weights= weights))
-      if(!is.character(st) && st$convergence){
-        start <- c(st$par['scale'], rep(st$par['shape'], m))
+        st <- try(fit_elife(time = time,
+                            status = status,
+                            time2 = time2,
+                            thresh = 0,
+                            ltrunc = ltrunc,
+                            rtrunc = rtrunc,
+                            type = type,
+                            family = "gp",
+                            weights= weights))
+        if(!is.character(st) && st$convergence){
+          start <- c(st$par['scale'], rep(st$par['shape'], m))
+        } else{
+          start <- c(mean(dat, na.rm = TRUE), rep(0.04, m))
+        }
       } else{
-        start <- c(mean(dat, na.rm = TRUE), rep(0.04, m))
-      }
-     } else{
         stopifnot("Incorrect parameter length." = length(start) == (m + 1L))
         ineq <- hin(start, maxdat = maxdat, thresh = thresh-thresh[1])
         stopifnot("Invalid starting values." = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
@@ -506,23 +549,23 @@ if(thresh[1] > 0){
     if(opt_mle$convergence != 0 | restart){
       opt_mle <- Rsolnp::gosolnp(LB = LB,
                                  UB = ifelse(is.finite(UB), UB, 10*maxdat),
-                               family = family,
-                               ltrunc = ltrunc,
-                               rtrunc = rtrunc,
-                               time = time,
-                               time2 = time2,
-                               status = status,
-                               fun = nll_elife,
-                               ineqfun = hin,
-                               maxdat = maxdat,
-                               thresh = thresh - thresh[1],
-                               type = type,
-                               weights = weights,
-                               ineqLB = ineqLB,
-                               ineqUB = ineqUB,
-                               control = list(trace = 0),
-                               n.sim = 200L,
-                               n.restarts = 10L)
+                                 family = family,
+                                 ltrunc = ltrunc,
+                                 rtrunc = rtrunc,
+                                 time = time,
+                                 time2 = time2,
+                                 status = status,
+                                 fun = nll_elife,
+                                 ineqfun = hin,
+                                 maxdat = maxdat,
+                                 thresh = thresh - thresh[1],
+                                 type = type,
+                                 weights = weights,
+                                 ineqLB = ineqLB,
+                                 ineqUB = ineqUB,
+                                 control = list(trace = 0),
+                                 n.sim = 200L,
+                                 n.restarts = 10L)
     }
     mle <- opt_mle$pars
     vcov <- try(solve(opt_mle$hessian[-(1:length(ineqLB)),-(1:length(ineqLB))]))
@@ -548,7 +591,7 @@ if(thresh[1] > 0){
                                         "gp" = c("scale","shape"),
                                         "extgp" = c("scale","beta","gamma"),
                                         "gppiece" = c("scale", paste0("shape",1:(length(mle)-1L))),
-                                        )
+  )
   if(isTRUE(all(status == 1L, na.rm = TRUE))){
     cens_type <- "none"
   } else if(type == "right" || isTRUE(all(status %in% 0:1))){
@@ -574,24 +617,24 @@ if(thresh[1] > 0){
   if(isTRUE(export)){
 
     ret <- structure(list(par = mle,
-                   std.error = se_mle,
-                   loglik = ll,
-                   nexc = sum(weights),
-                   vcov = vcov,
-                   convergence = conv,
-                   type = type,
-                   family = family,
-                   thresh = thresh,
-                   time = time,
-                   time2 = time2,
-                   event = event,
-                   status = status,
-                   weights = weights,
-                   ltrunc = ltrunc,
-                   rtrunc = rtrunc,
-                   cens_type = cens_type,
-                   trunc_type = trunc_type),
-              class = "elife_par")
+                          std.error = se_mle,
+                          loglik = ll,
+                          nexc = sum(weights),
+                          vcov = vcov,
+                          convergence = conv,
+                          type = type,
+                          family = family,
+                          thresh = thresh,
+                          time = time,
+                          time2 = time2,
+                          event = event,
+                          status = status,
+                          weights = weights,
+                          ltrunc = ltrunc,
+                          rtrunc = rtrunc,
+                          cens_type = cens_type,
+                          trunc_type = trunc_type),
+                     class = "elife_par")
     if(type != "interval"){
       ret$time2 <- NULL
     }
@@ -610,108 +653,111 @@ if(thresh[1] > 0){
                    thresh = thresh),
               class = "elife_par")
   }
+  }
 }
 
-#' Maximum likelihood estimation of parametric models for excess lifetime
-#'
-#' This function performs constrained optimization to find the maximum likelihood estimator
-#' for a range of parametric models suitable for the analysis of longevity data.
-#' These can be estimated simultaneously for a range of thresholds.
-#'
-#' @inheritParams nll_elife
-#' @param family string, one of \code{exp}, \code{gp}, \code{gomp} or \code{ext} for exponential, generalized Pareto, Gompertz or extended family, respectively.
-#' @param thresh a vector of thresholds
-#' @param weights vector of weights, defaults to one for each observation.
-#' @return a list containing
-#' @export
-fitrange_elife <- function(time,
-                            time2 = NULL,
-                            event = NULL,
-                            ltrunc = NULL,
-                            rtrunc = NULL,
-                            thresh,
-                            type = c("right","left","interval","interval2"),
-                            family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp"),
-                            weights = NULL) {
-# Return a list of tables with parameter estimates as
-# a function of the different thresholds
-stopifnot("Threshold should be a vector of length greater than one." = length(thresh) > 1,
-            "Thresholds should be positive" = isTRUE(all(thresh>0)))
-results <- list()
-results$par <- results$std.error <-
-  matrix(NA,
-        nrow = length(thresh),
-        ncol = switch(family,
-                      "exp" = 1L,
-                      "gp" = 2L,
-                      "gomp" = 2L,
-                      "gompmake" = 3L,
-                      "extgp" = 3L,
-                      "weibull" = 2L)
-          )
-results$convergence <- rep(FALSE, length(thresh))
-results$nexc <- rep(0, length(thresh))
-results$thresh <- thresh
-results$family <- family
-results$type <- results$type
-for(i in 1:length(thresh)){
-  results_i <- fit_elife(time = time,
-                         time2 = time2,
-                         event = event,
-                         thresh = thresh[i],
-                         ltrunc = ltrunc,
-                         rtrunc = rtrunc,
-                         type = type,
-                         family = family,
-                         weights = weights
-                          )
-  results$nexc[i] <- results_i$nexc
-  results$par[i,] <- results_i$mle
-  #TODO write tests for cases where standard errors do not exist
-  results$std.error[i,] <- results_i$se
-  results$convergence[i] <- results_i$convergence
-  results$loglik[i] <- results_i$loglik
-  }
-  return(results)
-}
+
+# #' Maximum likelihood estimation of parametric models for excess lifetime
+# #'
+# #' This function performs constrained optimization to find the maximum likelihood estimator
+# #' for a range of parametric models suitable for the analysis of longevity data.
+# #' These can be estimated simultaneously for a range of thresholds.
+# #'
+# #' @inheritParams nll_elife
+# #' @param family string, one of \code{exp}, \code{gp}, \code{gomp} or \code{ext} for exponential, generalized Pareto, Gompertz or extended family, respectively.
+# #' @param thresh a vector of thresholds
+# #' @param weights vector of weights, defaults to one for each observation.
+# #' @return a list containing
+# #' @export
+# fitrange_elife <- function(time,
+#                             time2 = NULL,
+#                             event = NULL,
+#                             ltrunc = NULL,
+#                             rtrunc = NULL,
+#                             thresh,
+#                             type = c("right","left","interval","interval2"),
+#                             family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp"),
+#                             weights = NULL) {
+# # Return a list of tables with parameter estimates as
+# # a function of the different thresholds
+# stopifnot("Threshold should be a vector of length greater than one." = length(thresh) > 1,
+#             "Thresholds should be positive" = isTRUE(all(thresh>0)))
+# results <- list()
+# results$par <- results$std.error <-
+#   matrix(NA,
+#         nrow = length(thresh),
+#         ncol = switch(family,
+#                       "exp" = 1L,
+#                       "gp" = 2L,
+#                       "gomp" = 2L,
+#                       "gompmake" = 3L,
+#                       "extgp" = 3L,
+#                       "weibull" = 2L)
+#           )
+# results$convergence <- rep(FALSE, length(thresh))
+# results$nexc <- rep(0, length(thresh))
+# results$thresh <- thresh
+# results$family <- family
+# results$type <- results$type
+# for(i in 1:length(thresh)){
+#   results_i <- fit_elife(time = time,
+#                          time2 = time2,
+#                          event = event,
+#                          thresh = thresh[i],
+#                          ltrunc = ltrunc,
+#                          rtrunc = rtrunc,
+#                          type = type,
+#                          family = family,
+#                          weights = weights
+#                           )
+#   results$nexc[i] <- results_i$nexc
+#   results$par[i,] <- results_i$mle
+#   #TODO write tests for cases where standard errors do not exist
+#   results$std.error[i,] <- results_i$se
+#   results$convergence[i] <- results_i$convergence
+#   results$loglik[i] <- results_i$loglik
+#   }
+#   return(results)
+# }
+
 
 
 #' @export
 print.elife_par <-
   function(x,
-          digits = min(3, getOption("digits")),
-          na.print = "", ...){
+           digits = min(3, getOption("digits")),
+           na.print = "", ...){
 
-      cat("Model:", switch(x$family,
-                           exp = "exponential",
-                           gomp = "Gompertz",
-                           gompmake = "Gompertz-Makeham",
-                           weibull = "Weibull",
-                           extgp = "extended generalized Pareto",
-                           gp = "generalized Pareto",
-                           gppiece = "piecewise generalized Pareto"),
-          "distribution.", "\n")
-   if(x$cens_type != "none" || x$trunc_type != "none"){
+    cat("Model:", switch(x$family,
+                         exp = "exponential",
+                         gomp = "Gompertz",
+                         gompmake = "Gompertz-Makeham",
+                         weibull = "Weibull",
+                         extgp = "extended generalized Pareto",
+                         gp = "generalized Pareto",
+                         gppiece = "piecewise generalized Pareto"),
+        "distribution.", "\n")
+    if(x$cens_type != "none" || x$trunc_type != "none"){
       cat("Sampling: ",
           ifelse(x$cens_type == "none", "", x$cens_type),
           ifelse(x$cens_type != "none" && x$trunc_type != "none", ", ",""),
           ifelse(x$trunc_type == "none", "", x$trunc_type),
           "\n", sep = "")
     }
-      cat("Log-likelihood:", round(x$loglik, digits), "\n")
+    cat("Log-likelihood:", round(x$loglik, digits), "\n")
 
-      cat("\nThreshold:", round(x$thresh, digits), "\n")
-      cat("Number of exceedances:", x$nexc, "\n")
-      cat("\nEstimates\n")
-      print.default(format(x$par, digits = digits), print.gap = 2, quote = FALSE, ...)
-      if (!is.null(x$std.error)) {
-        cat("\nStandard Errors\n")
-        print.default(format(x$std.err, digits = digits), print.gap = 2, quote = FALSE, ...)
-      }
-      cat("\nOptimization Information\n")
-      cat("  Convergence:", x$convergence, "\n")
-  invisible(x)
-}
+    cat("\nThreshold:", round(x$thresh, digits), "\n")
+    cat("Number of exceedances:", x$nexc, "\n")
+    cat("\nEstimates\n")
+    print.default(format(x$par, digits = digits), print.gap = 2, quote = FALSE, ...)
+    if (!is.null(x$std.error)) {
+      cat("\nStandard Errors\n")
+      print.default(format(x$std.err, digits = digits), print.gap = 2, quote = FALSE, ...)
+    }
+    cat("\nOptimization Information\n")
+    cat("  Convergence:", x$convergence, "\n")
+    invisible(x)
+  }
 
 
 #' @export

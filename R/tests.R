@@ -1,8 +1,8 @@
 #' Likelihood ratio test for covariates
 #'
 #' This function fits separate models for each distinct
-#' value of covariate and computes a likelihood ratio test
-#' to test whether there are significante differences between
+#' value of the factor \code{covariate} and computes a likelihood ratio test
+#' to test whether there are significant differences between
 #' groups.
 #'
 #' @export
@@ -16,7 +16,7 @@
 #' }
 #' @examples
 #' with(uk110,
-#' test_elife(dat = ndays,
+#' test_elife(time = ndays,
 #' thresh = 40178L, covariate = gender,
 #' ltrunc = ltrunc, rtrunc = rtrunc,
 #' family = "exp", type = "ltrt"))
@@ -33,7 +33,7 @@ test_elife <- function(time,
   family <- match.arg(family)
   type <- match.arg(type)
   stopifnot("Covariate must be provided" = !missing(covariate),
-            "Object `covariate` should be of the same length as `dat`" = length(covariate) == length(time),
+            "Object `covariate` should be of the same length as `time`" = length(covariate) == length(time),
             "Provide a single threshold" = !missing(thresh) && length(thresh) == 1L)
   npar <- switch(family,
                "exp" = 1L,
@@ -42,6 +42,26 @@ test_elife <- function(time,
                "gompmake" = 3L,
                "extgp" = 3L,
                "weibull" = 2L)
+  if(isTRUE(all(is.matrix(ltrunc),
+                is.matrix(rtrunc),
+                ncol(ltrunc) == ncol(rtrunc),
+                ncol(rtrunc) == 2L))){
+    # Doubly truncated data
+    stopifnot("Censoring is not currently handled for doubly truncated data." = is.null(event) | isTRUE(all(event == 1L)),
+              "Argument `time2` not used for doubly truncated data" = is.null(time2)
+    )
+  return(
+    test_ditrunc_elife(time = time,
+                       covariate = covariate,
+                       thresh = thresh,
+                       ltrunc1 = ltrunc[,1],
+                       ltrunc2 = ltrunc[,2],
+                       rtrunc1 = rtrunc[,1],
+                       rtrunc2 = rtrunc[,2],
+                       family = family,
+                       weights = weights)
+  )
+  }
   survout <- .check_surv(time = time,
                          time2 = time2,
                          event = event,
@@ -236,6 +256,16 @@ nc_score_test <- function(time,
                           rtrunc = NULL,
                           type = c("right", "left", "interval", "interval2"),
                           weights = rep(1, length(time))){
+
+
+  # Exclude doubly interval truncated data
+  if(isTRUE(all(is.matrix(ltrunc),
+                is.matrix(rtrunc),
+                ncol(ltrunc) == ncol(rtrunc),
+                ncol(rtrunc) == 2L))){
+  stop("Doubly interval truncated data not supported")
+  }
+
   stopifnot("Threshold is missing" = !missing(thresh))
   nt <- length(thresh)
   thresh <- sort(unique(thresh))
@@ -323,6 +353,15 @@ ks_test <- function(time,
                     type = c("right", "left","interval","interval2"),
                     family = c("exp", "gp", "weibull", "gomp", "extgp","gppiece"),
                     B = 999L){
+
+  # Exclude doubly interval truncated data
+  if(isTRUE(all(is.matrix(ltrunc),
+                is.matrix(rtrunc),
+                ncol(ltrunc) == ncol(rtrunc),
+                ncol(rtrunc) == 2L))){
+    stop("Doubly interval truncated data not supported")
+  }
+
   family <- match.arg(family)
   type <- match.arg(type)
   n <- length(time)
@@ -366,7 +405,7 @@ ks_test <- function(time,
     stop("Could not estimate the parametric model.")
   }
   # Fit NPMLE of ECDF
-  Fn <- npsurv(time = dat,
+  Fn <- npsurv(time = time,
                type = "interval",
                event = status,
                ltrunc = ltrunc,

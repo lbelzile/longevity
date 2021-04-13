@@ -64,7 +64,7 @@ tstab <- function(time,
     if(method == "profile"){
       if(family == "gp"){
         if("shape" %in% which.plot){
-          shape_i <- try(prof_gp_shape_confint(mle = opt_mle,
+          shape_i <- try(prof_gp_shape(mle = opt_mle,
                                                time = time,
                                                time2 = time2,
                                                event = event,
@@ -78,7 +78,7 @@ tstab <- function(time,
           }
         }
         if("scale" %in% which.plot){
-         scalet_i <- try(prof_gp_scalet_confint(mle = opt_mle,
+         scalet_i <- try(prof_gp_scalet(mle = opt_mle,
                                                 time = time,
                                                 time2 = time2,
                                                 event = event,
@@ -92,7 +92,7 @@ tstab <- function(time,
          }
         }
       } else if(family == "exp"){
-        scale_i <- try(prof_exp_scale_confint(mle = opt_mle,
+        scale_i <- try(prof_exp_scale(mle = opt_mle,
                                               time = time,
                                               time2 = time2,
                                               event = event,
@@ -243,10 +243,12 @@ plot.elife_tstab <- function(x,
 #'
 #' @inheritParams nll_elife
 #' @param mle an object of class \code{elife_par}
+#' @param confint logical; if \code{TRUE} (default), return confidence intervals rather than list
 #' @param level level of the confidence interval
 #' @keywords internal
-#' @return a vector of length three with the maximum likelihood of the shape and profile-based confidence interval
-prof_gp_shape_confint <-
+#' @export
+#' @return if \code{confint=TRUE}, a vector of length three with the maximum likelihood of the shape and profile-based confidence interval
+prof_gp_shape <-
   function(mle = NULL,
            time,
            time2 = NULL,
@@ -256,7 +258,9 @@ prof_gp_shape_confint <-
            rtrunc = NULL,
            type = c("right","left","interval","interval2"),
            level = 0.95,
-           weights = NULL){
+           psi = NULL,
+           weights = NULL,
+           confint = TRUE){
     if(is.null(weights)){
       weights <- rep(1, length(time))
     }
@@ -279,9 +283,14 @@ prof_gp_shape_confint <-
                        weights = weights)
       mle$mdat <- max(c(mle$time, mle$time2), na.rm = TRUE)
     }
-  xis <- seq(-0.99, 2, length = 100L)
+    if(is.null(psi)){
+      psi <- seq(-0.99, 2, length = 100L)
+    } else{
+      stopifnot("`psi` should be a numeric vector" = is.numeric(psi),
+                "Grid of values for `psi` do not include the maximum likelihood estimate." = min(psi) > mle$par[2] & max(psi) < mle$par[2])
+    }
   mdat <- mle$mdat
-  dev <- sapply(xis, function(xi){
+  dev <- sapply(psi, function(xi){
     opt <- optimize(f = function(lambda){
       nll_elife(par = c(lambda, xi),
                 time = time,
@@ -297,9 +306,13 @@ prof_gp_shape_confint <-
       interval = c(ifelse(xi < 0, mdat*abs(xi), 1e-8), 10*mdat), tol = 1e-10)
     c(-2*opt$objective, opt$minimum)
   })
-  prof <- list(psi = xis, pll = -2*mle$loglik+dev[1,], maxpll = 0, mle = mle$par,
+  prof <- list(psi = psi, pll = -2*mle$loglik+dev[1,], maxpll = 0, mle = mle$par,
                psi.max = mle$par['shape'], std.error = sqrt(mle$vcov[2,2]))
+  if(confint){
   conf_interv(prof, level = level, print = FALSE)
+  } else{
+    prof
+  }
 
 }
 
@@ -309,10 +322,12 @@ prof_gp_shape_confint <-
 #'
 #' @inheritParams nll_elife
 #' @param mle an object of class \code{elife_par}
+#' @param confint logical; if \code{TRUE} (default), return confidence intervals rather than list
 #' @param level level of the confidence interval
 #' @keywords internal
+#' @export
 #' @return confidence interval
-prof_gp_scalet_confint <-
+prof_gp_scalet <-
   function(mle = NULL,
            time,
            time2 = NULL,
@@ -322,6 +337,7 @@ prof_gp_scalet_confint <-
            rtrunc = NULL,
            type = c("right","left","interval","interval2"),
            level = 0.95,
+           psi = NULL,
            weights = NULL){
     if(is.null(weights)){
       weights <- rep(1, length(time))
@@ -342,7 +358,8 @@ prof_gp_scalet_confint <-
                        type = type,
                        family = "gp",
                        export = TRUE,
-                       weights = weights
+                       weights = weights,
+                       confint = TRUE
                         )
       mle$mdat <- max(c(mle$time, mle$time2), na.rm = TRUE)
     }
@@ -350,35 +367,14 @@ prof_gp_scalet_confint <-
     sigma_t_mle <- mle$par[1] - mle$par[2]*thresh
     dV <- matrix(c(1, -thresh), ncol = 1)
     sigma_t_se <- sqrt(as.numeric(t(dV) %*% mle$vcov %*% dV))
-    psi <- sigma_t_mle + seq(-5*sigma_t_se, 10*sigma_t_se, length.out = 101)
+    if(is.null(psi)){
+     psi <- sigma_t_mle + seq(-5*sigma_t_se, 10*sigma_t_se, length.out = 101)
+    } else{
+      stopifnot("`psi` should be a numeric vector" = is.numeric(psi),
+                "Grid of values for `psi` do not include the maximum likelihood estimate." = min(psi) > sigma_t_mle & max(psi) < sigma_t_mle)
+    }
     psi <- psi[psi>0]
-    # Optimize is twice as fast
-    # dev <- matrix(0, ncol = 2, nrow = length(psi))
-    # i_start <- which.min(abs(psi - sigma_t_mle))
-    # for(i in c(i_start:nrow(dev), (i_start-1):1)){
-    #   scalet <- psi[i]
-    #   opt <- Rsolnp::solnp(pars = ifelse(i >= i_start,
-    #                                      ifelse(i == i_start, mle$par[2]+0.01, dev[i-1,2]),
-    #                                      dev[i+1,2]),
-    #                        fun = function(xi){
-    #                          nll_elife(par = c(scalet + xi * thresh, xi),
-    #                                    time = time,
-    #                                    time2 = time2,
-    #                                    event = event,
-    #                                    thresh = thresh,
-    #                                    type = type,
-    #                                    ltrunc = ltrunc,
-    #                                    rtrunc = rtrunc,
-    #                                    family = "gp")
-    #                        },
-    #                        ineqfun = function(xi){
-    #                          xi
-    #                        },
-    #                        ineqLB = pmax(-1, ifelse(thresh == 0, -scalet/thresh, -scalet/mdat)),
-    #                        ineqUB = 6,
-    #                        control = list(trace = 0))
-    #   dev[i,] <- c(-2*opt$values[length(opt$values)], opt$pars)
-    # }
+    # Optimize is twice as fast as Rsolnp...
     dev <- t(sapply(psi, function(scalet){
       opt <- optimize(f = function(xi){
         nll_elife(par = c(scalet + xi * thresh, xi),
@@ -402,7 +398,11 @@ prof_gp_scalet_confint <-
                  mle = mle$par,
                  psi.max = sigma_t_mle,
                  std.error = sigma_t_se)
-    conf_interv(prof, level = level, print = FALSE)
+    if(confint){
+     conf_interv(prof, level = level, print = FALSE)
+    } else{
+      prof
+    }
 }
 
 
@@ -412,11 +412,12 @@ prof_gp_scalet_confint <-
 #'
 #' @inheritParams nll_elife
 #' @param mle an object of class \code{elife_par}
+#' @param confint logical; if \code{TRUE} (default), return confidence intervals rather than list
 #' @param level level of the confidence interval
-#' @keywords internal
+#' @export
 #' @return a vector of length three with the maximum likelihood of the scale and profile-based confidence interval
 #' @keywords internal
-prof_exp_scale_confint <- function(mle = NULL,
+prof_exp_scale <- function(mle = NULL,
                                    time,
                                    time2 = NULL,
                                    event = NULL,
@@ -425,7 +426,9 @@ prof_exp_scale_confint <- function(mle = NULL,
                                    rtrunc = NULL,
                                    type = c("right","left","interval","interval2"),
                                    level = 0.95,
-                                   weights = NULL){
+                                   psi = NULL,
+                                   weights = NULL,
+                                   confint = TRUE){
   type <- match.arg(type)
   stopifnot("Provide a single value for the level" = length(level) == 1L,
             "Level should be a probability" = level < 1 && level > 0,
@@ -444,9 +447,16 @@ prof_exp_scale_confint <- function(mle = NULL,
                      rtrunc = rtrunc,
                      type = type,
                      family = "exp",
-                     weights = weights)
+                     weights = weights,
+                     confint = TRUE)
   }
-  psi <- mle$par + seq(pmax(-mle$par + 1e-4, -4*mle$std.error), 4*mle$std.error, length.out = 201)
+  if(is.null(psi)){
+    psi <- mle$par + seq(pmax(-mle$par + 1e-4, -4*mle$std.error), 4*mle$std.error, length.out = 201)
+  } else{
+    stopifnot("`psi` should be a numeric vector" = is.numeric(psi),
+              "Grid of values for `psi` do not include the maximum likelihood estimate." = min(psi) > sigma_t_mle & max(psi) < sigma_t_mle)
+  }
+
   pll <- sapply(psi, function(scale){
     nll_elife(par = scale,
               time = time,
@@ -459,12 +469,17 @@ prof_exp_scale_confint <- function(mle = NULL,
               family = "exp",
               weights = weights)
   })
-  conf_interv(list(psi = psi,
-                   pll = -2*(mle$loglik + pll),
-                   maxpll = 0,
-                   psi.max = mle$par,
-                   std.error = mle$std.error,
-                   mle = mle$par), level = level)
+  prof <- list(psi = psi,
+               pll = -2*(mle$loglik + pll),
+               maxpll = 0,
+               psi.max = mle$par,
+               std.error = mle$std.error,
+               mle = mle$par)
+  if(confint){
+    conf_interv(prof, level = level)
+  } else{
+    prof
+  }
 }
 
 

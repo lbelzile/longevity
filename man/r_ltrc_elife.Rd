@@ -2,7 +2,7 @@
 % Please edit documentation in R/simulation.R
 \name{r_ltrc_elife}
 \alias{r_ltrc_elife}
-\title{Sample observations from a doubly truncated excess lifetime distribution}
+\title{Sample observations from a left-truncated right-censored excess lifetime distribution}
 \usage{
 r_ltrc_elife(
   n,
@@ -30,7 +30,7 @@ r_ltrc_elife(
 a list with \code{n} observations \code{dat} and a logical vector of the same length with \code{TRUE} for right-censored observations and \code{FALSE} otherwise.
 }
 \description{
-Sample observations from a doubly truncated excess lifetime distribution
+Sample observations from a left-truncated right-censored excess lifetime distribution
 }
 \examples{
 n <- 100L
