@@ -287,7 +287,7 @@ prof_gp_shape <-
       psi <- seq(-0.99, 2, length = 100L)
     } else{
       stopifnot("`psi` should be a numeric vector" = is.numeric(psi),
-                "Grid of values for `psi` do not include the maximum likelihood estimate." = min(psi) > mle$par[2] & max(psi) < mle$par[2])
+                "Grid of values for `psi` do not include the maximum likelihood estimate." = min(psi) < mle$par[2] & max(psi) > mle$par[2])
     }
   mdat <- mle$mdat
   dev <- sapply(psi, function(xi){
@@ -306,7 +306,10 @@ prof_gp_shape <-
       interval = c(ifelse(xi < 0, mdat*abs(xi), 1e-8), 10*mdat), tol = 1e-10)
     c(-2*opt$objective, opt$minimum)
   })
-  prof <- list(psi = psi, pll = -2*mle$loglik+dev[1,], maxpll = 0, mle = mle$par,
+  prof <- list(psi = psi,
+               lambda = dev[2,],
+               pll = -2*mle$loglik+dev[1,],
+               maxpll = 0, mle = mle$par,
                psi.max = mle$par['shape'], std.error = sqrt(mle$vcov[2,2]))
   if(confint){
   conf_interv(prof, level = level, print = FALSE)
@@ -338,7 +341,8 @@ prof_gp_scalet <-
            type = c("right","left","interval","interval2"),
            level = 0.95,
            psi = NULL,
-           weights = NULL){
+           weights = NULL,
+           confint = TRUE){
     if(is.null(weights)){
       weights <- rep(1, length(time))
     }
@@ -358,8 +362,7 @@ prof_gp_scalet <-
                        type = type,
                        family = "gp",
                        export = TRUE,
-                       weights = weights,
-                       confint = TRUE
+                       weights = weights
                         )
       mle$mdat <- max(c(mle$time, mle$time2), na.rm = TRUE)
     }
@@ -371,7 +374,7 @@ prof_gp_scalet <-
      psi <- sigma_t_mle + seq(-5*sigma_t_se, 10*sigma_t_se, length.out = 101)
     } else{
       stopifnot("`psi` should be a numeric vector" = is.numeric(psi),
-                "Grid of values for `psi` do not include the maximum likelihood estimate." = min(psi) > sigma_t_mle & max(psi) < sigma_t_mle)
+                "Grid of values for `psi` do not include the maximum likelihood estimate." = min(psi) < sigma_t_mle & max(psi) > sigma_t_mle)
     }
     psi <- psi[psi>0]
     # Optimize is twice as fast as Rsolnp...
@@ -447,14 +450,13 @@ prof_exp_scale <- function(mle = NULL,
                      rtrunc = rtrunc,
                      type = type,
                      family = "exp",
-                     weights = weights,
-                     confint = TRUE)
+                     weights = weights)
   }
   if(is.null(psi)){
     psi <- mle$par + seq(pmax(-mle$par + 1e-4, -4*mle$std.error), 4*mle$std.error, length.out = 201)
   } else{
     stopifnot("`psi` should be a numeric vector" = is.numeric(psi),
-              "Grid of values for `psi` do not include the maximum likelihood estimate." = min(psi) > sigma_t_mle & max(psi) < sigma_t_mle)
+              "Grid of values for `psi` do not include the maximum likelihood estimate." = min(psi) < mle$par & max(psi) > mle$par)
   }
 
   pll <- sapply(psi, function(scale){

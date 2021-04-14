@@ -15,7 +15,8 @@ prof_gp_scalet(
   type = c("right", "left", "interval", "interval2"),
   level = 0.95,
   psi = NULL,
-  weights = NULL
+  weights = NULL,
+  confint = TRUE
 )
 }
 \arguments{
