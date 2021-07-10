@@ -94,7 +94,7 @@ nll_elife <- function(par,
   # For gppiece model
   #
   if(family == "gomp"){
-    family = "extgp"
+    family <- "extgp"
     par <- c(par, 0)
   }
   # Define density and survival function for each of the parametric families
@@ -568,7 +568,7 @@ fit_elife <- function(time,
                                  n.restarts = 10L)
     }
     mle <- opt_mle$pars
-    vcov <- try(solve(opt_mle$hessian[-(1:length(ineqLB)),-(1:length(ineqLB))]))
+    vcov <- try(solve(opt_mle$hessian[-(seq_along(ineqLB)),-(seq_along(ineqLB))]))
     if(is.character(vcov)){
       vcov <- NULL
       se_mle <- rep(NA, length(mle))

@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# longevity <img src="tools/longevity_sticker.png" align="right" />
+# longevity <img src="tools/longevity_sticker.png" align="right"/>
 
 <!-- badges: start -->
 
@@ -30,12 +30,10 @@ Pareto), with
 -   [x] nonparametric maximum likelihood estimate of the distribution
     function with arbitrary truncation and censoring using the EM
     algorithm of Turnbull (1976) - C++ implementation.
+-   [x] profile likelihood for generalized Pareto (endpoint)
 
 **TODO** list:
 
--   profile likelihood for generalized Pareto (endpoint)
--   uncertainty for diagnostic plots (via bootstrap)
--   survival and hazard curves
 -   local hazard models (with associated plots)
 -   bootstrap *p*-values for nested models (`anova`)
 -   unit tests

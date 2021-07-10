@@ -10,16 +10,23 @@
 #' @format A data frame with 305143 rows and 11 variables:
 #' \describe{
 #' \item{ndays}{survival time (in days)}
-#' \item{bdate}{the smallest plausible birth date given information about month of birth and death and survival (\code{Date})}
+#' \item{bdate}{the smallest plausible birth date given information
+#' about month of birth and death and survival (\code{Date})}
 #' \item{bmonth}{month of birth}
 #' \item{byear}{year of birth}
-#' \item{ddate}{the largest plausible death date given information about month of birth and death and survival (\code{Date})}
+#' \item{ddate}{the largest plausible death date given information
+#'  about month of birth and death and survival (\code{Date})}
 #' \item{dmonth}{month of death}
 #' \item{dyear}{year of death}
-#' \item{ltrunc}{minimum age (in days); the maximum of either 92 years or the number of days reached in 1986}
-#' \item{rtrunc}{maximum age (in days) an individual could have reached by the end of 2015}
-#' \item{gender}{factor indicating gender of individual, either \code{female} or \code{male}}
-#' \item{valid}{quality flag; \code{A} for individuals born in the Netherlands, \code{B} for individuals born abroad who died in the Netherlands}
+#' \item{ltrunc}{minimum age (in days); the maximum of either 92
+#'  years or the number of days reached in 1986}
+#' \item{rtrunc}{maximum age (in days) an individual could have
+#' reached by the end of 2015}
+#' \item{gender}{factor indicating gender of individual, either
+#' \code{female} or \code{male}}
+#' \item{valid}{quality flag; \code{A} for individuals born in
+#' the Netherlands, \code{B} for individuals born abroad who died
+#'  in the Netherlands}
 #' }
 #' @references Einmahl, J.J., J.H.J. Einmahl and L. de Haan (2019). \emph{Limits to Human Life Span Through Extreme Value Theory}, Journal of the American Statistical Association, \bold{114}(527), 1075-1080. \url{https://doi.org/10.1080/01621459.2018.1537912}
 #'
@@ -43,14 +50,17 @@
 #' that were excluded. The referenced technical reports describes the validation
 #' procedure in more details and includes (approximate) sampling weights for the validation
 #' sample of women who died age 105-108.
-#' @references Office for National Statistics (2016). Accuracy of official high-age population estimates, in England and Wales: an evaluation. Technical report, \url{https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/ageing/methodologies/accuracyofofficialhighagepopulationestimatesinenglandandwalesanevaluation}
+#' @references Office for National Statistics (2016). Accuracy of official high-age
+#' population estimates, in England and Wales: an evaluation. Technical report,
+#' \url{https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/ageing/methodologies/accuracyofofficialhighagepopulationestimatesinenglandandwalesanevaluation}
 #' @source Ngaire Coombs, Office for National Statistics (ONS)
 #' @format A data frame with 3951 rows and 7 variables:
 #' \describe{
 #' \item{ndays}{survival time (in days)}
 #' \item{bdate}{birth date (\code{Date})}
 #' \item{ddate}{death date (\code{Date})}
-#' \item{ltrunc}{minimum age (in days); the maximum of 38350 days (approximately 105 years) or the number of days reached in 2000}
+#' \item{ltrunc}{minimum age (in days); the maximum of 38350 days (approximately 105 years)
+#' or the number of days reached in 2000}
 #' \item{rtrunc}{maximum age (in days) an individual could have reached by the end of 2014}
 #' \item{gender}{factor indicating gender of individual, either \code{female} or \code{male}}
 #' \item{valid}{quality flag; \code{A} for validated records, \code{B} for unchecked records}
@@ -64,9 +74,10 @@
 #' by the whole part of age attained at death.
 #'
 #' These data were obtained from the Annual Vital Statistics Report of Japan, released by the
-#' Japanese government every year since 1947. The authors note that "All the members of that cohort have died
-#' by the end of the observation period, a procedure referred to as the
-#' extinct cohort method". The data were obtained from the Human Mortality Database by the authors.
+#' Japanese government every year since 1947. The authors note that
+#' "All the members of that cohort have died by the end of the observation period,
+#' a procedure referred to as the extinct cohort method".
+#' The data were obtained from the Human Mortality Database by the authors.
 #' Only positive counts are reported and two records (Misao Okawa and Jiroemon Kimura) are
 #' excluded because they do not correspond to the same selection mechanism.
 #'
@@ -87,12 +98,14 @@
 #'
 #' This data frame contains information about 3836 Italians
 #' individually validated survival lifetimes times in days
-#' of all persons in Italy who were at least 105 years old at some point in the period from 1 January 2009
+#' of all persons in Italy who were at least 105 years old
+#' at some point in the period from 1 January 2009
 #' to 31 December 2015.
 #' Observations are left-truncated and right-censored.
 #' These data are not publicly available, but can be purchased
 #' from the Italian National Institute of Statistics by
-#' registering at the Contact Center and mentioning the Semi-supercentenarian Survey and Marco Marsili
+#' registering at the Contact Center and mentioning the
+#' Semi-supercentenarian Survey and Marco Marsili
 #' as contact person.
 #'
 #' @references Istituto Nazionale di Statistica
@@ -100,10 +113,14 @@
 #' \describe{
 #' \item{ndays}{survival time (in days)}
 #' \item{bdate}{birth date (\code{Date})}
-#' \item{ddate}{death date (\code{Date}), or \code{NA_Date_} if the person is alive at the end of the sampling}
-#' \item{ltrunc}{minimum age (in days); the maximum of 38351 days (approximately 105 years) or the number of days reached in 2009}
-#' \item{event}{integer indicating the censoring pattern; \code{0} for right-censored records, \code{1} for fully observed}
-#' \item{gender}{factor indicating gender of individual, either \code{female} or \code{male}}
+#' \item{ddate}{death date (\code{Date}), or \code{NA_Date_}
+#' if the person is alive at the end of the sampling}
+#' \item{ltrunc}{minimum age (in days); the maximum of 38351 days
+#' (approximately 105 years) or the number of days reached in 2009}
+#' \item{event}{integer indicating the censoring pattern; \code{0} for
+#' right-censored records, \code{1} for fully observed}
+#' \item{gender}{factor indicating gender of individual,
+#' either \code{female} or \code{male}}
 #' }
 "italian"
 
@@ -113,18 +130,25 @@
 #' This data frame contains information about 9853 French semi-supercentenarian,
 #' part of the International Database on Longevity (IDL). All
 #' supercentenarian records were validate, but only a random sample
-#' of semisupercentenarians were validate. Lifetimes are interval truncated;
-#' only people above 110 born after 1978 and people above 105 born after 1987 are included.
+#' of semisupercentenarians were validate.
+#' Lifetimes are interval truncated;only people above 110 born
+#' after 1978 and people above 105 born after 1987 are included.
 #'
 #' @references International Database on Longevity
 #' @format A data frame with 9853 rows and 6 variables:
 #' \describe{
 #' \item{ndays}{survival time (in days)}
 #' \item{bdate}{birth date (\code{Date})}
-#' \item{ddate}{death date (\code{Date}) if the person is alive at the end of the sampling}
-#' \item{ltrunc}{minimum age (in days); the maximum of 38350 days (approximately 105 years) or the number of days reached on January 1st 1978 (supercentenerian) or 1987 (semi-supercentenarians)}
-#' \item{rtrunc}{maximum age (in days) an individual could have reached by the end of 2017}
-#' \item{gender}{factor indicating gender of individual, either \code{female} or \code{male}}
+#' \item{ddate}{death date (\code{Date}) if the person
+#' is alive at the end of the sampling}
+#' \item{ltrunc}{minimum age (in days); the maximum of 38350
+#'  days (approximately 105 years) or the number of days
+#'  reached on January 1st 1978 (supercentenarian) or 1987
+#'  (semisupercentenarian)}
+#' \item{rtrunc}{maximum age (in days) an individual could
+#' have reached by the end of 2017}
+#' \item{gender}{factor indicating gender of individual,
+#' either \code{female} or \code{male}}
 #' }
 "french"
 

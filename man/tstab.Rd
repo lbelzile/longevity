@@ -40,7 +40,7 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 
 \item{family}{string; distribution, either generalized Pareto (\code{gp}) or exponential (\code{exp})}
 
-\item{method}{string; the type of pointwise confidence interval, either Wald (\code{wald}) or profile likelihood (\code{lrt})}
+\item{method}{string; the type of pointwise confidence interval, either Wald (\code{wald}) or profile likelihood (\code{profile})}
 
 \item{level}{probability level for the pointwise confidence intervals}
 

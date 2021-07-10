@@ -11,7 +11,7 @@
 #' @details The shape estimates are constrained
 #' @inheritParams nll_elife
 #' @param family string; distribution, either generalized Pareto (\code{gp}) or exponential (\code{exp})
-#' @param method string; the type of pointwise confidence interval, either Wald (\code{wald}) or profile likelihood (\code{lrt})
+#' @param method string; the type of pointwise confidence interval, either Wald (\code{wald}) or profile likelihood (\code{profile})
 #' @param level probability level for the pointwise confidence intervals
 #' @param plot.type string; either \code{base} for base R plots or \code{ggplot} for \code{ggplot2} plots
 #' @param which.plot string; which parameters to plot;
@@ -49,7 +49,7 @@ tstab <- function(time,
   if(family == "gp"){
     shape_par_mat <- matrix(NA, nrow = length(thresh), ncol = 3)
   }
-  for(i in 1:length(thresh)){
+  for(i in seq_along(thresh)){
     opt_mle <- fit_elife(time = time,
                          time2 = time2,
                          event = event,
@@ -147,7 +147,7 @@ tstab <- function(time,
     plot(res, plot.type = plot.type, which.plot = which.plot, plot = TRUE)
   }
   #TODO check this for left-truncated data
-  res$nexc <- as.integer(sapply(thresh, function(u){sum(time > u, na.rm = TRUE)}))
+  res$nexc <- vapply(thresh, function(u){sum(time > u, na.rm = TRUE)}, integer(1))
   invisible(res)
 }
 
@@ -161,14 +161,15 @@ plot.elife_tstab <- function(x,
   plot.type <- match.arg(plot.type)
   which.plot <- match.arg(which.plot, choices = c("scale","shape"), several.ok = TRUE)
   if(plot.type == "ggplot" && requireNamespace("ggplot2", quietly = TRUE)){
-    library(ggplot2)
+    # library(ggplot2)
     ggplot_thstab <- function(x, thresh, ylab){
       stopifnot(all.equal(colnames(x), c("estimate","lower","upper")))
-      g <- ggplot(data = as.data.frame(cbind(thresh = thresh,
+      g <- ggplot2::ggplot(data = as.data.frame(cbind(thresh = thresh,
                                              x)),
-                  aes(x = thresh, y = estimate)) +
-        geom_pointrange(aes(ymin=lower, ymax=upper), size = 0.5, shape = 20) +
-        labs(x = "threshold", y = ylab, main = "threshold stability plot") #+
+                           ggplot2::aes(x = thresh, y = estimate)) +
+        ggplot2::geom_pointrange(ggplot2::aes(ymin=lower, ymax=upper),
+                                 size = 0.5, shape = 20) +
+        ggplot2::labs(x = "threshold", y = ylab, main = "threshold stability plot") #+
         # scale_x_continuous(breaks = thresh, minor_breaks = NULL)
       return(g)
     }
@@ -177,30 +178,29 @@ plot.elife_tstab <- function(x,
       if("scale" %in% which.plot){
         g1 <- ggplot_thstab(x = object$scale, thresh = object$thresh, ylab = "modified scale")
         if(length(which.plot) == 1L && plot){
-            print(g1)
+          get("print.ggplot", envir = loadNamespace("ggplot2"))(g1)
         }
         graphs$g1 <- g1
       }
       if("shape" %in% which.plot){
         g2 <- ggplot_thstab(x = object$shape, thresh = object$thresh, ylab = "shape")
         if(length(which.plot) == 1L && plot){
-          print(g2)
+          get("print.ggplot", envir = loadNamespace("ggplot2"))(g2)
         }
         graphs$g2 <- g2
       }
       if(length(which.plot) == 2L && plot){
-        if(requireNamespace("patchwork", quietly = TRUE)){
-          library(patchwork)
-          print(g1 + g2)
-        } else{
-          print(g1)
-          print(g2)
-        }
+         # if(requireNamespace("patchwork", quietly = TRUE)){
+         #   patchwork::wrap_plots(g1, g2)
+         #   get("wrap_plots", envir = loadNamespace("patchwork"))(list(g1, g2))
+         # } else{
+          lapply(list(g1, g2), get("print.ggplot", envir = loadNamespace("ggplot2")))
+         # }
       }
     } else if(object$family == "exp"){
       g1 <- ggplot_thstab(x = object$scale, thresh = object$thresh, ylab = "scale")
       if(plot){
-        print(g1)
+        get("print.ggplot", envir = loadNamespace("ggplot2"))(g1)
       }
     graphs$g1 <- g1
     }
@@ -214,7 +214,7 @@ plot.elife_tstab <- function(x,
            ylab = ylab,
            xlab = "threshold",
            ylim = range(x), ...)
-      for(i in 1:length(thresh)){
+      for(i in seq_along(thresh)){
         arrows(x0 = thresh[i],
                y0 = x[i,2],
                y1 = x[i,3],
@@ -290,7 +290,7 @@ prof_gp_shape <-
                 "Grid of values for `psi` do not include the maximum likelihood estimate." = min(psi) < mle$par[2] & max(psi) > mle$par[2])
     }
   mdat <- mle$mdat
-  dev <- sapply(psi, function(xi){
+  dev <- vapply(psi, function(xi){
     opt <- optimize(f = function(lambda){
       nll_elife(par = c(lambda, xi),
                 time = time,
@@ -305,7 +305,7 @@ prof_gp_shape <-
       },
       interval = c(ifelse(xi < 0, mdat*abs(xi), 1e-8), 10*mdat), tol = 1e-10)
     c(-2*opt$objective, opt$minimum)
-  })
+  }, FUN.VALUE = numeric(2))
   prof <- list(psi = psi,
                lambda = dev[2,],
                pll = -2*mle$loglik+dev[1,],
@@ -378,7 +378,7 @@ prof_gp_scalet <-
     }
     psi <- psi[psi>0]
     # Optimize is twice as fast as Rsolnp...
-    dev <- t(sapply(psi, function(scalet){
+    dev <- t(vapply(psi, function(scalet){
       opt <- optimize(f = function(xi){
         nll_elife(par = c(scalet + xi * thresh, xi),
                   time = time,
@@ -394,7 +394,7 @@ prof_gp_scalet <-
       interval = c(pmax(-1, ifelse(thresh == 0, -scalet/thresh, -scalet/mdat)), 3),
       tol = 1e-10)
       c(-2*opt$objective, opt$minimum)
-    }))
+    }, FUN.VALUE = numeric(2)))
     prof <- list(psi = psi,
                  pll = -2*mle$loglik+dev[,1],
                  maxpll = 0,
@@ -459,7 +459,7 @@ prof_exp_scale <- function(mle = NULL,
               "Grid of values for `psi` do not include the maximum likelihood estimate." = min(psi) < mle$par & max(psi) > mle$par)
   }
 
-  pll <- sapply(psi, function(scale){
+  pll <- vapply(psi, function(scale){
     nll_elife(par = scale,
               time = time,
               time2 = time2,
@@ -470,7 +470,7 @@ prof_exp_scale <- function(mle = NULL,
               rtrunc = rtrunc,
               family = "exp",
               weights = weights)
-  })
+  }, FUN.VALUE = numeric(1))
   prof <- list(psi = psi,
                pll = -2*(mle$loglik + pll),
                maxpll = 0,

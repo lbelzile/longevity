@@ -62,7 +62,7 @@ np_elife <- function(time,
     "Argument `thresh` should be positive." = min(thresh) >= 0,
     "Argument `thresh` should be a vector of length 1." = length(thresh) == 1L,
     "Argument `time` missing." = !missing(time),
-    "Argument `time` should be a vector" = is.vector(dat),
+    "Argument `time` should be a vector" = is.vector(time),
     "Argument `tol` should be of length one." = length(tol) == 1L,
     "Argument `tol` should be positive." = isTRUE(tol > 0),
     "Argument `tol` should be smaller." = isTRUE(tol < 1e-4)
@@ -121,7 +121,7 @@ np_elife <- function(time,
     )
   }
   if (!is.null(ltrunc) & !is.null(rtrunc)) {
-    "`ltrunc` should be smaller than `rtrunc`" = isTRUE(all(ltrunc < rtrunc))
+    stopifnot("`ltrunc` should be smaller than `rtrunc`" = isTRUE(all(ltrunc < rtrunc)))
   }
   if(is.null(ltrunc) && is.null(rtrunc)){
     trunc <- FALSE
@@ -245,9 +245,11 @@ np_elife <- function(time,
   survfun <- .wecdf(x = unex, w = p, type = "surv")
   std.err <- NULL
   if(vcov && !is.null(covmat)){
-    std.err <- sapply(1:nrow(covmat), function(j){
+    if(is.matrix(covmat) & nrow(covmat) >= 1){
+    std.err <- vapply(1:nrow(covmat), function(j){
       sum(covmat[j:nrow(covmat),j:nrow(covmat)])
-      })
+      }, numeric(1))
+    }
   }
   invisible(
     list(
@@ -282,7 +284,7 @@ np_nll <- function(p,
     return(1e8)
   }
   llp <- 0
-  for (i in 1:length(cens_lb)) {
+  for (i in seq_along(cens_lb)) {
     llp <- llp + log(sum(pf[cens_lb[i]:cens_ub[i]])) - log(sum(pf[trunc_lb[i]:trunc_ub[i]]))
   }
   return(-llp)

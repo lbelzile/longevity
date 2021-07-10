@@ -87,7 +87,7 @@ pgppiece <- function(q,
   prob_interv <- -diff(c(exp(logp),0))
   Ind <- as.integer(cut(q, c(thresh, Inf), include.lowest = TRUE))
   cum_prob <- 1-exp(logp)
-  F_upper <- c(sapply(1:(m-1), function(i){pgpd(q = w[i], scale = scale[i], shape = shape[i])}), 1)
+  F_upper <- c(vapply(1:(m-1), function(i){pgpd(q = w[i], scale = scale[i], shape = shape[i])}, numeric(1)), 1)
   ret_p <- cum_prob[Ind] +
     prob_interv[Ind]*(1 - ifelse(shape[Ind] == 0,
               exp((thresh[Ind] - q) / scale[Ind]),
@@ -140,7 +140,7 @@ qgppiece <- function(p,
                 )
             )
   cum_prob_interv <- c(1-exp(logp), 1)
-  F_upper <- c(sapply(1:(m-1), function(i){pgpd(q = w[i], scale = scale[i], shape = shape[i])}), 1)
+  F_upper <- c(vapply(1:(m-1), function(i){pgpd(q = w[i], scale = scale[i], shape = shape[i])}, numeric(1)), 1)
   if(log.p){
     p <- exp(p)
   }

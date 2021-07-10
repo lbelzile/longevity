@@ -9,10 +9,16 @@ A data frame with 9853 rows and 6 variables:
 \describe{
 \item{ndays}{survival time (in days)}
 \item{bdate}{birth date (\code{Date})}
-\item{ddate}{death date (\code{Date}) if the person is alive at the end of the sampling}
-\item{ltrunc}{minimum age (in days); the maximum of 38350 days (approximately 105 years) or the number of days reached on January 1st 1978 (supercentenerian) or 1987 (semi-supercentenarians)}
-\item{rtrunc}{maximum age (in days) an individual could have reached by the end of 2017}
-\item{gender}{factor indicating gender of individual, either \code{female} or \code{male}}
+\item{ddate}{death date (\code{Date}) if the person
+is alive at the end of the sampling}
+\item{ltrunc}{minimum age (in days); the maximum of 38350
+ days (approximately 105 years) or the number of days
+ reached on January 1st 1978 (supercentenarian) or 1987
+ (semisupercentenarian)}
+\item{rtrunc}{maximum age (in days) an individual could
+have reached by the end of 2017}
+\item{gender}{factor indicating gender of individual,
+either \code{female} or \code{male}}
 }
 }
 \usage{
@@ -22,8 +28,9 @@ french
 This data frame contains information about 9853 French semi-supercentenarian,
 part of the International Database on Longevity (IDL). All
 supercentenarian records were validate, but only a random sample
-of semisupercentenarians were validate. Lifetimes are interval truncated;
-only people above 110 born after 1978 and people above 105 born after 1987 are included.
+of semisupercentenarians were validate.
+Lifetimes are interval truncated;only people above 110 born
+after 1978 and people above 105 born after 1987 are included.
 }
 \references{
 International Database on Longevity

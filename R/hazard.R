@@ -101,7 +101,7 @@ hazard_elife <- function(x,
       psi <- 1/(mle$par + seq(to = -mle$std.error*3.5, from = mle$std.error*7, length.out = 101))
     }
     psi <- psi[psi>0]
-    npll <- sapply(psi, function(par){
+    npll <- vapply(psi, function(par){
       nll_elife(par = 1/par,
                 time = time,
                 time2 = time2,
@@ -111,7 +111,7 @@ hazard_elife <- function(x,
                 ltrunc = ltrunc,
                 rtrunc = rtrunc,
                 family = family,
-                weights = weights)})
+                weights = weights)}, numeric(1))
   } else if(family == "gp"){
     if(mle$par[2] < 0 && x > -mle$par[1]/mle$par[2]){
       stop("Value of x is outside of the range of the distribution evaluated at the maximum likelihood estimate.")
@@ -140,7 +140,7 @@ hazard_elife <- function(x,
       psi <- psi[psi > 0]
     mdat <- max(time, time2, na.rm = TRUE) - thresh
     ubound <- ifelse(x > mdat, x, mdat)
-    npll <- sapply(psi, function(haz_i){
+    npll <- vapply(psi, function(haz_i){
       opt <- optimize(f = function(xi){
             nll_elife(par = c(1/haz_i-xi*x, xi),
                     time = time,
@@ -155,7 +155,7 @@ hazard_elife <- function(x,
         upper = 1/(haz_i*x),
         lower = -1)
       opt$objective
-    })
+    }, numeric(1))
 
 
   } else if(family == "weibull"){
@@ -282,9 +282,9 @@ hazard_elife <- function(x,
       # NOTE to self: this function doesn't recover from Infinite
       # starting value
       ineqfun_extgp <- function(par){
-        sigma = par[1];
-        beta = par[2]
-        xi = inv_haz(hazard = psi[i], sigma = sigma, beta = beta, x = x)
+        sigma <- par[1]
+        beta <- par[2]
+        xi <- inv_haz(hazard = psi[i], sigma = sigma, beta = beta, x = x)
         c(sigma, beta, xi,
           1-beta/xi,
           ifelse(xi < 0, sigma/beta*log(1-beta/xi) - mdat, 1e-5)
@@ -292,8 +292,8 @@ hazard_elife <- function(x,
       }
       opt <- Rsolnp::solnp(pars = start,
                            f = function(par){
-                             sigma = par[1];
-                             beta = par[2];
+                             sigma <- par[1]
+                             beta <- par[2]
                              nll_elife(par = c(sigma, beta, inv_haz(hazard = psi[i], sigma = sigma, beta = beta, x = x)),
                                        time = time,
                                        time2 = time2,

@@ -26,9 +26,10 @@ by the whole part of age attained at death.
 }
 \details{
 These data were obtained from the Annual Vital Statistics Report of Japan, released by the
-Japanese government every year since 1947. The authors note that "All the members of that cohort have died
-by the end of the observation period, a procedure referred to as the
-extinct cohort method". The data were obtained from the Human Mortality Database by the authors.
+Japanese government every year since 1947. The authors note that
+"All the members of that cohort have died by the end of the observation period,
+a procedure referred to as the extinct cohort method".
+The data were obtained from the Human Mortality Database by the authors.
 Only positive counts are reported and two records (Misao Okawa and Jiroemon Kimura) are
 excluded because they do not correspond to the same selection mechanism.
 }

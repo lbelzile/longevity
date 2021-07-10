@@ -173,7 +173,7 @@ plot.elife_par <- function(x,
   }
   if(plot.type == "ggplot"){
     if(requireNamespace("ggplot2", quietly = TRUE)){
-      library(ggplot2)
+      # library(ggplot2)
     } else{
       warning("`ggplot2` package is not installed. Switching to base R plots.")
       plot.type <- "base"
@@ -232,20 +232,20 @@ plot.elife_par <- function(x,
     for(pl in which.plot){
       if(pl == "pp"){
         pl_list[["pp"]] <-
-          ggplot(data = data.frame(y = ypos, x = xpos),
-                 mapping = aes(x = x, y = y)) +
-          geom_abline(intercept = 0, slope = 1, col = "gray") +
-          geom_point() +
-          labs(x = "theoretical quantiles",
+          ggplot2::ggplot(data = data.frame(y = ypos, x = xpos),
+                 mapping = ggplot2::aes(x = x, y = y)) +
+          ggplot2::geom_abline(intercept = 0, slope = 1, col = "gray") +
+          ggplot2::geom_point() +
+          ggplot2::labs(x = "theoretical quantiles",
                y = "empirical quantiles")
       } else if(pl == "exp"){
         pl_list[["exp"]] <-
-          ggplot(data = data.frame(y = -log(1-ypos),
+          ggplot2::ggplot(data = data.frame(y = -log(1-ypos),
                                    x = -log(1-xpos)),
-                 mapping = aes(x = x, y = y)) +
-          geom_abline(intercept = 0, slope = 1, col = "gray") +
-          geom_point() +
-          labs(x = "theoretical quantiles",
+                 mapping = ggplot2::aes(x = x, y = y)) +
+          ggplot2::geom_abline(intercept = 0, slope = 1, col = "gray") +
+          ggplot2::geom_point() +
+          ggplot2::labs(x = "theoretical quantiles",
                y = "empirical quantiles")
       } else if(pl == "qq"){
         # if(confint && object$type != "ltrc"){
@@ -260,12 +260,12 @@ plot.elife_par <- function(x,
         # }
         # if(!confint){
         pl_list[["qq"]] <-
-          ggplot(data = data.frame(y = dat,
+          ggplot2::ggplot(data = data.frame(y = dat,
                                    x = qmod(p = txpos, scale = scale, shape = shape, family = object$family)),
-                 mapping = aes(x = x, y = y)) +
-          geom_abline(intercept = 0, slope = 1, col = "gray") +
-          geom_point() +
-          labs(x = "theoretical quantiles",
+                 mapping = ggplot2::aes(x = x, y = y)) +
+          ggplot2::geom_abline(intercept = 0, slope = 1, col = "gray") +
+          ggplot2::geom_point() +
+          ggplot2::labs(x = "theoretical quantiles",
                y = "empirical quantiles")
         # } else if(confint){
         #   pl_list[["qq"]] <-
@@ -283,27 +283,27 @@ plot.elife_par <- function(x,
         # }
       } else if(pl == "tmd"){
         pl_list[["tmd"]] <-
-          ggplot(data = data.frame(yp = dat,
+          ggplot2::ggplot(data = data.frame(yp = dat,
                                    xp = qmod(p = txpos, scale = scale, shape = shape, family = object$family)),
-                 mapping = aes(x = (xp + yp) / 2, y = yp - xp)) +
-          geom_hline(yintercept = 0, col = "gray") +
-          geom_point() +
-          labs(x = "average quantile",
+                 mapping = ggplot2::aes(x = (xp + yp) / 2, y = yp - xp)) +
+          ggplot2::geom_hline(yintercept = 0, col = "gray") +
+          ggplot2::geom_point() +
+          ggplot2::labs(x = "average quantile",
                y = "quantile difference")
 
       } else if(pl == "erp"){
         pl_list[["erp"]] <-
-          ggplot(data = data.frame(y = ecdffun2(dat),
+          ggplot2::ggplot(data = data.frame(y = ecdffun2(dat),
                                    x = ecdffun2(qmod(p = txpos, scale = scale, shape = shape, family = object$family))),
-                 mapping = aes(x = x, y = y)) +
-          geom_abline(intercept = 0, slope = 1, col = "gray") +
-          geom_point() +
-          labs(x = "theoretical quantiles",
+                 mapping = ggplot2::aes(x = x, y = y)) +
+          ggplot2::geom_abline(intercept = 0, slope = 1, col = "gray") +
+          ggplot2::geom_point() +
+          ggplot2::labs(x = "theoretical quantiles",
                y = "empirical quantiles")
       }
     }
     if(plot){
-      lapply(pl_list, print)
+      lapply(pl_list, get("print.ggplot", envir = loadNamespace("ggplot2")))
     }
     return(invisible(pl_list))
   }

@@ -8,16 +8,23 @@
 A data frame with 305143 rows and 11 variables:
 \describe{
 \item{ndays}{survival time (in days)}
-\item{bdate}{the smallest plausible birth date given information about month of birth and death and survival (\code{Date})}
+\item{bdate}{the smallest plausible birth date given information
+about month of birth and death and survival (\code{Date})}
 \item{bmonth}{month of birth}
 \item{byear}{year of birth}
-\item{ddate}{the largest plausible death date given information about month of birth and death and survival (\code{Date})}
+\item{ddate}{the largest plausible death date given information
+ about month of birth and death and survival (\code{Date})}
 \item{dmonth}{month of death}
 \item{dyear}{year of death}
-\item{ltrunc}{minimum age (in days); the maximum of either 92 years or the number of days reached in 1986}
-\item{rtrunc}{maximum age (in days) an individual could have reached by the end of 2015}
-\item{gender}{factor indicating gender of individual, either \code{female} or \code{male}}
-\item{valid}{quality flag; \code{A} for individuals born in the Netherlands, \code{B} for individuals born abroad who died in the Netherlands}
+\item{ltrunc}{minimum age (in days); the maximum of either 92
+ years or the number of days reached in 1986}
+\item{rtrunc}{maximum age (in days) an individual could have
+reached by the end of 2015}
+\item{gender}{factor indicating gender of individual, either
+\code{female} or \code{male}}
+\item{valid}{quality flag; \code{A} for individuals born in
+the Netherlands, \code{B} for individuals born abroad who died
+ in the Netherlands}
 }
 }
 \source{

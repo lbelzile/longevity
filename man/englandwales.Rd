@@ -10,7 +10,8 @@ A data frame with 3951 rows and 7 variables:
 \item{ndays}{survival time (in days)}
 \item{bdate}{birth date (\code{Date})}
 \item{ddate}{death date (\code{Date})}
-\item{ltrunc}{minimum age (in days); the maximum of 38350 days (approximately 105 years) or the number of days reached in 2000}
+\item{ltrunc}{minimum age (in days); the maximum of 38350 days (approximately 105 years)
+or the number of days reached in 2000}
 \item{rtrunc}{maximum age (in days) an individual could have reached by the end of 2014}
 \item{gender}{factor indicating gender of individual, either \code{female} or \code{male}}
 \item{valid}{quality flag; \code{A} for validated records, \code{B} for unchecked records}
@@ -41,6 +42,8 @@ procedure in more details and includes (approximate) sampling weights for the va
 sample of women who died age 105-108.
 }
 \references{
-Office for National Statistics (2016). Accuracy of official high-age population estimates, in England and Wales: an evaluation. Technical report, \url{https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/ageing/methodologies/accuracyofofficialhighagepopulationestimatesinenglandandwalesanevaluation}
+Office for National Statistics (2016). Accuracy of official high-age
+population estimates, in England and Wales: an evaluation. Technical report,
+\url{https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/ageing/methodologies/accuracyofofficialhighagepopulationestimatesinenglandandwalesanevaluation}
 }
 \keyword{datasets}
