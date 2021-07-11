@@ -68,12 +68,18 @@ plot.elife_par <- function(x,
   plot.type <- match.arg(plot.type)
   which.plot <- match.arg(which.plot, choices = c("pp","qq","erp","exp","tmd"), several.ok = TRUE)
   # Fit a nonparametric survival function (Turnbull, 1976)
+  if(is.null(object$rtrunc)){
+    object$rtrunc <- rep(Inf, length(object$time))
+  }
+  if(is.null(object$ltrunc)){
+    object$ltrunc <- rep(0, length(object$time))
+  }
   np <- npsurv(time = object$time,
                time2 = object$time2,
                event = object$event,
                type = object$type,
                ltrunc = object$ltrunc,
-               rtrunc = ifelse(is.null(object$rtrunc), Inf, object$rtrunc))
+               rtrunc = object$rtrunc)
   # Create a weighted empirical CDF
   ecdffun <- np$cdf
   dat <- object$time[object$status == 1L]
