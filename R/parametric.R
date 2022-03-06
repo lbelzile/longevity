@@ -63,8 +63,8 @@ nll_elife <- function(par,
     status <- survout$status
   }
   stopifnot("Status could not be resolved." = isTRUE(all(status %in% 0:3)),
-            "Incorrect `ltrunc` argument." = is.null(ltrunc) || (!is.null(ltrunc) && length(ltrunc) %in% c(1L, length(time))),
-            "Incorrect `rtrunc` argument." = is.null(rtrunc) || (!is.null(rtrunc) && length(rtrunc) %in% c(1L, length(time))))
+            "Incorrect `ltrunc` argument." = is.null(ltrunc) || (!is.null(ltrunc) && ! length(ltrunc) %in% c(1L, length(time))),
+            "Incorrect `rtrunc` argument." = is.null(rtrunc) || (!is.null(rtrunc) && ! length(rtrunc) %in% c(1L, length(time))))
   if(thresh[1] > 0){
     # Keep only exceedances, shift observations
     # We discard left truncated observations and interval censored

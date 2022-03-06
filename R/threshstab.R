@@ -39,10 +39,12 @@ tstab <- function(time,
   type <- match.arg(type)
   if(plot){
     plot.type <- match.arg(plot.type)
-    which.plot <- match.arg(which.plot, choices = c("scale","shape"), several.ok = TRUE)
+    which.plot <- match.arg(which.plot,
+                            choices = c("scale","shape"),
+                            several.ok = TRUE)
   }
   wald_confint <- function(par, std.error, level = 0.95){
-    c(par[1], par[1] +  qnorm(0.5+level/2)*std.error[1]*c(-1,1))
+    c(par[1], par[1] + qnorm(0.5+level/2)*std.error[1]*c(-1,1))
   }
   stopifnot("Provide multiple thresholds" = length(thresh) > 1)
   scale_par_mat <- matrix(NA, nrow = length(thresh), ncol = 3)
@@ -153,7 +155,7 @@ tstab <- function(time,
 
 #' @export
 plot.elife_tstab <- function(x,
-                             plot.type = c("base","ggplot"),
+                             plot.type = c("base", "ggplot"),
                              which.plot = c("scale","shape"),
                              plot = TRUE,
                              ...){
@@ -349,7 +351,7 @@ prof_gp_scalet <-
     type <- match.arg(type)
     stopifnot("Provide a single value for the level" = length(level) == 1L,
               "Level should be a probability" = level < 1 && level > 0,
-              "Provide two thresholds" = length(thresh) == 1L)
+              "Provide a single threshold" = length(thresh) == 1L)
     if(!is.null(mle)){
       stopifnot("`mle` should be an object of class `elife_par` as returned by `fit_elife`" =  inherits(mle, "elife_par"))
     } else{
