@@ -259,6 +259,10 @@ fit_elife <- function(time,
                       restart = FALSE
 ){
   stopifnot("Argument `restart` should be a logical vector" = is.logical(restart) & length(restart) == 1L)
+  stopifnot("Argument `event` must be NULL, a vector of the same length as time or a scalar." = isTRUE(is.null(event) | length(event) %in% c(1L, length(time))))
+  if(!is.null(event) & length(event) == 1L){
+    event <- rep(event, length.out = length(time))
+  }
   if(isTRUE(all(is.matrix(ltrunc),
                 is.matrix(rtrunc),
                 ncol(ltrunc) == ncol(rtrunc),

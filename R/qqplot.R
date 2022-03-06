@@ -328,7 +328,7 @@ plot.elife_par <- function(x,
 #' @keywords internal
 uq1_qqplot_elife <-
   function(B = 9999L,
-           n,
+           dat,
            par,
            lower,
            upper,
@@ -336,6 +336,7 @@ uq1_qqplot_elife <-
            type2 = c("none","ltrt","ltrc"),
            family = c("exp","gp","gomp","gompmake","weibull","extgp")
   ){
+    n <- length(dat)
     family <- match.arg(family)
     if(missing(lower)){
       ltrunc <- 0
@@ -427,12 +428,12 @@ uq1_qqplot_elife <-
                             event = rep(1L, n),
                             ltrunc = lower,
                             rtrunc = upper)$cdf
-          xpos <- n / (n + 1) * (np_boot(dat) - np_boot(ltrunc))/(np_boot(rtrunc) - np_boot(ltrunc))
-          ppos[b,] <- qelife(p = pelife(q = ltrunc,
+          xpos <- n / (n + 1) * (np_boot(dat) - np_boot(lower))/(np_boot(upper) - np_boot(lower))
+          ppos[b,] <- qelife(p = pelife(q = lower,
                              scale = split_pars(fit_boot$par, family = family)$scale,
                              shape = split_pars(fit_boot$par, family = family)$shape,
                              family = family)*(1-xpos) +
-            xpos * pelife(q = rtrunc,
+            xpos * pelife(q = upper,
                          scale = split_pars(fit_boot$par, family = family)$scale,
                          shape = split_pars(fit_boot$par, family = family)$shape,
                          family = family),

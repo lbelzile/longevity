@@ -6,7 +6,7 @@
 \usage{
 uq1_qqplot_elife(
   B = 9999L,
-  n,
+  dat,
   par,
   lower,
   upper,
@@ -18,6 +18,8 @@ uq1_qqplot_elife(
 \arguments{
 \item{B}{number of bootstrap samples}
 
+\item{dat}{vector of data}
+
 \item{par}{parameter estimates of the model}
 
 \item{lower}{lower bounds (truncation or lowest possible value)}
@@ -27,8 +29,6 @@ uq1_qqplot_elife(
 \item{level}{level of the confidence intervals}
 
 \item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).}
-
-\item{dat}{vector of data}
 }
 \description{
 Uncertainty quantification for quantile-quantile plots

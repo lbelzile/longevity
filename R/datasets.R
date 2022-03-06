@@ -85,13 +85,32 @@
 #' \describe{
 #' \item{age}{integer, age (to the smallest year) at death (in years)}
 #' \item{byear}{integer, birth year}
-#' \item{count}{intreger, number of death for cohort at given age}
+#' \item{count}{integer, number of death for cohort at given age}
 #' \item{gender}{factor, the gender of the individuals; either \code{male} or \code{female}}
 #' }
 #' @references Hanayama, N. and M. Sibuya (2016). Estimating the Upper Limit of Lifetime Probability Distribution, Based on Data of Japanese Centenarians, \emph{The Journals of Gerontology: Series A}, 71(\bold{8}), 1014–1021. \url{https://doi.org/10.1093/gerona/glv113}
 #'
-#' @source Table extracted from the Hanamaya & Sibuya (2016).
+#' @source Table extracted from Hanamaya & Sibuya (2016).
 "japanese"
+
+
+#' Japanese survival data (2)
+#'
+#' This data frame is extracted from Table 10.3 from Chapter 10, "Centenarians and Supercentenarians in Japan", in the Monograph Exceptional lifespans. The data were constructed by the extinct cohort method and are stratified by age cohort (five year group, except 1899-1900) and by sex. Note that the family registry system (KOSEKI), introduced in 1872, was standardized in 1886.
+#'
+#' @format A data frame with 216 rows and 4 variables:
+#' \describe{
+#' \item{age}{integer, age (to the smallest year) at death (in years)}
+#' \item{bcohort}{factor, birth cohort}
+#' \item{count}{integer, number of death for cohort at given age}
+#' \item{gender}{factor, the gender of the individuals; either \code{male} or \code{female}}
+#' }
+#' @references
+#' Saito, Yasuhiko and Futoshi Ishii, and Jean-Marie Robine (2021). \emph{Centenarians and Supercentenarians in Japan}. In \emph{Exceptional lifespans}, Maier, H., Jeune, B., Vaupel, J. W. (Eds.), Demographic research monographs 17 VII, pp. 125-145. Cham, Springer.
+#'
+#' @source Table 10.3
+"japanese2"
+
 
 
 #' Italian semi-supercentenarian
@@ -129,8 +148,8 @@
 #'
 #' This data frame contains information about 9853 French semi-supercentenarian,
 #' part of the International Database on Longevity (IDL). All
-#' supercentenarian records were validate, but only a random sample
-#' of semisupercentenarians were validate.
+#' supercentenarian records were validated, but only a random sample
+#' of semi-supercentenarians were validated.
 #' Lifetimes are interval truncated;only people above 110 born
 #' after 1978 and people above 105 born after 1987 are included.
 #'

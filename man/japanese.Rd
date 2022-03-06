@@ -9,12 +9,12 @@ A data frame with 1038 rows and 4 variables:
 \describe{
 \item{age}{integer, age (to the smallest year) at death (in years)}
 \item{byear}{integer, birth year}
-\item{count}{intreger, number of death for cohort at given age}
+\item{count}{integer, number of death for cohort at given age}
 \item{gender}{factor, the gender of the individuals; either \code{male} or \code{female}}
 }
 }
 \source{
-Table extracted from the Hanamaya & Sibuya (2016).
+Table extracted from Hanamaya & Sibuya (2016).
 }
 \usage{
 japanese

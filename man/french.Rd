@@ -27,8 +27,8 @@ french
 \description{
 This data frame contains information about 9853 French semi-supercentenarian,
 part of the International Database on Longevity (IDL). All
-supercentenarian records were validate, but only a random sample
-of semisupercentenarians were validate.
+supercentenarian records were validated, but only a random sample
+of semi-supercentenarians were validated.
 Lifetimes are interval truncated;only people above 110 born
 after 1978 and people above 105 born after 1987 are included.
 }
