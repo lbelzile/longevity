@@ -74,7 +74,8 @@ tstab <- function(time,
                                        ltrunc = ltrunc,
                                        rtrunc = rtrunc,
                                        type = type,
-                                       level = level))
+                                       level = level,
+                                       weights = weights))
           if(!inherits(shape_i, "try.error")){
             shape_par_mat[i,] <- shape_i
           }
@@ -88,7 +89,8 @@ tstab <- function(time,
                                         ltrunc = ltrunc,
                                         rtrunc = rtrunc,
                                         type = type,
-                                        level = level))
+                                        level = level,
+                                        weights = weights))
          if(!inherits(scalet_i, "try-error")){
            scale_par_mat[i,] <- scalet_i
          }
@@ -382,7 +384,6 @@ prof_gp_scalet <-
                 "Grid of values for `psi` do not include the maximum likelihood estimate." = min(psi) < sigma_t_mle & max(psi) > sigma_t_mle)
     }
     psi <- psi[psi>0]
-    browser()
     # Optimize is twice as fast as Rsolnp...
     dev <- t(vapply(psi, function(scalet){
       opt <- optimize(f = function(xi){
