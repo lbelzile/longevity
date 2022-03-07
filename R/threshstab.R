@@ -67,43 +67,43 @@ tstab <- function(time,
       if(family == "gp"){
         if("shape" %in% which.plot){
           shape_i <- try(prof_gp_shape(mle = opt_mle,
-                                               time = time,
-                                               time2 = time2,
-                                               event = event,
-                                                thresh = thresh[i],
-                                                ltrunc = ltrunc,
-                                                rtrunc = rtrunc,
-                                                type = type,
-                                                level = level))
-          if(!is.character(shape_i)){
+                                       time = time,
+                                       time2 = time2,
+                                       event = event,
+                                       thresh = thresh[i],
+                                       ltrunc = ltrunc,
+                                       rtrunc = rtrunc,
+                                       type = type,
+                                       level = level))
+          if(!inherits(shape_i, "try.error")){
             shape_par_mat[i,] <- shape_i
           }
         }
         if("scale" %in% which.plot){
          scalet_i <- try(prof_gp_scalet(mle = opt_mle,
-                                                time = time,
-                                                time2 = time2,
-                                                event = event,
-                                               thresh = thresh[i],
-                                               ltrunc = ltrunc,
-                                               rtrunc = rtrunc,
-                                               type = type,
-                                               level = level))
-         if(!is.character(scalet_i)){
+                                        time = time,
+                                        time2 = time2,
+                                        event = event,
+                                        thresh = thresh[i],
+                                        ltrunc = ltrunc,
+                                        rtrunc = rtrunc,
+                                        type = type,
+                                        level = level))
+         if(!inherits(scalet_i, "try-error")){
            scale_par_mat[i,] <- scalet_i
          }
         }
       } else if(family == "exp"){
         scale_i <- try(prof_exp_scale(mle = opt_mle,
-                                              time = time,
-                                              time2 = time2,
-                                              event = event,
-                                           thresh = thresh[i],
-                                           ltrunc = ltrunc,
-                                           rtrunc = rtrunc,
-                                           type = type,
-                                           level = level))
-        if(!is.character(scale_i)){
+                                      time = time,
+                                      time2 = time2,
+                                      event = event,
+                                      thresh = thresh[i],
+                                      ltrunc = ltrunc,
+                                      rtrunc = rtrunc,
+                                      type = type,
+                                      level = level))
+        if(!inherits(scale_i, "try-error")){
           scale_par_mat[i,] <- scale_i
         }
       }
@@ -149,7 +149,9 @@ tstab <- function(time,
     plot(res, plot.type = plot.type, which.plot = which.plot, plot = TRUE)
   }
   #TODO check this for left-truncated data
-  res$nexc <- vapply(thresh, function(u){sum(time > u, na.rm = TRUE)}, integer(1))
+  res$nexc <- vapply(thresh, function(u){
+    sum(time > u, na.rm = TRUE)
+    }, integer(1))
   invisible(res)
 }
 
@@ -305,7 +307,8 @@ prof_gp_shape <-
                 family = "gp",
                 weights = weights)
       },
-      interval = c(ifelse(xi < 0, mdat*abs(xi), 1e-8), 10*mdat), tol = 1e-10)
+      interval = c(ifelse(xi < 0, mdat*abs(xi), 1e-8), 10*mdat),
+      tol = 1e-10)
     c(-2*opt$objective, opt$minimum)
   }, FUN.VALUE = numeric(2))
   prof <- list(psi = psi,
@@ -379,6 +382,7 @@ prof_gp_scalet <-
                 "Grid of values for `psi` do not include the maximum likelihood estimate." = min(psi) < sigma_t_mle & max(psi) > sigma_t_mle)
     }
     psi <- psi[psi>0]
+    browser()
     # Optimize is twice as fast as Rsolnp...
     dev <- t(vapply(psi, function(scalet){
       opt <- optimize(f = function(xi){

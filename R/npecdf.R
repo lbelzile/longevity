@@ -385,6 +385,9 @@ logit <- function(x) {
    } else if(type == "interval"){
      stopifnot("Event vector is missing" = !is.null(event))
      event <- as.integer(event)
+     if(length(event) == 1L){
+       event <- rep(event, n)
+     }
      stopifnot("Event should be a vector of integers between 0 and 3" = isTRUE(all(event %in% 0:3)))
      time2 <- ifelse(event == 0L, NA, ifelse(event %in% c(1L,2L), time, time2))
      time <- ifelse(event == 2L, NA, time)
