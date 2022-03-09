@@ -167,7 +167,6 @@ plot.elife_tstab <- function(x,
   plot.type <- match.arg(plot.type)
   which.plot <- match.arg(which.plot, choices = c("scale","shape"), several.ok = TRUE)
   if(plot.type == "ggplot" && requireNamespace("ggplot2", quietly = TRUE)){
-    # library(ggplot2)
     ggplot_thstab <- function(x, thresh, ylab){
       stopifnot(all.equal(colnames(x), c("estimate","lower","upper")))
       g <- ggplot2::ggplot(data = as.data.frame(cbind(thresh = thresh,
@@ -175,7 +174,8 @@ plot.elife_tstab <- function(x,
                            ggplot2::aes(x = thresh, y = estimate)) +
         ggplot2::geom_pointrange(ggplot2::aes(ymin=lower, ymax=upper),
                                  size = 0.5, shape = 20) +
-        ggplot2::labs(x = "threshold", y = ylab, main = "threshold stability plot") #+
+        ggplot2::labs(x = "threshold", y = ylab, main = "threshold stability plot") +
+        ggplot2::theme_classic() #+
         # scale_x_continuous(breaks = thresh, minor_breaks = NULL)
       return(g)
     }
@@ -196,12 +196,7 @@ plot.elife_tstab <- function(x,
         graphs$g2 <- g2
       }
       if(length(which.plot) == 2L && plot){
-         # if(requireNamespace("patchwork", quietly = TRUE)){
-         #   patchwork::wrap_plots(g1, g2)
-         #   get("wrap_plots", envir = loadNamespace("patchwork"))(list(g1, g2))
-         # } else{
           lapply(list(g1, g2), get("print.ggplot", envir = loadNamespace("ggplot2")))
-         # }
       }
     } else if(object$family == "exp"){
       g1 <- ggplot_thstab(x = object$scale, thresh = object$thresh, ylab = "scale")
@@ -241,6 +236,28 @@ plot.elife_tstab <- function(x,
       }
     }
   }
+}
+
+#' @export
+autoplot.elife_tstab <- function(object, ...){
+  if(!requireNamespace("ggplot2", quietly = TRUE)){
+    stop("`ggplot2` package is not installed.")
+  }
+  args <- list(...)
+  which.plot <- args$which.plot
+  if(is.null(which.plot)){
+    which.plot <- c("scale","shape")
+  }
+  plotarg <- args$plot
+  if(is.null(plotarg)){
+    plotarg <- TRUE
+  } else{
+    stopifnot("`plot` must be a logical vector." = is.logical(plotarg) & length(plotarg) == 1L)
+  }
+  plot(x = object,
+       plot.type = "ggplot",
+       which.plot = which.plot,
+       plot = plotarg)
 }
 
 #' Profile log likelihood for the shape parameter of the generalized Pareto distribution

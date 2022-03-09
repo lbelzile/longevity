@@ -362,8 +362,30 @@ plot.elife_hazard <- function(x, ...){
        ylab = "profile log-likelihood",
        ylim = c(-5,0),
        panel.first = {
-  abline(h = -qchisq(level, 1)/2, col = "gray")}, ...)
+  abline(h = -qchisq(x$level, 1)/2, col = "gray")}, ...)
   rug(c(x$confint, x$par), ticksize = 0.05)
+}
+
+#' @export
+autoplot.elife_hazard <- function(object, ...){
+  if(!requireNamespace("ggplot2", quietly = TRUE)){
+    stop("`ggplot2` package is not installed.")
+  }
+  ggplot2::ggplot(data = data.frame(x = object$hazards,
+                                   y = object$pll),
+                 mapping = ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_hline(yintercept = -qchisq(object$level, 1)/2,
+                        alpha = 0.5,
+                        color = "grey",
+                        linetype = "dashed") +
+    ggplot2::geom_line() +
+    ggplot2::labs(x = "hazard",
+                  y = "profile log-likelihood") +
+    ggplot2::geom_rug(inherit.aes = FALSE,
+                      data = data.frame(x = c(object$confint, object$par)),
+                      mapping = ggplot2::aes(x = x),
+                      sides = "b") +
+    ggplot2::theme_classic()
 }
 
 confint.elife_hazard <- function(x, ...){

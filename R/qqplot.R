@@ -60,6 +60,13 @@ plot.elife_par <- function(x,
                            which.plot = c("pp","qq"),
                            confint = FALSE,
                            plot = TRUE){
+  if(plot.type == "ggplot"){
+    if(requireNamespace("ggplot2", quietly = TRUE)){
+    } else{
+      warning("`ggplot2` package is not installed. Switching to base R plots.")
+      plot.type <- "base"
+    }
+  }
   object <- x
   stopifnot("Object should be of class `elife_par`" = inherits(object, what = "elife_par"))
   if(is.null(object$time)){
@@ -177,14 +184,6 @@ plot.elife_par <- function(x,
       ecdffun2 <- np2$ecdf
     }
   }
-  if(plot.type == "ggplot"){
-    if(requireNamespace("ggplot2", quietly = TRUE)){
-      # library(ggplot2)
-    } else{
-      warning("`ggplot2` package is not installed. Switching to base R plots.")
-      plot.type <- "base"
-    }
-  }
   if(plot.type == "base"){
     for(pl in which.plot){
       if(pl == "pp"){
@@ -243,7 +242,8 @@ plot.elife_par <- function(x,
           ggplot2::geom_abline(intercept = 0, slope = 1, col = "gray") +
           ggplot2::geom_point() +
           ggplot2::labs(x = "theoretical quantiles",
-               y = "empirical quantiles")
+               y = "empirical quantiles") +
+          ggplot2::theme_classic()
       } else if(pl == "exp"){
         pl_list[["exp"]] <-
           ggplot2::ggplot(data = data.frame(y = -log(1-ypos),
@@ -252,7 +252,8 @@ plot.elife_par <- function(x,
           ggplot2::geom_abline(intercept = 0, slope = 1, col = "gray") +
           ggplot2::geom_point() +
           ggplot2::labs(x = "theoretical quantiles",
-               y = "empirical quantiles")
+               y = "empirical quantiles") +
+          ggplot2::theme_classic()
       } else if(pl == "qq"){
         # if(confint && object$type != "ltrc"){
         #     # TODO fix this
@@ -272,7 +273,8 @@ plot.elife_par <- function(x,
           ggplot2::geom_abline(intercept = 0, slope = 1, col = "gray") +
           ggplot2::geom_point() +
           ggplot2::labs(x = "theoretical quantiles",
-               y = "empirical quantiles")
+               y = "empirical quantiles") +
+          ggplot2::theme_classic()
         # } else if(confint){
         #   pl_list[["qq"]] <-
         #     ggplot(data = data.frame(y = dat,
@@ -295,7 +297,8 @@ plot.elife_par <- function(x,
           ggplot2::geom_hline(yintercept = 0, col = "gray") +
           ggplot2::geom_point() +
           ggplot2::labs(x = "average quantile",
-               y = "quantile difference")
+               y = "quantile difference") +
+          ggplot2::theme_classic()
 
       } else if(pl == "erp"){
         pl_list[["erp"]] <-
@@ -305,7 +308,8 @@ plot.elife_par <- function(x,
           ggplot2::geom_abline(intercept = 0, slope = 1, col = "gray") +
           ggplot2::geom_point() +
           ggplot2::labs(x = "theoretical quantiles",
-               y = "empirical quantiles")
+               y = "empirical quantiles") +
+          ggplot2::theme_classic()
       }
     }
     if(plot){
@@ -313,6 +317,28 @@ plot.elife_par <- function(x,
     }
     return(invisible(pl_list))
   }
+}
+
+#' @export
+autoplot.elife_par <- function(object, ...){
+    if(!requireNamespace("ggplot2", quietly = TRUE)){
+     stop("`ggplot2` package is not installed.")
+    }
+  args <- list(...)
+  which.plot <- args$which.plot
+  if(is.null(which.plot)){
+    which.plot <- c("pp","qq")
+  }
+  confint <- args$confint
+  if(is.null(confint)){
+    confint <- FALSE
+  } else{
+    stopifnot("`confint` must be a logical vector." = is.logical(confint) & length(confint) == 1L)
+  }
+  plot(x = object,
+       plot.type = "ggplot",
+       which.plot = which.plot,
+       confint = confint)
 }
 
 

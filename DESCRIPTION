@@ -1,7 +1,7 @@
 Package: longevity
 Type: Package
 Title: Statistical methods for the analysis of excess lifetimes
-Version: 2022.03.05
+Version: 2022.03.09
 Authors@R: c(person(given="Leo", family="Belzile", role = c("aut", "cre"), email = "belzilel@gmail.com", comment = c(ORCID = "0000-0002-9135-014X")))
 BugReports: https://github.com/lbelzile/longevity/issues
 URL: https://github.com/lbelzile/longevity/
