@@ -16,7 +16,6 @@
 #' @param thresh vector of \code{m} thresholds
 #' @param lower.tail logical; if TRUE (default), probabilities are \eqn{\Pr[X \leq x]} otherwise, \eqn{\Pr[X > x]}.
 #' @param log,log.p logical; if \code{TRUE}, probabilities \eqn{p} are given as \eqn{\log(p)}.
-#'
 NULL
 
 #' @rdname gppiece
@@ -205,3 +204,4 @@ rgppiece <- function(n,
   }
   return(samp[sample.int(n, n)])
 }
+

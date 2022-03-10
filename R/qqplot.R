@@ -54,7 +54,7 @@
 #'  rtrunc = rtrunc,
 #'  family = "gp",
 #'  export = TRUE)
-#' plot(fitted, plot.type = "ggplot")
+#' autoplot(fitted)
 plot.elife_par <- function(x,
                            plot.type = c("base","ggplot"),
                            which.plot = c("pp","qq"),
@@ -320,6 +320,8 @@ plot.elife_par <- function(x,
 }
 
 #' @export
+#' @importFrom ggplot2 autoplot
+#' @importFrom graphics plot
 autoplot.elife_par <- function(object, ...){
     if(!requireNamespace("ggplot2", quietly = TRUE)){
      stop("`ggplot2` package is not installed.")

@@ -304,7 +304,7 @@ fit_elife <- function(time,
             "Only a single threshold is allowed" = length(thresh) == 1L || family == "gppiece",
             "Only a single sampling scheme in `type` is allowed" = length(type) == 1L
   )
-  if(family == "gpppiece" && length(thresh) == 1L){
+  if(family == "gppiece" && length(thresh) == 1L){
     family <- "gp"
   }
   if(!is.null(ltrunc)){

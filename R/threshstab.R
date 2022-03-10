@@ -177,7 +177,7 @@ plot.elife_tstab <- function(x,
         ggplot2::labs(x = "threshold", y = ylab, main = "threshold stability plot") +
         ggplot2::theme_classic() #+
         # scale_x_continuous(breaks = thresh, minor_breaks = NULL)
-      return(g)
+      return(invisible(g))
     }
     graphs <- list()
     if(object$family == "gp"){

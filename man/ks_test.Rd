@@ -56,3 +56,4 @@ fitting a parametric model and estimating the nonparametric
 maximum likelihood estimate for each new sample.
 This is computationally intensive in large samples.
 }
+\keyword{internal}

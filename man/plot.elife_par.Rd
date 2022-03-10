@@ -73,5 +73,5 @@ fitted <- fit_elife(
  rtrunc = rtrunc,
  family = "gp",
  export = TRUE)
-plot(fitted, plot.type = "ggplot")
+autoplot(fitted)
 }
