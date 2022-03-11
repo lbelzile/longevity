@@ -118,7 +118,8 @@ nll_elife <- function(par,
       return(1e20)
     }
     ldensf <- function(par, dat){ dgpd(x = dat, loc = 0, scale = par[1], shape = par[2], log = TRUE)}
-    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){ pgpd(q = dat, loc = 0, scale = par[1], shape = par[2], lower.tail = lower.tail, log.p = log.p)}
+    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
+      pgpd(q = dat, loc = 0, scale = par[1], shape = par[2], lower.tail = lower.tail, log.p = log.p)}
   } else if(family == "weibull"){
     if(par[1] <= 0 || par[2] <= 0){
       return(1e20)
@@ -144,7 +145,7 @@ nll_elife <- function(par,
     if(isTRUE(any(bounds < 0))){
       return(1e20)
     }
-    lsurvf <- function(dat, par, lower.tail = FALSE, log.p = TRUE){
+    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
       pextgp(q = dat, scale = par[1], shape1 = par[2], shape2 = par[3], lower.tail = lower.tail, log.p = log.p)
       # if(abs(par[3]) < 1e-8 && abs(par[2]) < 1e-8){ #exponential
       #   -dat/par[1]
@@ -156,7 +157,7 @@ nll_elife <- function(par,
       #   (-1/par[3])*log(1+par[3]*(exp(par[2]*dat/par[1])-1)/par[2])
       # }
     }
-    ldensf <- function(dat, par){
+    ldensf <- function(par, dat){
       dextgp(x = dat, scale = par[1], shape1 = par[2], shape2 = par[3], log = TRUE)
     }
   } else if(family == "gompmake"){
@@ -166,10 +167,10 @@ nll_elife <- function(par,
     if(scale <=0 || lambda < 0 || shape <= 0){
       return(1e20)
     }
-    ldensf <- function(dat, par){
+    ldensf <- function(par, dat){
       dgompmake(x = dat, scale = par[1], shape = par[2], lambda = par[3], log = TRUE)
     }
-    lsurvf <- function(dat, par, lower.tail = FALSE, log.p = TRUE){
+    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
       pgompmake(q = dat, scale = par[1], shape = par[2], lambda = par[3], lower.tail = lower.tail, log.p = log.p)
     }
 
@@ -190,10 +191,10 @@ nll_elife <- function(par,
     if(fail){
       return(1e20)
     }
-    ldensf <- function(dat, par){
+    ldensf <- function(par, dat){
       dgppiece(x = dat, scale = par[1], shape = par[-1], thresh = thresh, log = TRUE)
     }
-    lsurvf <- function(dat, par, lower.tail = FALSE, log.p = TRUE){
+    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
       pgppiece(q = dat, scale = par[1], shape = par[-1], thresh = thresh, lower.tail = lower.tail, log.p = log.p)
     }
   }
@@ -410,7 +411,8 @@ fit_elife <- function(time,
     }
   } else {
     if(family == "gp"){
-      hin <- function(par, maxdat, thresh = 0, ...){
+      hin <- function(par, maxdat = NULL, thresh = 0, ...){
+        stopifnot("Argument \"maxdat\" is missing, with no default value." = !is.null(maxdat))
         # scale > 0, xi > -1, xdat < -xi/sigma if xi < 0
         c(par[1], par[2], ifelse(par[2] < 0, thresh - par[1]/par[2] - maxdat, 1e-5))
       }
@@ -427,7 +429,7 @@ fit_elife <- function(time,
         stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
       }
     } else if(family == "weibull"){
-      hin <- function(par, ...){
+      hin <- function(par, maxdat = NULL, thresh = 0, ...){
         c(par[1], par[2])
       }
       ineqLB <- c(0,0)
@@ -440,7 +442,7 @@ fit_elife <- function(time,
         stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
       }
     } else if(family == "gompmake"){
-      hin <- function(par, ...){par[1:3] }
+      hin <- function(par, maxdat = NULL, thresh = 0, ...){par[1:3] }
       ineqLB <- LB <- c(0,1e-3,0)
       ineqUB <- UB <- rep(Inf, 3)
       if(is.null(start)){
@@ -453,7 +455,7 @@ fit_elife <- function(time,
 
       # If shape1=0, then exponential model (but only the sum "1/par[1]+par[3]" is identifiable)
     } else if(family == "gomp"){
-      hin <- function(par, ...){ par[1:2] }
+      hin <- function(par, maxdat = NULL, thresh = 0, ...){ par[1:2] }
       ineqLB <- LB <- rep(0,2)
       ineqUB <- UB <- rep(Inf, 2)
       if(is.null(start)){
@@ -465,7 +467,8 @@ fit_elife <- function(time,
       }
     } else if(family == "extgp"){
       #parameters are (1) scale > 0, (2) beta >= 0 (3) gamma
-      hin <- function(par, maxdat, thresh = 0, ...){
+      hin <- function(par, maxdat = NULL, thresh = 0, ...){
+        stopifnot("Argument \"maxdat\" is missing, with no default value." = !is.null(maxdat))
         c(par,
           ifelse(par[3] < 0, 1 - par[2]/par[3], 1e-5),
           ifelse(par[3] < 0 & par[2] > 0, thresh + par[1]/par[2]*log(1-par[2]/par[3]) - maxdat, 1e-5),
@@ -486,7 +489,10 @@ fit_elife <- function(time,
       #TODO try also fitting the GP/EXP/Gompertz and see which is best?
     } else if(family == "gppiece"){
       m <- length(thresh)
-      hin <- function(par, maxdat, thresh, ...){
+      hin <- function(par, maxdat = NULL, thresh = 0, ...){
+        stopifnot("Argument \"maxdat\" is missing" = !is.null(maxdat),
+                  "Vector of threshold should not be a single value" = length(thresh) > 1L)
+
         m <- length(thresh)
         w <- as.numeric(diff(thresh))
         shape <- par[-1]
@@ -724,7 +730,6 @@ fit_elife <- function(time,
 # }
 
 
-
 #' @export
 print.elife_par <-
   function(x,
@@ -762,7 +767,7 @@ print.elife_par <-
     invisible(x)
   }
 
-
+#' @importFrom stats logLik
 #' @export
 logLik.elife_par <- function(object, ...) {
   val <- object$loglik
@@ -773,17 +778,19 @@ logLik.elife_par <- function(object, ...) {
 }
 
 
-
+#' @importFrom stats nobs
 #' @export
 nobs.elife_par <- function(object, ...) {
   return(object$nexc)
 }
 
+#' @importFrom stats coef
 #' @export
 coef.elife_par <- function(object, ...) {
   return(object$par)
 }
 
+#' @importFrom stats vcov
 #' @export
 vcov.elife_par <- function(object, ...) {
   return(object$vcov)

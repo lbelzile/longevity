@@ -9,7 +9,8 @@
   plot.type = c("base", "ggplot"),
   which.plot = c("pp", "qq"),
   confint = FALSE,
-  plot = TRUE
+  plot = TRUE,
+  ...
 )
 }
 \arguments{
@@ -22,6 +23,8 @@
 \item{confint}{logical; if \code{TRUE}, creates uncertainty diagnostic via a parametric bootstrap}
 
 \item{plot}{logical; if \code{TRUE}, creates a plot. Useful for returning \code{ggplot} objects without printing the graphs}
+
+\item{...}{additional arguments, currently ignored by the function.}
 }
 \description{
 Because of censoring and truncation, the plotting
@@ -73,5 +76,5 @@ fitted <- fit_elife(
  rtrunc = rtrunc,
  family = "gp",
  export = TRUE)
-autoplot(fitted)
+plot(fitted)
 }

@@ -7,7 +7,7 @@
 #' @param psi mandatory vector of endpoints at which to compute the profile
 #' @param confint logical; if \code{TRUE}, return a \code{level} confidence interval instead of a list with the profile log-likelihood components
 #' @param level numeric; the level for the confidence intervals
-#' @return a list with the mle of the endpoint and the profile log-likelihood
+#' @return a list with the maximum likelihood estimate of the endpoint and the profile log-likelihood
 prof_gp_endpt <- function(time,
                           time2 = NULL,
                           event = NULL,

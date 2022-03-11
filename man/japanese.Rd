@@ -14,7 +14,7 @@ A data frame with 1038 rows and 4 variables:
 }
 }
 \source{
-Table extracted from Hanamaya & Sibuya (2016).
+Table extracted from Hanayama & Sibuya (2016).
 }
 \usage{
 japanese

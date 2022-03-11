@@ -34,7 +34,7 @@ so the largest plausible range is recorded given the survival in years).
 }
 \details{
 Only dead individuals are included, so the records are truncated.
-For countries with semisupercentarians and with different collection period for
+For countries with semisupercentenarians and with different collection period for
 semisupercentenarians (105-109) and supercentenarians (110+), there
 are some configurations leading to double interval truncation, in which case
 data are defined in \eqn{[\code{ltrunc1}, \code{rtrunc1}] \cup [\code{ltrunc2},\code{rtrunc2}]}.

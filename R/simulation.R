@@ -195,17 +195,17 @@ r_ditrunc_elife <- function(n,
       pweibull(q = dat, scale = par[1], shape = par[2], lower.tail = lower.tail, log.p = log.p)
       }
   } else if(family == "extgp"){
-    quantf <- function(dat, par){
+    quantf <- function(par, dat){
       qextgp(p = dat, scale = par[1], shape1 = par[2], shape2 = par[3])
     }
-    cdf <- function(dat, par, lower.tail = TRUE, log.p = FALSE){
+    cdf <- function(par, dat, lower.tail = TRUE, log.p = FALSE){
       pextgp(q = dat, scale = par[1], shape1 = par[2], shape2 = par[3], lower.tail = lower.tail, log.p = log.p)
     }
   } else if(family == "gompmake"){
-    quantf <- function(dat, par){
+    quantf <- function(par, dat){
       qgompmake(p = dat, scale = par[1], shape = par[2], lambda = par[3])
     }
-    cdf <- function(dat, par, lower.tail = TRUE, log.p = FALSE){
+    cdf <- function(par, dat, lower.tail = TRUE, log.p = FALSE){
       pgompmake(q = dat, scale = par[1], shape = par[2], lambda = par[3], lower.tail = lower.tail, log.p = log.p)
     }
   }
@@ -352,16 +352,19 @@ samp2_elife <- function(n,
                          xcal,
                          c1,
                          c2){
+  xcal <- as.Date(xcal)
   stopifnot("Date `c1` is missing" = !missing(c1),
             "Date `c2` is missing" = !missing(c2),
-            "`c1` should be a single date" = is.Date(c1) && length(c1) == 1L,
-            "`c2` should be a single date" = is.Date(c2) && length(c2) == 1L)
+            "`c1` should be a single date" = length(c1) == 1L,
+            "`c2` should be a single date" = length(c2) == 1L)
+  c1 <- as.Date(c1)
+  c2 <- as.Date(c2)
   ltrunc <- as.numeric(pmax(0, c1 - xcal))
   sample_dates <- function(n, xcal, c1, c2, ltrunc){
     sample_ltrunc <- function(n, ltrunc){
       sort(round(rexp(n, rate = 1/mean(365.25*ltrunc[ltrunc>0])))/365.25, decreasing = TRUE)
     }
-    nday <- as.numeric(xcal[ind]-c1)
+    nday <- as.numeric(xcal-c1)
     nday <- nday[nday>0]
     nmax <- as.numeric(c2-c1)
     ssltrunc <- sample_ltrunc(round(sum(ltrunc>0)*n/length(ltrunc)), ltrunc = ltrunc)
@@ -372,7 +375,7 @@ samp2_elife <- function(n,
          ltrunc = c(ssltrunc, rep(0, n-length(ssltrunc))))
   }
 
-  traject <- rdtrunc_elife(n = n,
+  traject <- r_dtrunc_elife(n = n,
                            scale = scale,
                            shape = shape,
                            lower = 0,

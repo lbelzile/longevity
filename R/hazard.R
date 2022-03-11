@@ -116,12 +116,12 @@ hazard_elife <- function(x,
     if(mle$par[2] < 0 && x > -mle$par[1]/mle$par[2]){
       stop("Value of x is outside of the range of the distribution evaluated at the maximum likelihood estimate.")
     }
-    inv_haz <- function(hazard, xi, x){
+    inv_haz_gp <- function(hazard, xi, x){
         as.numeric((1/hazard)-xi*x)
     }
     if(is.null(psi)){
       haz_stderror <- try(sqrt(diag(solve(numDeriv::hessian(func = function(par){
-        nll_elife(par = c(inv_haz(par, xi = mle$par[2], x = x), mle$par[2]),
+        nll_elife(par = c(inv_haz_gp(par, xi = mle$par[2], x = x), mle$par[2]),
                   time = time,
                   time2 = time2,
                   event = event,
@@ -159,12 +159,12 @@ hazard_elife <- function(x,
 
 
   } else if(family == "weibull"){
-    inv_haz <- function(hazard, alpha, x){
+    inv_haz_weib <- function(hazard, alpha, x){
       as.numeric((hazard*x^(1-alpha)/alpha)^(-1/alpha))
     }
     if(is.null(psi)){
     haz_stderror <- sqrt(diag(solve(numDeriv::hessian(func = function(par){
-      nll_elife(par = c(inv_haz(par[1], mle$par[2], x = x), mle$par[2]),
+      nll_elife(par = c(inv_haz_weib(par[1], mle$par[2], x = x), mle$par[2]),
                 time = time,
                 time2 = time2,
                 event = event,
@@ -183,7 +183,7 @@ hazard_elife <- function(x,
     for(i in c(mid:length(psi), (mid-1):1)){
       opt <- Rsolnp::solnp(pars = ifelse(i >= mid, ifelse(i==mid, mle$par[2], npll[1,i-1]), npll[1,i+1]),
                            f = function(alpha){
-        nll_elife(par = c(inv_haz(hazard = psi[i], alpha = alpha, x = x), alpha),
+        nll_elife(par = c(inv_haz_weib(hazard = psi[i], alpha = alpha, x = x), alpha),
                   time = time,
                   time2 = time2,
                   event = event,
@@ -200,7 +200,7 @@ hazard_elife <- function(x,
     }
     npll <- npll[2,]
   } else if(family == "gomp"){
-    inv_haz <- function(hazard, sigma, x){
+    inv_haz_gomp <- function(hazard, sigma, x){
       as.numeric(sigma*log(sigma*hazard)/x)
     }
     if(is.null(psi)){
@@ -221,7 +221,7 @@ hazard_elife <- function(x,
       # Ensure a feasible solution
       opt <- Rsolnp::solnp(pars = pmax(1/psi[i]+1e-4, ifelse(i >= mid, ifelse(i==mid, mle$par[1], npll[1,i-1]), npll[1,i+1])),
                            f = function(sigma){
-                             nll_elife(par = c(sigma, inv_haz(hazard = psi[i], sigma = sigma, x = x)),
+                             nll_elife(par = c(sigma, inv_haz_gomp(hazard = psi[i], sigma = sigma, x = x)),
                                        time = time,
                                        time2 = time2,
                                        event = event,
@@ -239,7 +239,7 @@ hazard_elife <- function(x,
     npll <- npll[2,]
 
   } else if(family == "extgp"){
-    inv_haz <- function(hazard, beta, sigma, x){
+    inv_haz_extgp <- function(hazard, beta, sigma, x){
       if(abs(beta) > 1e-6){
         as.numeric(beta*(exp(beta*x/sigma)/(sigma*hazard)-1)/(exp(beta*x/sigma)-1))
       } else{
@@ -250,7 +250,7 @@ hazard_elife <- function(x,
   if(is.null(psi)){
     haz_stderror <- sqrt(diag(solve(numDeriv::hessian(func = function(par){
       nll_elife(par = c(mle$par[1:2],
-                        inv_haz(par, sigma = mle$par[1], beta = mle$par[2], x = x)),
+                        inv_haz_extgp(par, sigma = mle$par[1], beta = mle$par[2], x = x)),
                 time = time,
                 time2 = time2,
                 event = event,
@@ -284,7 +284,7 @@ hazard_elife <- function(x,
       ineqfun_extgp <- function(par){
         sigma <- par[1]
         beta <- par[2]
-        xi <- inv_haz(hazard = psi[i], sigma = sigma, beta = beta, x = x)
+        xi <- inv_haz_extgp(hazard = psi[i], sigma = sigma, beta = beta, x = x)
         c(sigma, beta, xi,
           1-beta/xi,
           ifelse(xi < 0, sigma/beta*log(1-beta/xi) - mdat, 1e-5)
@@ -294,7 +294,7 @@ hazard_elife <- function(x,
                            f = function(par){
                              sigma <- par[1]
                              beta <- par[2]
-                             nll_elife(par = c(sigma, beta, inv_haz(hazard = psi[i], sigma = sigma, beta = beta, x = x)),
+                             nll_elife(par = c(sigma, beta, inv_haz_extgp(hazard = psi[i], sigma = sigma, beta = beta, x = x)),
                                        time = time,
                                        time2 = time2,
                                        event = event,
@@ -366,14 +366,23 @@ plot.elife_hazard <- function(x, ...){
   rug(c(x$confint, x$par), ticksize = 0.05)
 }
 
+
+#' Create a ggplot object for hazards
+#'
+#' If the package \code{ggplot2} is installed,
+#' create a \code{ggplot} object.
+#' @param object object of class \code{elife_hazard}
+#' @param ... additional parameters, currently ignored by the function
+#' @keywords internal
+#' @return a \code{ggplot} object
 #' @export
 autoplot.elife_hazard <- function(object, ...){
   if(!requireNamespace("ggplot2", quietly = TRUE)){
     stop("`ggplot2` package is not installed.")
   }
-  ggplot2::ggplot(data = data.frame(x = object$hazards,
-                                   y = object$pll),
-                 mapping = ggplot2::aes(x = x, y = y)) +
+  g1 <- ggplot2::ggplot(data = data.frame(x = object$hazards,
+                                    y = object$pll),
+                 mapping = ggplot2::aes_string(x = "x", y = "y")) +
     ggplot2::geom_hline(yintercept = -qchisq(object$level, 1)/2,
                         alpha = 0.5,
                         color = "grey",
@@ -383,9 +392,11 @@ autoplot.elife_hazard <- function(object, ...){
                   y = "profile log-likelihood") +
     ggplot2::geom_rug(inherit.aes = FALSE,
                       data = data.frame(x = c(object$confint, object$par)),
-                      mapping = ggplot2::aes(x = x),
+                      mapping = ggplot2::aes_string(x = "x"),
                       sides = "b") +
     ggplot2::theme_classic()
+  print(g1)
+  return(invisible(g1))
 }
 
 confint.elife_hazard <- function(x, ...){

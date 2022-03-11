@@ -137,6 +137,7 @@ print.elife_par_test <-   function(x,
       invisible(x)
 }
 
+#' @importFrom stats anova
 #' @export
 anova.elife_par <- function(object,
                             object2,
@@ -291,6 +292,12 @@ nc_test <- function(time,
                       weights = weights,
                       export = FALSE)
     if(test == "score"){
+      if (!requireNamespace("numDeriv", quietly = TRUE)) {
+        stop(
+          "Package \"numDeriv\" must be installed to use this function.",
+          call. = FALSE
+        )
+      }
     score0 <- try(numDeriv::grad(func = function(x){
                      nll_elife(par = x,
                                time = time,
@@ -361,7 +368,7 @@ nc_test <- function(time,
 #'
 #' @export
 #' @param x an object of class \code{elife_northropcoleman}
-#' @param plot.tye string indicating the type of plot
+#' @param plot.type string indicating the type of plot
 #' @param plot logical; should the routine print the graph if \code{plot.type} equals \code{"ggplot"}? Default to \code{TRUE}.
 #' @param ... additional arguments for base \code{plot}
 plot.elife_northropcoleman <- function(x,
@@ -394,8 +401,8 @@ plot.elife_northropcoleman <- function(x,
       plot.type = "base"
     } else{
       g1 <- ggplot2::ggplot(data = x,
-                      mapping = ggplot2::aes(x = thresh,
-                                             y = pval)) +
+                      mapping = ggplot2::aes_string(x = "thresh",
+                                             y = "pval")) +
         ggplot2::geom_line() +
         ggplot2::geom_point() +
         ggplot2::labs(x = xlab,
@@ -425,6 +432,14 @@ plot.elife_northropcoleman <- function(x,
   }
 }
 
+#' Create a ggplot object for the piece-wise generalized Pareto diagnostics
+#'
+#' If the package \code{ggplot2} is installed,
+#' create a \code{ggplot} object.
+#' @param object object of class \code{elife_northropcoleman}
+#' @param ... additional parameters, passed to plot
+#' @keywords internal
+#' @return a \code{ggplot} object
 #' @export
 autoplot.elife_northropcoleman <- function(x, plot = TRUE,...){
   plot.elife_northropcoleman(x = x,

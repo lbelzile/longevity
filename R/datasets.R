@@ -90,7 +90,7 @@
 #' }
 #' @references Hanayama, N. and M. Sibuya (2016). Estimating the Upper Limit of Lifetime Probability Distribution, Based on Data of Japanese Centenarians, \emph{The Journals of Gerontology: Series A}, 71(\bold{8}), 1014–1021. \url{https://doi.org/10.1093/gerona/glv113}
 #'
-#' @source Table extracted from Hanamaya & Sibuya (2016).
+#' @source Table extracted from Hanayama & Sibuya (2016).
 "japanese"
 
 
@@ -184,7 +184,7 @@
 #' so the largest plausible range is recorded given the survival in years).
 #'
 #' Only dead individuals are included, so the records are truncated.
-#' For countries with semisupercentarians and with different collection period for
+#' For countries with semisupercentenarians and with different collection period for
 #' semisupercentenarians (105-109) and supercentenarians (110+), there
 #' are some configurations leading to double interval truncation, in which case
 #' data are defined in \eqn{[\code{ltrunc1}, \code{rtrunc1}] \cup [\code{ltrunc2},\code{rtrunc2}]}.

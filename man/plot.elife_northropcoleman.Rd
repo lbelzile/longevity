@@ -9,11 +9,11 @@
 \arguments{
 \item{x}{an object of class \code{elife_northropcoleman}}
 
+\item{plot.type}{string indicating the type of plot}
+
 \item{plot}{logical; should the routine print the graph if \code{plot.type} equals \code{"ggplot"}? Default to \code{TRUE}.}
 
 \item{...}{additional arguments for base \code{plot}}
-
-\item{plot.tye}{string indicating the type of plot}
 }
 \description{
 The Northrop-Coleman tests for penultimate models are

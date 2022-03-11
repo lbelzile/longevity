@@ -109,7 +109,7 @@ nll_ditrunc_elife <-
     if(isTRUE(any(bounds < 0))){
       return(1e20)
     }
-    lsurvf <- function(dat, par, lower.tail = FALSE, log.p = TRUE){
+    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
       pextgp(q = dat, scale = par[1], shape1 = par[2], shape2 = par[3], lower.tail = lower.tail, log.p = log.p)
       # if(abs(par[3]) < 1e-8 && abs(par[2]) < 1e-8){ #exponential
       #   -dat/par[1]
@@ -121,7 +121,7 @@ nll_ditrunc_elife <-
       #   (-1/par[3])*log(1+par[3]*(exp(par[2]*dat/par[1])-1)/par[2])
       # }
     }
-    ldensf <- function(dat, par){
+    ldensf <- function(par, dat){
       dextgp(x = dat, scale = par[1], shape1 = par[2], shape2 = par[3], log = TRUE)
     }
   } else if(family == "gompmake"){
@@ -131,10 +131,10 @@ nll_ditrunc_elife <-
     if(scale <=0 || lambda < 0 || shape <= 0){
       return(1e20)
     }
-    ldensf <- function(dat, par){
+    ldensf <- function(par, dat){
       dgompmake(x = dat, scale = par[1], shape = par[2], lambda = par[3], log = TRUE)
     }
-    lsurvf <- function(dat, par, lower.tail = FALSE, log.p = TRUE){
+    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
       pgompmake(q = dat, scale = par[1], shape = par[2], lambda = par[3], lower.tail = lower.tail, log.p = log.p)
     }
 
@@ -155,10 +155,10 @@ nll_ditrunc_elife <-
     if(fail){
       return(1e20)
     }
-    ldensf <- function(dat, par){
+    ldensf <- function(par, dat){
       dgppiece(x = dat, scale = par[1], shape = par[-1], thresh = thresh, log = TRUE)
     }
-    lsurvf <- function(dat, par, lower.tail = FALSE, log.p = TRUE){
+    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
       pgppiece(q = dat, scale = par[1], shape = par[-1], thresh = thresh, lower.tail = lower.tail, log.p = log.p)
     }
   }
@@ -302,7 +302,8 @@ fit_ditrunc_elife <- function(
       conv <- opt_mle$convergence == 0
     } else {
     if(family == "gp"){
-      hin <- function(par, maxdat, thresh = 0, ...){
+      hin <- function(par, maxdat = NULL, thresh = 0, ...){
+        stopifnot("Argument \"maxdat\" is missing, with no default value." = !is.null(maxdat))
         # scale > 0, xi > -1, xdat < -xi/sigma if xi < 0
         c(par[1], par[2], ifelse(par[2] < 0, thresh - par[1]/par[2] - maxdat, 1e-5))
       }
@@ -319,7 +320,7 @@ fit_ditrunc_elife <- function(
         stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
       }
     } else if(family == "weibull"){
-      hin <- function(par, ...){
+      hin <- function(par, maxdat = NULL, thresh = 0, ...){
         c(par[1], par[2])
       }
       ineqLB <- c(0,0)
@@ -332,7 +333,9 @@ fit_ditrunc_elife <- function(
         stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
       }
     } else if(family == "gompmake"){
-      hin <- function(par, ...){par[1:3] }
+      hin <- function(par, maxdat = NULL, thresh = 0, ...){
+        par[1:3]
+        }
       ineqLB <- LB <- c(0,1e-3,0)
       ineqUB <- UB <- rep(Inf, 3)
       if(is.null(start)){
@@ -345,7 +348,7 @@ fit_ditrunc_elife <- function(
 
       # If shape1=0, then exponential model (but only the sum "1/par[1]+par[3]" is identifiable)
       } else if(family == "gomp"){
-      hin <- function(par, ...){ par[1:2] }
+      hin <- function(par, maxdat = NULL, thresh = 0, ...){ par[1:2] }
       ineqLB <- LB <- rep(0,2)
       ineqUB <- UB <- rep(Inf, 2)
       if(is.null(start)){
@@ -357,7 +360,8 @@ fit_ditrunc_elife <- function(
       }
     } else if(family == "extgp"){
       #parameters are (1) scale > 0, (2) beta >= 0 (3) gamma
-      hin <- function(par, maxdat, thresh = 0, ...){
+      hin <- function(par, maxdat = NULL, thresh = 0, ...){
+        stopifnot("Argument \"maxdat\" is missing, with no default value." = !is.null(maxdat))
         c(par,
           ifelse(par[3] < 0, 1 - par[2]/par[3], 1e-5),
           ifelse(par[3] < 0 & par[2] > 0, thresh + par[1]/par[2]*log(1-par[2]/par[3]) - maxdat, 1e-5),
@@ -378,7 +382,9 @@ fit_ditrunc_elife <- function(
       #TODO try also fitting the GP/EXP/Gompertz and see which is best?
     } else if(family == "gppiece"){
       m <- length(thresh)
-      hin <- function(par, maxdat, thresh, ...){
+      hin <- function(par, maxdat = NULL, thresh = 0, ...){
+        stopifnot("Argument \"maxdat\" is missing" = !is.null(maxdat),
+                  "Vector of threshold should not be a single value" = length(thresh) > 1)
         m <- length(thresh)
         w <- as.numeric(diff(thresh))
         shape <- par[-1]

@@ -5,19 +5,19 @@ Version: 2022.03.10
 Authors@R: c(person(given="Leo", family="Belzile", role = c("aut", "cre"), email = "belzilel@gmail.com", comment = c(ORCID = "0000-0002-9135-014X")))
 BugReports: https://github.com/lbelzile/longevity/issues
 URL: https://github.com/lbelzile/longevity/
-Depends: R (>= 4.0.0)
+Depends: R (>= 4.0.0),
 Imports: 
     methods,
+    numDeriv,
     Rcpp (>= 1.0.6),
     Rsolnp,
-    stats,
 Suggests: 
     knitr,
     testthat (>= 3.0.0),
     ggplot2  (>= 3.0.0),
     gsl
 LinkingTo: Rcpp, RcppArmadillo
-Description: Parametric and nonparametric methods for the analysis of survival data and semi-supercentenarian, including Gompertz-Makeham, exponential and generalized Pareto models, nonparametric estimate based on Turnbull (1976) <doi:10.1111/j.2517-6161.1976.tb01597.x>. The methodology is described in Rootzén and Zholud (2017) <doi:10.1007/s10687-017-0305-5> and Belzile et al. (2021).
+Description: Parametric and nonparametric methods for the analysis of survival data, including Gompertz-Makeham, exponential and generalized Pareto models, nonparametric maximum likelihood estimator for arbitrary truncation and censoring pattern based on Turnbull (1976) <doi:10.1111/j.2517-6161.1976.tb01597.x>. The methodology is described in Rootzén and Zholud (2017) <doi:10.1007/s10687-017-0305-5> and Belzile et al. (2021).
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

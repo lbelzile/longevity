@@ -44,7 +44,7 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 \item{level}{numeric; the level for the confidence intervals}
 }
 \value{
-a list with the mle of the endpoint and the profile log-likelihood
+a list with the maximum likelihood estimate of the endpoint and the profile log-likelihood
 }
 \description{
 This function returns the profile log likelihood over a grid of values of \code{psi}, the endpoints.

@@ -3,7 +3,7 @@
 #' Density, distribution, quantile functions and random number generation from the
 #' mixture model of Northrop and Coleman (2014), which consists of \code{m}
 #' different generalized Pareto distributions over non-overlapping intervals
-#' with \code{m} shape parameters and one scale parameter; the other scale parametrs are
+#' with \code{m} shape parameters and one scale parameter; the other scale parameters are
 #' constrained so that the resulting distribution is continuous over the domain
 #' and reduces to a generalized Pareto distribution if all of the shape parameters are equal.
 #'

@@ -22,6 +22,7 @@
 #' @param which.plot vector of string indicating the plots, among \code{pp} for probability-probability plot, \code{qq} for quantile-quantile plot, \code{erp} for empirically rescaled plot (only for censored data), \code{exp} for exponential quantile-quantile plot or \code{tmd} for Tukey's mean difference plot, which is a variant of the Q-Q plot in which we map the pair \eqn{(x,y)} is mapped to \code{((x+y)/2,y-x)} are detrended
 #' @param confint logical; if \code{TRUE}, creates uncertainty diagnostic via a parametric bootstrap
 #' @param plot logical; if \code{TRUE}, creates a plot. Useful for returning \code{ggplot} objects without printing the graphs
+#' @param ... additional arguments, currently ignored by the function.
 #' @examples
 #' samp <- samp_elife(
 #'  n = 200,
@@ -54,12 +55,13 @@
 #'  rtrunc = rtrunc,
 #'  family = "gp",
 #'  export = TRUE)
-#' autoplot(fitted)
+#' plot(fitted)
 plot.elife_par <- function(x,
                            plot.type = c("base","ggplot"),
                            which.plot = c("pp","qq"),
                            confint = FALSE,
-                           plot = TRUE){
+                           plot = TRUE, ...){
+  plot.type <- match.arg(plot.type)
   if(plot.type == "ggplot"){
     if(requireNamespace("ggplot2", quietly = TRUE)){
     } else{
@@ -72,7 +74,6 @@ plot.elife_par <- function(x,
   if(is.null(object$time)){
     stop("Object created using a call to `fit_elife` should include the data (`export=TRUE`).")
   }
-  plot.type <- match.arg(plot.type)
   which.plot <- match.arg(which.plot, choices = c("pp","qq","erp","exp","tmd"), several.ok = TRUE)
   # Fit a nonparametric survival function (Turnbull, 1976)
   if(is.null(object$rtrunc)){
@@ -238,7 +239,7 @@ plot.elife_par <- function(x,
       if(pl == "pp"){
         pl_list[["pp"]] <-
           ggplot2::ggplot(data = data.frame(y = ypos, x = xpos),
-                 mapping = ggplot2::aes(x = x, y = y)) +
+                 mapping = ggplot2::aes_string(x = "x", y = "y")) +
           ggplot2::geom_abline(intercept = 0, slope = 1, col = "gray") +
           ggplot2::geom_point() +
           ggplot2::labs(x = "theoretical quantiles",
@@ -248,7 +249,7 @@ plot.elife_par <- function(x,
         pl_list[["exp"]] <-
           ggplot2::ggplot(data = data.frame(y = -log(1-ypos),
                                    x = -log(1-xpos)),
-                 mapping = ggplot2::aes(x = x, y = y)) +
+                 mapping = ggplot2::aes_string(x = "x", y = "y")) +
           ggplot2::geom_abline(intercept = 0, slope = 1, col = "gray") +
           ggplot2::geom_point() +
           ggplot2::labs(x = "theoretical quantiles",
@@ -269,7 +270,7 @@ plot.elife_par <- function(x,
         pl_list[["qq"]] <-
           ggplot2::ggplot(data = data.frame(y = dat,
                                    x = qmod(p = txpos, scale = scale, shape = shape, family = object$family)),
-                 mapping = ggplot2::aes(x = x, y = y)) +
+                 mapping = ggplot2::aes_string(x = "x", y = "y")) +
           ggplot2::geom_abline(intercept = 0, slope = 1, col = "gray") +
           ggplot2::geom_point() +
           ggplot2::labs(x = "theoretical quantiles",
@@ -293,7 +294,7 @@ plot.elife_par <- function(x,
         pl_list[["tmd"]] <-
           ggplot2::ggplot(data = data.frame(yp = dat,
                                    xp = qmod(p = txpos, scale = scale, shape = shape, family = object$family)),
-                 mapping = ggplot2::aes(x = (xp + yp) / 2, y = yp - xp)) +
+                 mapping = ggplot2::aes_(x = "(xp + yp) / 2", y = "yp - xp")) +
           ggplot2::geom_hline(yintercept = 0, col = "gray") +
           ggplot2::geom_point() +
           ggplot2::labs(x = "average quantile",
@@ -304,7 +305,7 @@ plot.elife_par <- function(x,
         pl_list[["erp"]] <-
           ggplot2::ggplot(data = data.frame(y = ecdffun2(dat),
                                    x = ecdffun2(qmod(p = txpos, scale = scale, shape = shape, family = object$family))),
-                 mapping = ggplot2::aes(x = x, y = y)) +
+                 mapping = ggplot2::aes_string(x = "x", y = "y")) +
           ggplot2::geom_abline(intercept = 0, slope = 1, col = "gray") +
           ggplot2::geom_point() +
           ggplot2::labs(x = "theoretical quantiles",
@@ -319,8 +320,16 @@ plot.elife_par <- function(x,
   }
 }
 
+#' Create a ggplot object for fitted parametric models
+#'
+#' If the package \code{ggplot2} is installed,
+#' the function creates a \code{ggplot} object.
+#'
+#' @param object object of class \code{elife_par}
+#' @param ... additional graphical parameters
+#' @keywords internal
+#' @return a \code{ggplot} object
 #' @export
-#' @importFrom ggplot2 autoplot
 #' @importFrom graphics plot
 autoplot.elife_par <- function(object, ...){
     if(!requireNamespace("ggplot2", quietly = TRUE)){

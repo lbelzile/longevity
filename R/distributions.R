@@ -218,7 +218,6 @@ pgompmake <- function(q,
 #' @export
 #' @return vector of quantiles
 #' @keywords internal
-#' @importFrom gsl lambert_W0
 qgompmake <- function(p,
                       scale = 1,
                       shape = 1,
@@ -231,6 +230,7 @@ qgompmake <- function(p,
             "`shape` must be non-negative." = shape >= 0,
             "`lambda` must be non-negative." = lambda >= 0
   )
+      stopifnot("Install package \"gsl\" to use \"qgompmake\" with the Gompertz model.\n Try `install.packages(\"gsl\")`" = requireNamespace("gsl", quietly = TRUE))
   if (min(p, na.rm = TRUE) < 0 || max(p, na.rm = TRUE) > 1)
     stop("`p' must contain probabilities in (0,1)")
   if(isTRUE(all.equal(shape, 0, check.attributes = FALSE))){
@@ -354,9 +354,9 @@ dgomp <- function(x,
   stopifnot("`shape` must be non-negative." = shape >= 0,
             "`scale` must be positive." = scale > 0)
   if(shape < 1e-8){
-    ldens <-  -log(scale) + -dat/scale
+    ldens <-  -log(scale) + -x/scale
   } else{
-    ldens <-  -log(scale) + (shape*dat/scale - exp(shape*dat/scale)/shape + 1/shape)
+    ldens <-  -log(scale) + (shape*x/scale - exp(shape*x/scale)/shape + 1/shape)
   }
   if(log){
     return(ldens)

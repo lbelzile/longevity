@@ -171,8 +171,8 @@ plot.elife_tstab <- function(x,
       stopifnot(all.equal(colnames(x), c("estimate","lower","upper")))
       g <- ggplot2::ggplot(data = as.data.frame(cbind(thresh = thresh,
                                              x)),
-                           ggplot2::aes(x = thresh, y = estimate)) +
-        ggplot2::geom_pointrange(ggplot2::aes(ymin=lower, ymax=upper),
+                           ggplot2::aes_string(x = "thresh", y = "estimate")) +
+        ggplot2::geom_pointrange(ggplot2::aes_string(ymin="lower", ymax="upper"),
                                  size = 0.5, shape = 20) +
         ggplot2::labs(x = "threshold", y = ylab, main = "threshold stability plot") +
         ggplot2::theme_classic() #+
@@ -238,6 +238,14 @@ plot.elife_tstab <- function(x,
   }
 }
 
+#' Create a ggplot object for threshold stability plots
+#'
+#' If the package \code{ggplot2} is installed,
+#' create a \code{ggplot} object.
+#' @param object object of class \code{elife_tstab}
+#' @param ... additional parameters for labels, etc.
+#' @keywords internal
+#' @return a \code{ggplot} object
 #' @export
 autoplot.elife_tstab <- function(object, ...){
   if(!requireNamespace("ggplot2", quietly = TRUE)){
