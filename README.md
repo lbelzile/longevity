@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# longevity <img src="tools/longevity_sticker.png" align="right"/>
+# longevity <img src="man/figures/longevity_sticker.png" align="right"/>
 
 <!-- badges: start -->
 
@@ -9,12 +9,13 @@
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 <!-- badges: end -->
 
-The `longevity` packages proposes estimation routines for modeling
-excess lifetime of old people. Functionalities include
-
-Parametric models for excess lifetime (exponential, Gompertz, Weibull,
-generalized Pareto, extended generalized Pareto, piecewise generalized
-Pareto).
+The `longevity` package proposes estimation routines for modeling excess
+lifetime. Core functionalities include maximum likelihood estimation for
+parametric models (exponential, Gompertz, Weibull, generalized Pareto,
+extended generalized Pareto, piecewise generalized Pareto), threshold
+selection plots for survival data, nonparametric maximum likelihood
+estimation, profile likelihood estimation for the endpoint of the
+distribution of exceedances.
 
 ## Installation
 

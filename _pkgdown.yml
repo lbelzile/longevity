@@ -1,0 +1,7 @@
+destination: docs
+
+url: https://lbelzile.github.io/longevity
+template:
+  bootstrap: 5
+  params:
+    bootswatch: litera
