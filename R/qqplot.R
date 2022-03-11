@@ -320,37 +320,6 @@ plot.elife_par <- function(x,
   }
 }
 
-#' Create a ggplot object for fitted parametric models
-#'
-#' If the package \code{ggplot2} is installed,
-#' the function creates a \code{ggplot} object.
-#'
-#' @param object object of class \code{elife_par}
-#' @param ... additional graphical parameters
-#' @keywords internal
-#' @return a \code{ggplot} object
-#' @export
-#' @importFrom graphics plot
-autoplot.elife_par <- function(object, ...){
-    if(!requireNamespace("ggplot2", quietly = TRUE)){
-     stop("`ggplot2` package is not installed.")
-    }
-  args <- list(...)
-  which.plot <- args$which.plot
-  if(is.null(which.plot)){
-    which.plot <- c("pp","qq")
-  }
-  confint <- args$confint
-  if(is.null(confint)){
-    confint <- FALSE
-  } else{
-    stopifnot("`confint` must be a logical vector." = is.logical(confint) & length(confint) == 1L)
-  }
-  plot(x = object,
-       plot.type = "ggplot",
-       which.plot = which.plot,
-       confint = confint)
-}
 
 
 #' Uncertainty quantification for quantile-quantile plots

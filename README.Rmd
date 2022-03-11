@@ -56,7 +56,7 @@ devtools::install_github("lbelzile/longevity")
 - [x] profile likelihood for generalized Pareto (endpoint)
 
 
-# Improvements
+## Improvements
 
 - [ ] Bootstrap $p$-values for nested model (`anova`)
 - [ ] Remove/keep Kolmogorov-Smirnov test (depending on whether it makes sense)
@@ -79,7 +79,7 @@ devtools::install_github("lbelzile/longevity")
 
 - [ ] Add tests and examples for each function
 - [ ] Add vignettes
-- [ ] Use `pkgdown` to create a webpage
-- [ ] Root out datasets that cannot go on CRAN (with accompanying examples)
-- [ ] Submit to CRAN
+- [x] Use `pkgdown` to create a webpage
+- [ ] Root out data sets that cannot go on CRAN (with accompanying examples)
+- [ ] Submit to the CRAN
 

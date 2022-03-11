@@ -432,21 +432,6 @@ plot.elife_northropcoleman <- function(x,
   }
 }
 
-#' Create a ggplot object for the piece-wise generalized Pareto diagnostics
-#'
-#' If the package \code{ggplot2} is installed,
-#' create a \code{ggplot} object.
-#' @param object object of class \code{elife_northropcoleman}
-#' @param ... additional parameters, passed to plot
-#' @keywords internal
-#' @return a \code{ggplot} object
-#' @export
-autoplot.elife_northropcoleman <- function(x, plot = TRUE,...){
-  plot.elife_northropcoleman(x = x,
-                             plot.type = "ggplot",
-                             plot = plot,
-                             ... = ...)
-}
 
 #' @export
 print.elife_northropcoleman <- function(x, ..., digits = NULL, quote = FALSE, right = TRUE,

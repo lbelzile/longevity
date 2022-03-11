@@ -352,8 +352,38 @@ hazard_elife <- function(x,
 }
 
 #' @export
-plot.elife_hazard <- function(x, ...){
+plot.elife_hazard <-
+  function(x,
+           plot.type = c("base","ggplot"),
+           plot = TRUE,
+           ...){
+    if(plot.type == "ggplot"){
+      if(!requireNamespace("ggplot2", quietly = TRUE)){
+        stop("`ggplot2` package is not installed.")
+      }
+      g1 <- ggplot2::ggplot(data = data.frame(x = object$hazards,
+                                              y = object$pll),
+                            mapping = ggplot2::aes_string(x = "x", y = "y")) +
+        ggplot2::geom_hline(yintercept = -qchisq(object$level, 1)/2,
+                            alpha = 0.5,
+                            color = "grey",
+                            linetype = "dashed") +
+        ggplot2::geom_line() +
+        ggplot2::labs(x = "hazard",
+                      y = "profile log-likelihood") +
+        ggplot2::geom_rug(inherit.aes = FALSE,
+                          data = data.frame(x = c(object$confint, object$par)),
+                          mapping = ggplot2::aes_string(x = "x"),
+                          sides = "b") +
+        ggplot2::theme_classic()
+      if(plot){
+       print(g1)
+      }
+      return(invisible(g1))
+    }
+ # else base plot
   args <- list(...)
+  args$x <- args$y <- args$xlab <- args$bty <- args$type <- args$ylab <- args$ylim <- args$panel.first <- NULL
   plot(x = x$hazards,
        y = x$pll,
        type = "l",
@@ -366,42 +396,10 @@ plot.elife_hazard <- function(x, ...){
   rug(c(x$confint, x$par), ticksize = 0.05)
 }
 
-
-#' Create a ggplot object for hazards
-#'
-#' If the package \code{ggplot2} is installed,
-#' create a \code{ggplot} object.
-#' @param object object of class \code{elife_hazard}
-#' @param ... additional parameters, currently ignored by the function
-#' @keywords internal
-#' @return a \code{ggplot} object
-#' @export
-autoplot.elife_hazard <- function(object, ...){
-  if(!requireNamespace("ggplot2", quietly = TRUE)){
-    stop("`ggplot2` package is not installed.")
-  }
-  g1 <- ggplot2::ggplot(data = data.frame(x = object$hazards,
-                                    y = object$pll),
-                 mapping = ggplot2::aes_string(x = "x", y = "y")) +
-    ggplot2::geom_hline(yintercept = -qchisq(object$level, 1)/2,
-                        alpha = 0.5,
-                        color = "grey",
-                        linetype = "dashed") +
-    ggplot2::geom_line() +
-    ggplot2::labs(x = "hazard",
-                  y = "profile log-likelihood") +
-    ggplot2::geom_rug(inherit.aes = FALSE,
-                      data = data.frame(x = c(object$confint, object$par)),
-                      mapping = ggplot2::aes_string(x = "x"),
-                      sides = "b") +
-    ggplot2::theme_classic()
-  print(g1)
-  return(invisible(g1))
-}
-
-confint.elife_hazard <- function(x, ...){
-  x$confint
-}
+# @export
+# confint.elife_hazard <- function(x, ...){
+#   x$confint
+# }
 #
 # hazard_plot_elife <- function(dat, thresh){
 #     # TODO This function should take as argument the result

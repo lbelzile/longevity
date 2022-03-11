@@ -148,7 +148,10 @@ tstab <- function(time,
                      class = "elife_tstab")
   }
   if(plot){
-    plot(res, plot.type = plot.type, which.plot = which.plot, plot = TRUE)
+    plot(res,
+         plot.type = plot.type,
+         which.plot = which.plot,
+         plot = TRUE)
   }
   #TODO check this for left-truncated data
   res$nexc <- vapply(thresh, function(u){
@@ -238,35 +241,6 @@ plot.elife_tstab <- function(x,
   }
 }
 
-#' Create a ggplot object for threshold stability plots
-#'
-#' If the package \code{ggplot2} is installed,
-#' create a \code{ggplot} object.
-#' @param object object of class \code{elife_tstab}
-#' @param ... additional parameters for labels, etc.
-#' @keywords internal
-#' @return a \code{ggplot} object
-#' @export
-autoplot.elife_tstab <- function(object, ...){
-  if(!requireNamespace("ggplot2", quietly = TRUE)){
-    stop("`ggplot2` package is not installed.")
-  }
-  args <- list(...)
-  which.plot <- args$which.plot
-  if(is.null(which.plot)){
-    which.plot <- c("scale","shape")
-  }
-  plotarg <- args$plot
-  if(is.null(plotarg)){
-    plotarg <- TRUE
-  } else{
-    stopifnot("`plot` must be a logical vector." = is.logical(plotarg) & length(plotarg) == 1L)
-  }
-  plot(x = object,
-       plot.type = "ggplot",
-       which.plot = which.plot,
-       plot = plotarg)
-}
 
 #' Profile log likelihood for the shape parameter of the generalized Pareto distribution
 #'
