@@ -13,11 +13,11 @@ Imports:
     Rsolnp
 Suggests: 
     knitr,
-    testthat (>= 3.0.0),
     ggplot2  (>= 3.0.0),
-    gsl
+    gsl, 
+    tinytest
 LinkingTo: Rcpp, RcppArmadillo
-Description: Parametric and nonparametric methods for the analysis of survival data, including Gompertz-Makeham, exponential and generalized Pareto models, nonparametric maximum likelihood estimator for arbitrary truncation and censoring pattern based on Turnbull (1976) <doi:10.1111/j.2517-6161.1976.tb01597.x>. The methodology is described in Rootzén and Zholud (2017) <doi:10.1007/s10687-017-0305-5> and Belzile et al. (2021).
+Description: Parametric and nonparametric methods for the analysis of survival data. Parametric models implemented include Gompertz-Makeham, exponential and generalized Pareto models and extended models. Nonparametric maximum likelihood estimator for arbitrary truncation and censoring pattern based on Turnbull (1976) <doi:10.1111/j.2517-6161.1976.tb01597.x>. Graphical goodness-of-fit diagnostics. The methodology is described in Rootzén and Zholud (2017) <doi:10.1007/s10687-017-0305-5>; Belzile et al. (2021) <doi:10.1098/rsos.202097> and Belzile et al. (2022) <doi:10.1146/annurev-statistics-040120-025426>.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

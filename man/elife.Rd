@@ -5,6 +5,7 @@
 \alias{qelife}
 \alias{pelife}
 \alias{relife}
+\alias{delife}
 \title{Excess lifetime distributions}
 \usage{
 qelife(
@@ -29,6 +30,14 @@ relife(
   scale,
   shape,
   family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp")
+)
+
+delife(
+  x,
+  scale,
+  shape,
+  family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp"),
+  log = FALSE
 )
 }
 \arguments{
