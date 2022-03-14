@@ -7,8 +7,8 @@
 pgompmake(
   q,
   scale = 1,
-  shape = 1,
-  lambda = 1,
+  shape = 0,
+  lambda = 0,
   lower.tail = TRUE,
   log.p = FALSE
 )

@@ -10,7 +10,7 @@
 \usage{
 qelife(
   p,
-  scale,
+  scale = 1,
   shape,
   family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp"),
   lower.tail = TRUE
@@ -18,7 +18,7 @@ qelife(
 
 pelife(
   q,
-  scale,
+  scale = 1,
   shape,
   family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp"),
   lower.tail = TRUE,
@@ -27,14 +27,14 @@ pelife(
 
 relife(
   n,
-  scale,
+  scale = 1,
   shape,
   family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp")
 )
 
 delife(
   x,
-  scale,
+  scale = 1,
   shape,
   family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp"),
   log = FALSE

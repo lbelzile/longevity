@@ -4,7 +4,7 @@
 \alias{pextgp}
 \title{Distribution function of the extended generalized Pareto distribution}
 \usage{
-pextgp(q, scale = 1, shape1, shape2, lower.tail = TRUE, log.p = FALSE)
+pextgp(q, scale = 1, shape1 = 0, shape2 = 0, lower.tail = TRUE, log.p = FALSE)
 }
 \arguments{
 \item{q}{vector of quantiles.}

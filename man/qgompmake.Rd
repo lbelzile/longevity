@@ -4,7 +4,7 @@
 \alias{qgompmake}
 \title{Quantile function of the Gompertz-Makeham distribution}
 \usage{
-qgompmake(p, scale = 1, shape = 1, lambda = 1, lower.tail = TRUE)
+qgompmake(p, scale = 1, shape = 0, lambda = 0, lower.tail = TRUE)
 }
 \arguments{
 \item{p}{vector of probabilities.}
@@ -22,5 +22,8 @@ vector of quantiles
 }
 \description{
 Quantile function of the Gompertz-Makeham distribution
+}
+\note{
+The quantile function is defined in terms of Lambert's W function. Particular parameter combinations (small values of \code{lambda} lead to numerical overflow; the function throws a warning when this happens.
 }
 \keyword{internal}

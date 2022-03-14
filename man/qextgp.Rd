@@ -4,7 +4,7 @@
 \alias{qextgp}
 \title{Quantile function of the extended generalized Pareto distribution}
 \usage{
-qextgp(p, scale = 1, shape1, shape2, lower.tail = TRUE)
+qextgp(p, scale = 1, shape1 = 0, shape2 = 0, lower.tail = TRUE)
 }
 \arguments{
 \item{p}{vector of probabilities.}

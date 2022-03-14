@@ -4,7 +4,7 @@
 \alias{dgomp}
 \title{Density function of the Gompertz distribution}
 \usage{
-dgomp(x, scale = 1, shape, log = FALSE)
+dgomp(x, scale = 1, shape = 0, log = FALSE)
 }
 \arguments{
 \item{x}{vector of quantiles}

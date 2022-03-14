@@ -204,3 +204,33 @@
 #' \item{rtrunc2}{integer; upper truncation limit (in days); the maximum number of days someone would have survived to be included in the sampling frame (second interval) if applicable, \code{NA} otherwise}
 #' }
 "idl"
+
+
+#' @importFrom graphics abline
+#' @importFrom graphics arrows
+#' @importFrom graphics hist
+#' @importFrom graphics mtext
+#' @importFrom graphics rug
+#' @importFrom stats approxfun
+#' @importFrom stats dexp
+#' @importFrom stats dweibull
+#' @importFrom stats family
+#' @importFrom stats na.omit
+#' @importFrom stats optim
+#' @importFrom stats optimize
+#' @importFrom stats pchisq
+#' @importFrom stats pexp
+#' @importFrom stats ppoints
+#' @importFrom stats predict
+#' @importFrom stats pweibull
+#' @importFrom stats qchisq
+#' @importFrom stats qexp
+#' @importFrom stats qnorm
+#' @importFrom stats qweibull
+#' @importFrom stats rexp
+#' @importFrom stats rmultinom
+#' @importFrom stats runif
+#' @importFrom stats rweibull
+#' @importFrom stats smooth.spline
+#' @importFrom stats weighted.mean
+NULL

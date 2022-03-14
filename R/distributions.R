@@ -15,8 +15,8 @@ pgpd <- function(q,
                  shape = 0,
                  lower.tail = TRUE,
                  log.p = FALSE){
-  stopifnot("`loc` must be a vector of length 1." = length(loc) == 1L,
-            "`loc` must be finite" = isTRUE(is.finite(loc)))
+  stopifnot("\"loc\" must be a vector of length 1." = length(loc) == 1L,
+            "\"loc\" must be finite" = isTRUE(is.finite(loc)))
   check_elife_dist(scale = scale,
                    shape = shape,
                    family = "gp")
@@ -48,21 +48,19 @@ dgpd <- function (x,
                   scale = 1,
                   shape = 0,
                   log = FALSE){
-  stopifnot("`loc` must be a vector of length 1." = length(loc) == 1L,
-            "`loc` must be finite" = isTRUE(is.finite(loc)))
+  stopifnot("\"loc\" must be a vector of length 1." = length(loc) == 1L,
+            "\"loc\" must be finite" = isTRUE(is.finite(loc)))
   check_elife_dist(scale = scale,
                    shape = shape,
                    family = "gp")
+  if(isTRUE(all.equal(shape, 0, check.attributes = FALSE))){
+    return(dexp(x = x - loc, rate = 1/scale, log = log))
+  }
   d <- (x - loc)/scale
-  index <- (d > 0 & ((1 + shape * d) > 0)) | is.na(d)
-  if (shape == 0) {
-    d[index] <- log(1/scale) - d[index]
-    d[!index] <- -Inf
-  }
-  else {
-    d[index] <- log(1/scale) - (1/shape + 1) * log1p(shape * d[index])
-    d[!index] <- -Inf
-  }
+  index <- (d >= 0 & ((1 + shape * d) >= 0)) | is.na(d)
+  d[index] <- log(1/scale) -
+    (1/shape + 1) * log(1 + shape * d[index])
+  d[!index & !is.na(d)] <- -Inf
   if (!log){
     d <- exp(d)
   }
@@ -82,9 +80,9 @@ qgpd <- function(p,
                  shape = 0,
                  lower.tail = TRUE){
   if (min(p, na.rm = TRUE) < 0 || max(p, na.rm = TRUE) > 1)
-    stop("`p' must contain probabilities in (0,1)")
-  stopifnot("`loc` must be a vector of length 1." = length(loc) == 1L,
-            "`loc` must be finite" = isTRUE(is.finite(loc)))
+    stop("\"p' must contain probabilities in (0,1)")
+  stopifnot("\"loc\" must be a vector of length 1." = length(loc) == 1L,
+            "\"loc\" must be finite" = isTRUE(is.finite(loc)))
   check_elife_dist(scale = scale,
                    shape = shape,
                    family = "gp")
@@ -144,7 +142,7 @@ qgomp <- function(p,
                   shape = 0,
                   lower.tail = TRUE){
   if (min(p, na.rm = TRUE) < 0 || max(p, na.rm = TRUE) > 1){
-    stop("`p' must contain probabilities in (0,1)")
+    stop("\"p' must contain probabilities in (0,1)")
   }
   check_elife_dist(scale = scale,
                    shape = shape,
@@ -171,12 +169,12 @@ qgomp <- function(p,
 #' @keywords internal
 pgompmake <- function(q,
                       scale = 1,
-                      shape = 1,
-                      lambda = 1,
+                      shape = 0,
+                      lambda = 0,
                       lower.tail = TRUE,
                       log.p = FALSE){
-  check_elife_dist(scale = scale,
-                   shape = c(shape, lambda),
+  check_elife_dist(scale = c(scale, lambda),
+                   shape = shape,
                    family = "gompmake")
   if(isTRUE(all.equal(shape, 0, check.attributes = FALSE))){
     # Exponential data
@@ -199,6 +197,8 @@ pgompmake <- function(q,
 
 #' Quantile function of the Gompertz-Makeham distribution
 #'
+#' @note The quantile function is defined in terms of Lambert's W function. Particular parameter combinations (small values of \code{lambda} lead to numerical overflow; the function throws a warning when this happens.
+#'
 #' @param p vector of probabilities.
 #' @inheritParams pgpd
 #' @param lambda exponential rate
@@ -207,15 +207,15 @@ pgompmake <- function(q,
 #' @keywords internal
 qgompmake <- function(p,
                       scale = 1,
-                      shape = 1,
-                      lambda = 1,
+                      shape = 0,
+                      lambda = 0,
                       lower.tail = TRUE){
-  check_elife_dist(scale = scale,
-                   shape = c(shape, lambda),
+  check_elife_dist(scale = c(scale, lambda),
+                   shape = shape,
                    family = "gompmake")
-      stopifnot("Install package \"gsl\" to use \"qgompmake\" with the Gompertz model.\n Try `install.packages(\"gsl\")`" = requireNamespace("gsl", quietly = TRUE))
+      # stopifnot("Install package \"gsl\" to use \"qgompmake\" with the Gompertz model.\n Try \"install.packages(\"gsl\")\"" = requireNamespace("gsl", quietly = TRUE))
       if (min(p, na.rm = TRUE) < 0 || max(p, na.rm = TRUE) > 1){
-        stop("`p' must contain probabilities in (0,1)")
+        stop("\"p' must contain probabilities in (0,1)")
       }
   if(isTRUE(all.equal(shape, 0, check.attributes = FALSE))){
     # Exponential data - but parameter not identifiable
@@ -235,7 +235,16 @@ qgompmake <- function(p,
   if(!lower.tail){
     p <- 1 - p
   }
-  return(1/(shape*lambda) - log(1 - p) / lambda - scale / shape * gsl::lambert_W0(exp(1/(scale*lambda))*(1-p)^(-shape/(scale*lambda)) / (scale*lambda)))
+  q <- rep(NA, length(p))
+  y <- exp(1/(scale*lambda))*(1-p)^(-shape/(scale*lambda)) / (scale*lambda)
+ index <- is.finite(y)
+ if(sum(index) != sum(is.finite(p) & p < 1)){
+   warning("Numerical overflow: some quantiles map to infinity.")
+ }
+  q[index] <-
+       1/(shape*lambda) - log(1 - p[index]) / lambda - scale / shape * .LambertW0(y[index])
+  q[is.infinite(y)] <- Inf
+  return(q)
 }
 
 #' Density function of the Gompertz-Makeham distribution
@@ -248,11 +257,11 @@ qgompmake <- function(p,
 #' @keywords internal
 dgompmake <- function(x,
                       scale = 1,
-                      shape = 1,
-                      lambda = 1,
+                      shape = 0,
+                      lambda = 0,
                       log = FALSE){
-  check_elife_dist(scale = scale,
-                   shape = c(shape, lambda),
+  check_elife_dist(scale = c(scale, lambda),
+                   shape = shape,
                    family = "gompmake")
   if(isTRUE(all.equal(shape, 0, check.attributes = FALSE))){
     # Exponential data - but parameter not identifiable
@@ -261,10 +270,10 @@ dgompmake <- function(x,
                 log = log)
     )
   }
-  x <- pmax(0, x)
   ld1 <- log(lambda + exp(shape * x / scale) / scale)
   ld1 <- ifelse(is.finite(ld1), ld1, 0)
   ldens <- ld1 - lambda*x - (exp(shape * x / scale) - 1) / shape
+  ldens <- ifelse(x < 0 | is.infinite(x), -Inf, ldens)
   if(log){
     return(ldens)
   } else{
@@ -282,8 +291,8 @@ dgompmake <- function(x,
 #' @keywords internal
 pextgp <- function(q,
                    scale = 1,
-                   shape1,
-                   shape2,
+                   shape1 = 0,
+                   shape2 = 0,
                    lower.tail = TRUE,
                    log.p = FALSE){
   check_elife_dist(scale = scale,
@@ -320,18 +329,21 @@ pextgp <- function(q,
 #' @param scale positive scale parameter
 #' @param shape non-negative shape parameter
 #' @param log logical; if \code{TRUE}, return the log density
+#' @export
 #' @keywords internal
 dgomp <- function(x,
                   scale = 1,
-                  shape,
+                  shape = 0,
                   log = FALSE){
   check_elife_dist(scale = scale,
                    shape = shape,
                    family = "gomp")
   if(shape < 1e-8){
-    ldens <-  -log(scale) + -x/scale
+    return(dexp(x = x,
+                rate = 1/scale,
+                log = log))
   } else{
-    ldens <-  -log(scale) + (shape*x/scale - exp(shape*x/scale)/shape + 1/shape)
+    ldens <-  ifelse(x < 0 |  is.infinite(x), -Inf, -log(scale) + (shape*x/scale - exp(shape*x/scale)/shape + 1/shape))
   }
   if(log){
     return(ldens)
@@ -350,20 +362,29 @@ dgomp <- function(x,
 #' @keywords internal
 dextgp <- function(x,
                    scale = 1,
-                   shape1,
-                   shape2,
+                   shape1 = 0,
+                   shape2 = 0,
                    log = FALSE){
   check_elife_dist(scale = scale,
                    shape = c(shape1, shape2),
                    family = "extgp")
   if(abs(shape2) < 1e-8 && abs(shape1) < 1e-8){
-    ldens <-  -log(scale) + -x/scale
+    return(dexp(x = x, rate = 1/scale, log = log))
   } else if(abs(shape2) < 1e-8 && abs(shape1) > 1e-8){ #Gompertz
     ldens <-  -log(scale) + (shape1*x/scale - exp(shape1*x/scale)/shape1 + 1/shape1)
+    ldens <- ifelse(x < 0, -Inf, ldens)
   } else if(abs(shape2) >= 1e-8 && abs(shape1) < 1e-8){ #generalized Pareto
-    ldens <-  - log(scale) - (1/shape2 + 1)*log(pmax(0, 1+x*shape2/scale))
+   return(dgpd(x = x, loc = 0, scale = scale,
+               shape = shape2, log = log))
   } else { #extended
-    ldens <- -log(scale) + (-1/shape2 - 1)*log(shape2*(exp(shape1*x/scale) - 1)/shape1 + 1) + shape1*x/scale
+    ldens <- suppressWarnings(-log(scale) + (-1/shape2 - 1)*log(shape2*(exp(shape1*x/scale) - 1)/shape1 + 1) + shape1*x/scale)
+
+    ldens <- ifelse(x < 0 | is.infinite(x), -Inf, ldens)
+    if(shape2 < 0){
+      ldens <- ifelse(x > scale * log(1-shape1/shape2) / shape1,
+                      -Inf,
+                      ldens)
+    }
   }
   if(log){
     return(ldens)
@@ -382,11 +403,11 @@ dextgp <- function(x,
 #' @keywords internal
 qextgp <- function(p,
                    scale = 1,
-                   shape1,
-                   shape2,
+                   shape1 = 0,
+                   shape2 = 0,
                    lower.tail = TRUE){
   if (min(p, na.rm = TRUE) < 0 || max(p, na.rm = TRUE) > 1){
-    stop("`p` must contain probabilities in [0,1]")
+    stop("\"p\" must contain probabilities in [0,1]")
   }
   check_elife_dist(scale = scale,
                    shape = c(shape1, shape2),
@@ -408,7 +429,7 @@ qextgp <- function(p,
   if (lower.tail){
     p <- 1 - p
   }
-  return(scale / shape1 * log(shape2 / shape1 * ((1 - p)^(-shape2) - 1) + 1))
+  return(scale / shape1 * log(shape1 / shape2 * (p^(-shape2) - 1) + 1))
 }
 
 
@@ -430,11 +451,14 @@ qextgp <- function(p,
 #' @export
 #' @keywords internal
 qelife <- function(p,
-                   scale,
+                   scale = 1,
                    shape,
                    family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp"),
                    lower.tail = TRUE){
   family <- match.arg(family)
+  if(missing(shape) & family != "exp"){
+    stop("Missing \"shape\" parameter.")
+  }
   check_elife_dist(scale = scale,
                    shape = shape,
                    family = family)
@@ -451,12 +475,15 @@ qelife <- function(p,
 #' @export
 #' @keywords internal
 pelife <- function(q,
-                   scale,
+                   scale = 1,
                    shape,
                    family = c("exp", "gp", "weibull", "gomp", "gompmake","extgp"),
                    lower.tail = TRUE,
                    log.p = FALSE){
   family <- match.arg(family)
+  if(missing(shape) & family != "exp"){
+    stop("Missing \"shape\" parameter.")
+  }
   check_elife_dist(scale = scale,
                    shape = shape,
                    family = family)
@@ -473,11 +500,14 @@ pelife <- function(q,
 #' @export
 #' @keywords internal
 relife <- function(n,
-                   scale,
+                   scale = 1,
                    shape,
                    family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp")
 ){
   family <- match.arg(family)
+  if(missing(shape) & family != "exp"){
+    stop("Missing \"shape\" parameter.")
+  }
   check_elife_dist(scale = scale,
                    shape = shape,
                    family = family)
@@ -496,13 +526,16 @@ relife <- function(n,
 #' @export
 #' @keywords internal
 delife <- function(x,
-                   scale,
+                   scale = 1,
                    shape,
                    family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp"),
                    log = FALSE
 ){
 
   family <- match.arg(family)
+  if(missing(shape) & family != "exp"){
+    stop("Missing \"shape\" parameter.")
+  }
   check_elife_dist(scale = scale,
                    shape = shape,
                    family = family)
@@ -521,29 +554,74 @@ check_elife_dist <- function(scale,
                              shape,
                              family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp")){
   family <- match.arg(family)
+  if(family != "gompmake"){
   stopifnot("Invalid scale parameter: must be a positive scalar." =
               isTRUE(all(length(scale) == 1L,
                          is.finite(scale),
                          scale > 0)))
+  }
   if(family == "gp"){
-    stopifnot("`shape` should be a vector of length 1." = length(shape) == 1L,
-              "`shape` must be finite." = isTRUE(is.finite(shape)))
+    stopifnot("\"shape\" should be a vector of length 1." = length(shape) == 1L,
+              "\"shape\" must be finite." = isTRUE(is.finite(shape)))
   } else if(family == "weibull"){
-    stopifnot("`shape` should be a vector of length 1." = length(shape) == 1L,
-              "`shape` must be positive." = isTRUE(is.finite(shape) & shape > 0)
+    stopifnot("\"shape\" should be a vector of length 1." = length(shape) == 1L,
+              "\"shape\" must be positive." = isTRUE(is.finite(shape) & shape > 0)
     )
   } else if(family == "gomp"){
-    stopifnot("`shape` should be a vector of length 1." = length(shape) == 1L,
-    "`shape` must be non-negative." = isTRUE(is.finite(shape) & shape >= 0)
+    stopifnot("\"shape\" should be a vector of length 1." = length(shape) == 1L,
+    "\"shape\" must be non-negative." = isTRUE(is.finite(shape) & shape >= 0)
     )
   } else if(family == "gompmake"){
-    stopifnot("`shape` should be a vector of length 2." = length(shape) == 2L,
-               "`shape` must be non-negative." = isTRUE(all(is.finite(shape), shape >= 0))
+    stopifnot("Invalid scale parameter." =
+                isTRUE(all(length(scale) == 2L,
+                           is.finite(scale[1]),
+                           scale[1] > 0)),
+              "\"shape\" should be a vector of length 1." = length(shape) == 1L,
+               "\"shape\" must be non-negative." = isTRUE(all(is.finite(shape), shape >= 0)),
+                                                          "\"lambda\" must be non-negative." = isTRUE(all(is.finite(scale[2]), scale[2] >= 0))
     )
   } else if(family == "extgp"){
-    stopifnot("`shape` should be a vector of length 2." = length(shape) == 2L,
-              "`shape1` must be non-negative." = isTRUE(is.finite(shape[1]) & shape[1] >= 0),
-    "`shape2` must be finite." = isTRUE(is.finite(shape[2]))
+    stopifnot("\"shape\" should be a vector of length 2." = length(shape) == 2L,
+              "\"shape1\" must be non-negative." = isTRUE(is.finite(shape[1]) & shape[1] >= 0),
+    "\"shape2\" must be finite." = isTRUE(is.finite(shape[2]))
     )
   }
+}
+
+
+# The Lambert W function
+#
+# This is extracted from VGAM
+# @author Thomas W. Yee
+# @keywords internal
+.LambertW0 <- function (x, tolerance = 1e-10, maxit = 50)
+{
+  ans <- x
+  ans[!is.na(x) & x < -exp(-1)] <- NA
+  ans[!is.na(x) & x >= -exp(-1)] <- log1p(x[!is.na(x) & x >=
+                                              -exp(-1)])
+  ans[!is.na(x) & x >= 0] <- sqrt(x[!is.na(x) & x >= 0])/2
+  cutpt <- 3
+  if (any(myTF <- !is.na(x) & x > cutpt)) {
+    L1 <- log(x[!is.na(x) & x > cutpt])
+    L2 <- log(L1)
+    wzinit <- L1 - L2 + (L2 + (L2 * (-2 + L2)/(2) + (L2 *
+                                                       (6 + L2 * (-9 + L2 * 2))/(6) + L2 * (-12 + L2 * (36 +
+                                                                                                          L2 * (-22 + L2 * 3)))/(12 * L1))/L1)/L1)/L1
+    ans[myTF] <- wzinit
+  }
+  for (ii in 1:maxit) {
+    exp1 <- exp(ans)
+    exp2 <- ans * exp1
+    delta <- (exp2 - x)/(exp2 + exp1 - ((ans + 2) * (exp2 -
+                                                       x)/(2 * (ans + 1))))
+    ans <- ans - delta
+    if (all(is.na(delta)) || max(abs(delta), na.rm = TRUE) <
+        tolerance)
+      break
+    if (ii == maxit)
+      warning("did not converge")
+  }
+  ans[is.infinite(NA)] <- Inf
+  ans
 }

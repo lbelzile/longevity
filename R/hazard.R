@@ -361,10 +361,10 @@ plot.elife_hazard <-
       if(!requireNamespace("ggplot2", quietly = TRUE)){
         stop("`ggplot2` package is not installed.")
       }
-      g1 <- ggplot2::ggplot(data = data.frame(x = object$hazards,
-                                              y = object$pll),
+      g1 <- ggplot2::ggplot(data = data.frame(x = x$hazards,
+                                              y = x$pll),
                             mapping = ggplot2::aes_string(x = "x", y = "y")) +
-        ggplot2::geom_hline(yintercept = -qchisq(object$level, 1)/2,
+        ggplot2::geom_hline(yintercept = -qchisq(x$level, 1)/2,
                             alpha = 0.5,
                             color = "grey",
                             linetype = "dashed") +
@@ -372,7 +372,7 @@ plot.elife_hazard <-
         ggplot2::labs(x = "hazard",
                       y = "profile log-likelihood") +
         ggplot2::geom_rug(inherit.aes = FALSE,
-                          data = data.frame(x = c(object$confint, object$par)),
+                          data = data.frame(x = c(x$confint, x$par)),
                           mapping = ggplot2::aes_string(x = "x"),
                           sides = "b") +
         ggplot2::theme_classic()

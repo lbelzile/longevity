@@ -4,7 +4,7 @@
 \alias{dextgp}
 \title{Density function of the extended generalized Pareto distribution}
 \usage{
-dextgp(x, scale = 1, shape1, shape2, log = FALSE)
+dextgp(x, scale = 1, shape1 = 0, shape2 = 0, log = FALSE)
 }
 \arguments{
 \item{scale}{scale parameter, strictly positive.}
