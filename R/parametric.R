@@ -443,7 +443,7 @@ fit_elife <- function(time,
       }
     } else if(family == "gompmake"){
       hin <- function(par, maxdat = NULL, thresh = 0, ...){par[1:3] }
-      ineqLB <- LB <- c(0,1e-3,0)
+      ineqLB <- LB <- c(0, 1e-3, 0)
       ineqUB <- UB <- rep(Inf, 3)
       if(is.null(start)){
         start <- c(mean(dat, na.rm = TRUE), 0.1, 0.5)
@@ -774,6 +774,13 @@ logLik.elife_par <- function(object, ...) {
   attr(val, "nobs") <- nobs(object)
   attr(val, "df") <- length(coef(object))
   class(val) <- "logLik"
+  return(val)
+}
+
+#' @importFrom stats deviance
+#' @export
+deviance.elife_par <- function(object, ...) {
+  val <- as.numeric(-2*object$loglik)
   return(val)
 }
 

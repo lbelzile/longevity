@@ -23,7 +23,7 @@ ks_test(
 
 \item{event}{status indicator, normally 0=alive, 1=dead. Other choices are \code{TRUE}/\code{FALSE} (\code{TRUE} for death).
 For interval censored data, the status indicator is 0=right censored, 1=event at time, 2=left censored, 3=interval censored.
-Although unusual, the event indicator can be omitted, in which case all subjects are assumed to have an event.}
+Although unusual, the event indicator can be omitted, in which case all subjects are assumed to have experienced an event.}
 
 \item{thresh}{vector of thresholds}
 

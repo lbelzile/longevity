@@ -8,20 +8,20 @@
 #'
 #' For truncated data, we first estimate the distribution function
 #' nonparametrically, \eqn{F_n}. The uniform plotting positions of the data
-#' \deqn{v_i = [F_n(y_i) - F_n(a_i)]/[F_n(b_i) - F_n(a_i)]}.
+#' \deqn{v_i = [F_n(y_i) - F_n(a_i)]/[F_n(b_i) - F_n(a_i)].}
 #' For probability-probability plots, the empirical quantiles are transformed
 #' using the same transformation, with \eqn{F_n} replaced by the postulated or estimated
 #' distribution function \eqn{F_0}.
 #' For quantile-quantile plots, the plotting positions \eqn{v_i} are mapped back
 #' to the data scale viz. \deqn{F_0^{-1}\{F_0(a_i) + v_i[F_0(b_i) - F_0(a_i)]\}}
-#' When data are truncated, the plotting positions need not be in the same order as the data
+#' When data are truncated and observations are mapped back to the untruncated scale (with, e.g., \code{exp}), the plotting positions need not be in the same order as the order statistics of the data.
 #'
 #' @export
 #' @param x a parametric model of class \code{elife_par}
 #' @param plot.type string, one of \code{base} for base R or \code{ggplot}
-#' @param which.plot vector of string indicating the plots, among \code{pp} for probability-probability plot, \code{qq} for quantile-quantile plot, \code{erp} for empirically rescaled plot (only for censored data), \code{exp} for exponential quantile-quantile plot or \code{tmd} for Tukey's mean difference plot, which is a variant of the Q-Q plot in which we map the pair \eqn{(x,y)} is mapped to \code{((x+y)/2,y-x)} are detrended
+#' @param which.plot vector of string indicating the plots, among \code{pp} for probability-probability plot, \code{qq} for quantile-quantile plot, \code{erp} for empirically rescaled plot (only for censored data), \code{exp} for standard exponential quantile-quantile plot or \code{tmd} for Tukey's mean difference plot, which is a variant of the Q-Q plot in which we map the pair \eqn{(x,y)} is mapped to \code{((x+y)/2,y-x)} are detrended
 #' @param confint logical; if \code{TRUE}, creates uncertainty diagnostic via a parametric bootstrap
-#' @param plot logical; if \code{TRUE}, creates a plot. Useful for returning \code{ggplot} objects without printing the graphs
+#' @param plot logical; if \code{TRUE}, creates a plot when \code{plot.type="ggplot"}. Useful for returning \code{ggplot} objects without printing the graphs
 #' @param ... additional arguments, currently ignored by the function.
 #' @examples
 #' samp <- samp_elife(

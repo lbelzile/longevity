@@ -18,13 +18,25 @@ samp_elife <- function(n,
                        shape = NULL,
                        lower = 0,
                        upper = Inf,
-                       family = c("exp","gp","gomp","gompmake","weibull","extgp","gppiece"),
-                       type2 = c("none","ltrt","ltrc","ditrunc")){
+                       family = c("exp",
+                                  "gp",
+                                  "gomp",
+                                  "gompmake",
+                                  "weibull",
+                                  "extgp",
+                                  "gppiece"),
+                       type2 = c("none",
+                                 "ltrt",
+                                 "ltrc",
+                                 "ditrunc")){
   family <- match.arg(family)
   if(family != "exp" & is.null(shape)){
     stop("Invalid shape parameter.")
   }
   type2 <- match.arg(type2)
+  stopifnot(length(lower) %in% c(1L, n),
+            length(upper) %in% c(1L, n),
+            isTRUE(all(lower < upper)))
   if(type2 == "none"){
     relife(n = n,
            scale = scale,
@@ -75,7 +87,12 @@ r_dtrunc_elife <- function(n,
                           shape,
                           lower,
                           upper,
-                          family = c("exp","gp","gomp","gompmake","weibull","extgp")
+                          family = c("exp",
+                                     "gp",
+                                     "gomp",
+                                     "gompmake",
+                                     "weibull",
+                                     "extgp")
                           ){
   family <- match.arg(family)
   if(length(lower) > 1){
@@ -93,6 +110,12 @@ r_dtrunc_elife <- function(n,
       family == "gomp"
       scale <- scale[1]
     } else{
+      if(isTRUE(pgompmake(max(lower),
+                      scale = scale[1],
+                      lambda = scale[2],
+                      shape = shape[1])) > 1-1e-4){
+        stop("Inversion method fails if truncation bound exceeds 99.99% percentile")
+      }
       return(qgompmake(pgompmake(q = lower, scale = scale[1], lambda = scale[2], shape = shape[1]) +
                      runif(n)*(pgompmake(upper,  scale = scale[1], lambda = scale[2], shape = shape[1]) - pgompmake(lower, scale = scale[1], lambda = scale[2], shape = shape[1])),
                      scale = scale[1], lambda = scale[2], shape = shape[1])
@@ -105,8 +128,13 @@ r_dtrunc_elife <- function(n,
       family == "gp"
       shape[1] <- 0
     } else{
-      return(qgomp(pgomp(lower, scale = scale, shape = shape[1]) +
-                     runif(n)*(pgomp(upper, scale = scale, shape = shape[1]) - pgomp(lower, scale = scale, shape = shape[1])),
+      if(isTRUE(pgomp(max(lower),
+               scale = scale,
+               shape = shape[1])) > 1-1e-4){
+       stop("Inversion method fails if truncation bound exceeds 99.99% percentile")
+      }
+      return(qgomp(pgomp(q = lower, scale = scale, shape = shape[1]) +
+                     runif(n)*(pgomp(q = upper, scale = scale, shape = shape[1]) - pgomp(q = lower, scale = scale, shape = shape[1])),
                    scale = scale, shape = shape[1])
               )
     }
@@ -257,7 +285,12 @@ r_ltrc_elife <- function(n,
                          shape,
                          lower,
                          upper,
-                         family = c("exp","gp","gomp","gompmake","weibull","extgp")
+                         family = c("exp",
+                                    "gp",
+                                    "gomp",
+                                    "gompmake",
+                                    "weibull",
+                                    "extgp")
 ){
   family <- match.arg(family)
   if(length(lower) > 1){
@@ -287,13 +320,20 @@ r_ltrc_elife <- function(n,
       family == "gp"
       shape[1] <- 0
     } else{
-      samp <- qgomp(pgomp(lower, scale = scale, shape = shape[1]) +
-                     runif(n)*(1 - pgomp(lower, scale = scale, shape = shape[1])),
+      # Handle rare event simulation
+      # when inversion method fails
+        samp <- qgomp(
+          pgomp(lower,
+                scale = scale,
+                shape = shape[1]) +
+         runif(n)*pgomp(lower,
+                        scale = scale,
+                        shape = shape[1],
+                        lower.tail = FALSE),
                    scale = scale, shape = shape[1])
 
     }
   }
-
   if(family == "exp"){
     stopifnot("Scale parameter must be positive" = isTRUE(scale > 0))
     shape <- 0
@@ -307,7 +347,8 @@ r_ltrc_elife <- function(n,
     samp <- qgpd(pgpd(lower, scale = scale, shape = shape[1]) +
                   runif(n)*(1 - pgpd(lower, scale = scale, shape = shape[1])),
                 scale = scale, shape = shape[1])
-  } else if(family == "extgp"){
+  }
+  if(family == "extgp"){
     stopifnot("Scale and shape parameters must be in range of admissible values" = isTRUE(scale > 0 && shape[1] >= 0),
               "Shape parameters must be in the range of admissible values" = 1 - shape[1] / shape[2] > 0,
               "Upper bound must be lower than the maximum value of the support." = ifelse(shape[2] < 0, max(upper) < scale / shape[1] * log(1 - shape[1] / shape[2]), TRUE)
@@ -315,14 +356,18 @@ r_ltrc_elife <- function(n,
     samp <- qextgp(pextgp(lower, scale = scale, shape1 = shape[1], shape2 = shape[2]) +
                     runif(n)*(1 - pextgp(lower, scale = scale, shape1 = shape[1], shape2 = shape[2])),
                   scale = scale, shape1 = shape[1], shape2 = shape[2])
-  } else if(family == "weibull"){
+  }
+  if(family == "weibull"){
     stopifnot("Scale and shape parameters must be in range of admissible values" = isTRUE(scale > 0 && shape[1] > 0))
     samp <- qweibull(pweibull(lower, scale = scale, shape = shape[1]) +
-                      runif(n)*(1 - pweibull(lower, scale = scale, shape = shape[1])),
+                      runif(n)*pweibull(lower, scale = scale, shape = shape[1], lower.tail = FALSE),
                     scale = scale, shape = shape[1])
   }
   rcens <- ifelse(samp < upper, FALSE, TRUE)
   samp <- pmin(samp, upper)
+  if(any(is.infinite(samp))){
+    warning("Infinite values returned by procedure due to numerical overflow.")
+  }
   return(list(dat = samp,
               rcens = rcens)
          )

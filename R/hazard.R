@@ -357,11 +357,16 @@ plot.elife_hazard <-
            plot.type = c("base","ggplot"),
            plot = TRUE,
            ...){
+    plot.type <- match.arg(plot.type)
     if(plot.type == "ggplot"){
-      if(!requireNamespace("ggplot2", quietly = TRUE)){
-        stop("`ggplot2` package is not installed.")
-      }
-      g1 <- ggplot2::ggplot(data = data.frame(x = x$hazards,
+    if(requireNamespace("ggplot2", quietly = TRUE)){
+    } else{
+      warning("`ggplot2` package is not installed. Switching to base R plots.")
+      plot.type <- "base"
+    }
+  }
+    if(plot.type == "ggplot"){
+       g1 <- ggplot2::ggplot(data = data.frame(x = x$hazards,
                                               y = x$pll),
                             mapping = ggplot2::aes_string(x = "x", y = "y")) +
         ggplot2::geom_hline(yintercept = -qchisq(x$level, 1)/2,
@@ -380,8 +385,8 @@ plot.elife_hazard <-
        print(g1)
       }
       return(invisible(g1))
-    }
- # else base plot
+    } else if(plot.type == "base"){
+     # else base plot
   args <- list(...)
   args$x <- args$y <- args$xlab <- args$bty <- args$type <- args$ylab <- args$ylim <- args$panel.first <- NULL
   plot(x = x$hazards,
@@ -394,6 +399,7 @@ plot.elife_hazard <-
        panel.first = {
   abline(h = -qchisq(x$level, 1)/2, col = "gray")}, ...)
   rug(c(x$confint, x$par), ticksize = 0.05)
+}
 }
 
 # @export

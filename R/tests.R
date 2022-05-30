@@ -27,8 +27,16 @@ test_elife <- function(time,
                        thresh = 0,
                        ltrunc = NULL,
                        rtrunc = NULL,
-                       type = c("right", "left","interval","interval2"),
-                       family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp"),
+                       type = c("right",
+                                "left",
+                                "interval",
+                                "interval2"),
+                       family = c("exp",
+                                  "gp",
+                                  "weibull",
+                                  "gomp",
+                                  "gompmake",
+                                  "extgp"),
                        weights = rep(1, length(time))) {
   family <- match.arg(family)
   type <- match.arg(type)
@@ -91,16 +99,17 @@ test_elife <- function(time,
   fit_alternative <- list()
   loglik1 <- rep(0, m)
   n_levels <- rep(0L, m)
-  for(i in 1:m){
-    fit_alternative[[i]] <- try(fit_elife(time = time[covariate == labels[i]],
-                                          time2 = time2[covariate == labels[i]],
-                                          status = status[covariate == labels[i]],
-                                thresh = thresh,
-                                ltrunc = ltrunc[covariate == labels[i]],
-                                rtrunc = rtrunc[covariate == labels[i]],
-                                type = type,
-                                family = family,
-                                weights = weights[covariate == labels[i]]))
+  for(i in seq_len(m)){
+    fit_alternative[[i]] <-
+      try(fit_elife(time = time[covariate == labels[i]],
+                    time2 = time2[covariate == labels[i]],
+                    status = status[covariate == labels[i]],
+                    thresh = thresh,
+                    ltrunc = ltrunc[covariate == labels[i]],
+                    rtrunc = rtrunc[covariate == labels[i]],
+                    type = type,
+                    family = family,
+                    weights = weights[covariate == labels[i]]))
     loglik1[i] <- ifelse(is.character(fit_alternative[[i]]), NA, fit_alternative[[i]]$loglik)
     n_levels[i] <- fit_alternative[[i]]$nexc
   }
@@ -142,7 +151,8 @@ print.elife_par_test <-   function(x,
 anova.elife_par <- function(object,
                             object2,
                             ...,
-                            test = c("Chisq","bootstrap")){
+                            test = c("Chisq",
+                                     "bootstrap")){
   if (any(missing(object), missing(object2))){
     stop("Two models must be specified.")
   }
@@ -152,7 +162,8 @@ anova.elife_par <- function(object,
   models <- c(model1, model2)
   narg <- 2L
   for (i in 1:narg) {
-    if (!inherits(get(models[i], envir = parent.frame()), "elife_par")){
+    if (!inherits(get(models[i], envir = parent.frame()),
+                  "elife_par")){
       stop("Invalid input: use only with objects of class 'elife_par'.")
     }
   }
@@ -162,9 +173,9 @@ anova.elife_par <- function(object,
   thresh <- nobs <- rep(0, length(models))
   family <- rep("", length(models))
   conv <- rep(FALSE, 2)
-  for (i in 1:narg) {
+  for (i in seq_len(narg)) {
     elifemod <- get(models[i], envir = parent.frame())
-    dev[i] <- 2*elifemod$loglik
+    dev[i] <- deviance(elifemod)
     npar[i] <- length(elifemod$par)
     thresh[i] <- elifemod$thresh[1]
     nobs[i] <- elifemod$nexc
@@ -190,22 +201,24 @@ anova.elife_par <- function(object,
   }
   # Cases considered
   nmods <- rbind(
-    c("exp","weibull","regular"),
-    c("exp","gp","regular"),
-    c("exp","gppiece","regular"),
-    c("gomp","extgp","regular"),
-    c("gp","gppiece","regular"),
-    c("gomp","gompmake","regular"),
-    c("exp","gompmake","boundary"),
-    c("exp","gomp","boundary"),
-    c("exp","extgp","boundary"),
-    c("gp","extgp","boundary")
+    c("exp", "weibull", "regular"),
+    c("exp", "gp", "regular"),
+    c("exp", "gppiece", "regular"),
+    c("gomp", "extgp", "regular"),
+    c("gp", "gppiece", "regular"),
+    c("gomp", "gompmake", "regular"),
+    c("exp", "gompmake", "boundary"),
+    c("exp", "gomp", "boundary"),
+    c("exp", "extgp", "boundary"),
+    c("gp", "extgp", "boundary")
   )
-  match_family <- which(apply(nmods[,1:2], 1, function(fam){isTRUE(all(family %in% fam))}))
+  match_family <- which(apply(nmods[,1:2], 1,
+                              function(fam){
+                                isTRUE(all(family %in% fam))}))
   stopifnot("Invalid input: models are not nested" = length(match_family) == 1L)
 
   df <- -diff(npar)
-  dvdiff <- -diff(dev)
+  dvdiff <- diff(dev)
   if(dvdiff < 0 && dvdiff > -1e-4){
     # Numerical tolerance for zero
     dvdiff <- 0
@@ -215,16 +228,28 @@ anova.elife_par <- function(object,
   }
   if(test == "Chisq"){
     if(nmods[match_family,3] == "regular"){ #regular model
-     pval <- pchisq(dvdiff, df = df, lower.tail = FALSE)
+     pval <- pchisq(dvdiff,
+                    df = df,
+                    lower.tail = FALSE)
     } else if(nmods[match_family,3] == "boundary"){
-      pval <- 0.5*pchisq(dvdiff, df = df, lower.tail = FALSE) + 0.5*pchisq(dvdiff, df = df - 1L, lower.tail = FALSE)
+      pval <- 0.5*pchisq(dvdiff,
+                         df = df,
+                         lower.tail = FALSE) +
+        0.5*pchisq(dvdiff,
+                   df = df - 1L,
+                   lower.tail = FALSE)
     }
   }
   table <- data.frame(npar, dev, c(NA, df), c(NA, dvdiff), c(NA,pval))
-  dimnames(table) <- list(models, c("npar", "Deviance", "Df",
-                                    "Chisq", "Pr(>Chisq)"))
+  dimnames(table) <- list(models,
+                          c("npar",
+                            "Deviance",
+                            "Df",
+                            "Chisq",
+                            "Pr(>Chisq)"))
   rownames(table) <- family
-  structure(table, heading = c("Analysis of Deviance Table\n"),
+  structure(table,
+            heading = c("Analysis of Deviance Table\n"),
             class = c("anova", "data.frame"))
 }
 

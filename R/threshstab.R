@@ -168,8 +168,15 @@ plot.elife_tstab <- function(x,
                              ...){
   object <- x
   plot.type <- match.arg(plot.type)
+  if(plot.type == "ggplot"){
+    if(requireNamespace("ggplot2", quietly = TRUE)){
+    } else{
+      warning("`ggplot2` package is not installed. Switching to base R plots.")
+      plot.type <- "base"
+    }
+  }
   which.plot <- match.arg(which.plot, choices = c("scale","shape"), several.ok = TRUE)
-  if(plot.type == "ggplot" && requireNamespace("ggplot2", quietly = TRUE)){
+  if(plot.type == "ggplot"){
     ggplot_thstab <- function(x, thresh, ylab){
       stopifnot(all.equal(colnames(x), c("estimate","lower","upper")))
       g <- ggplot2::ggplot(data = as.data.frame(cbind(thresh = thresh,

@@ -71,12 +71,70 @@ prof_gp_endpt <- function(time,
                maxpll = mle$loglik,
                mle = mle_endpt,
                psi.max = mle_endpt,
-               nexc = mle$nexc),
+               nexc = mle$nexc,
+               param = "endpoint"),
           class = "elife_profile")
-  if(is.finite(prof$mle) & confint){
-    confint <- try(conf_interv(prof, level = level))
-    return(confint)
-  } else{
     return(prof)
+}
+
+#' @export
+confint.elife_profile <-
+  function(object,
+           parm,
+           level = 0.95, ...){
+ confint <- try(conf_interv(object, level = level))
+ if(inherits(confint, "try-error")){
+   stop("Could not compute confidence interval")
+ } else{
+   return(confint)
+ }
+}
+
+#' @export
+print.elife_profile <- function(x, ...){
+  cat("Parameter:", x$param, "\n")
+  cat("Maximum likelihood estimator: ", round(x$psi.max,3),"/n")
+}
+
+#' @export
+plot.elife_profile <-
+  function(x,
+           plot.type = c("base", "ggplot"),
+           ...){
+plot.type <- match.arg(plot.type)
+plot.type <- match.arg(plot.type)
+if(plot.type == "ggplot"){
+  if(requireNamespace("ggplot2", quietly = TRUE)){
+  } else{
+    warning("`ggplot2` package is not installed. Switching to base R plots.")
+    plot.type <- "base"
   }
+}
+ind <- which(is.finite(x$pll))
+stopifnot("Maximum log likelihood is not finite" = is.finite(x$maxpll))
+if(plot.type == "base"){
+plot(x = x$psi[ind],
+     y = x$pll[ind] - x$maxpll,
+     type = "l",
+     yaxs = "i",
+     ylim = c(-4,0.01),
+     xlab = x$param,
+     ylab = "profile log likelihood")
+abline(h = -qchisq(c(0.95,0.99), df = 1)/2,
+       lty = 2)
+} else if(plot.type == "ggplot"){
+  g <- ggplot2::ggplot(data =
+                    data.frame(y = x$pll[ind] - x$maxpll,
+                               x = x$psi[ind]),
+                  mapping = ggplot2::aes_string(x = "x", y = "y")) +
+    ggplot2::geom_hline(
+      yintercept = -qchisq(c(0.95,0.99), df = 1)/2,
+      col = "gray") +
+    ggplot2::geom_line() +
+    ggplot2::labs(x = x$param,
+                  y = "profile log likelihood") +
+    ggplot2::theme_classic()
+  print(g)
+  return(invisible(g))
+}
 }

@@ -119,7 +119,7 @@ pgomp <- function(q,
                 log.p = log.p)
     )
   } else {
-    p <- pmax(0, 1 - exp(-(exp(shape*q/scale)-1)/shape))
+    p <- pmax(0, 1 - exp(-expm1(exp(log(shape) + log(q) - log(scale)))/shape))
   }
   if (!lower.tail){
     p <- 1 - p

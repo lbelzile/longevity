@@ -52,24 +52,28 @@ devtools::install_github("lbelzile/longevity")
 - [x] score and likelihood ratio tests for piecewise generalized Pareto distribution, extending Northrop and Coleman (2014), with $p$-value plots
 - [x] nonparametric maximum likelihood estimate of the distribution function with arbitrary truncation and censoring using the EM algorithm of Turnbull (1976) - C++ implementation.
 - [x] profile likelihood for generalized Pareto (endpoint)
-
+- [x] Adapt `npsurv` for interval censoring
 
 ## Improvements
 
-- [ ] Bootstrap $p$-values for nested model (`anova`)
-- [ ] Remove/keep Kolmogorov-Smirnov test (depending on whether it makes sense)
-- [ ] Adapt `npsurv` for interval censoring
+- [ ] Add empirical distribution function for `npelife` and `npsurv`
+- [ ] Remove/keep Kolmogorov-Smirnov test (depending on whether it makes sense given null distribution)
 - [ ] Add plots of (local) hazards with delta-method based confidence intervals
-- [ ] Check whether bootstrap scheme (conditional) should be adapted to sample truncation patterns too (using Shen's IPW estimator for the nonparametric MLE of the distribution of the truncation bounds.
-
+- [ ] Change bootstrap procedure for Q-Q plots and other graphical diagnostics
+- [ ] S3 methods
 
 ## Testing
 
-- [ ] Check `npsurv` for the case of 
-	(1) left-truncation (Bell-Lynden estimator) and 
-	(2) double truncation (is the problem in `DTDA`?)
-- [ ] Check functions fail when packages listed in 'Suggests' are absent
-- [ ] Check that all ANOVA nesting works as expected (with null distribution)
+- [x] Check `npsurv` for the case of 
+	(1) right-censoring
+	(2) left-truncation (Bell-Lynden estimator)
+	(3) left-truncation and right-censoring (Tsai, Jewell and Wang)
+	(4) Frydman (1994) correction for interval censored truncated data
+	(5) double truncation (problem in `DTDA`?)
+- [x] Check functions fail when packages listed in 'Suggests' are absent
+- [x] Check that all ANOVA nesting works as expected (with null distribution)
+- [ ] Fix starting values for `gomp` and `gompmake` and make sure model is as good as submodel
+- [ ] 
 - [ ] Verify fitting procedure in multiple instances, including interval censoring, left and right truncation, etc.
 - [ ] Check all plots type are produced with both base **R** and `ggplot2`
 
