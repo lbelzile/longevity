@@ -10,7 +10,8 @@ npsurv(
   event = NULL,
   type = c("right", "left", "interval", "interval2"),
   ltrunc = NULL,
-  rtrunc = NULL
+  rtrunc = NULL,
+  ...
 )
 }
 \arguments{
@@ -20,7 +21,7 @@ npsurv(
 
 \item{event}{status indicator, normally 0=alive, 1=dead. Other choices are \code{TRUE}/\code{FALSE} (\code{TRUE} for death).
 For interval censored data, the status indicator is 0=right censored, 1=event at time, 2=left censored, 3=interval censored.
-Although unusual, the event indicator can be omitted, in which case all subjects are assumed to have an event.}
+Although unusual, the event indicator can be omitted, in which case all subjects are assumed to have experienced an event.}
 
 \item{type}{character string specifying the type of censoring. Possible values are "\code{right}", "\code{left}", "\code{interval}", "\code{interval2}".}
 
@@ -31,8 +32,8 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 \value{
 a list with components
 \itemize{
-\item{\code{xval}: }{unique ordered values of observed failure times}
-\item{\code{prob}: }{estimated probability of failure}
+\item{\code{sets}: }{unique ordered values of sets on which the distribution function is defined}
+\item{\code{prob}: }{estimated probability of failure on intervals}
 \item{\code{convergence}: }{logical; \code{TRUE} if the EM algorithm iterated until convergence}
 \item{\code{niter}: }{logical; number of iterations for the EM algorithm}
 \item{\code{cdf}: }{weighted empirical distribution function}

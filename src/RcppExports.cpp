@@ -11,28 +11,61 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// turnbullem
-Rcpp::List turnbullem(arma::vec x, arma::uvec censLow, arma::uvec censUpp, arma::uvec truncLow, arma::uvec truncUpp, bool cens, bool trunc, double tol, int maxiter);
-RcppExport SEXP _longevity_turnbullem(SEXP xSEXP, SEXP censLowSEXP, SEXP censUppSEXP, SEXP truncLowSEXP, SEXP truncUppSEXP, SEXP censSEXP, SEXP truncSEXP, SEXP tolSEXP, SEXP maxiterSEXP) {
+// turnbull_intervals
+arma::mat turnbull_intervals(arma::vec Lset, arma::vec Rset);
+RcppExport SEXP _longevity_turnbull_intervals(SEXP LsetSEXP, SEXP RsetSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::uvec >::type censLow(censLowSEXP);
-    Rcpp::traits::input_parameter< arma::uvec >::type censUpp(censUppSEXP);
-    Rcpp::traits::input_parameter< arma::uvec >::type truncLow(truncLowSEXP);
-    Rcpp::traits::input_parameter< arma::uvec >::type truncUpp(truncUppSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type Lset(LsetSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type Rset(RsetSEXP);
+    rcpp_result_gen = Rcpp::wrap(turnbull_intervals(Lset, Rset));
+    return rcpp_result_gen;
+END_RCPP
+}
+// censTruncLimits
+Rcpp::List censTruncLimits(arma::mat tsets, int n, arma::vec lcens, arma::vec rcens, arma::vec ltrunc, arma::vec rtrunc, bool trunc);
+RcppExport SEXP _longevity_censTruncLimits(SEXP tsetsSEXP, SEXP nSEXP, SEXP lcensSEXP, SEXP rcensSEXP, SEXP ltruncSEXP, SEXP rtruncSEXP, SEXP truncSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type tsets(tsetsSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type lcens(lcensSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type rcens(rcensSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type ltrunc(ltruncSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type rtrunc(rtruncSEXP);
+    Rcpp::traits::input_parameter< bool >::type trunc(truncSEXP);
+    rcpp_result_gen = Rcpp::wrap(censTruncLimits(tsets, n, lcens, rcens, ltrunc, rtrunc, trunc));
+    return rcpp_result_gen;
+END_RCPP
+}
+// turnbullem
+Rcpp::List turnbullem(arma::mat tsets, int n, arma::vec lcens, arma::vec rcens, arma::vec ltrunc, arma::vec rtrunc, bool cens, bool trunc, double tol, double zerotol, int maxiter);
+RcppExport SEXP _longevity_turnbullem(SEXP tsetsSEXP, SEXP nSEXP, SEXP lcensSEXP, SEXP rcensSEXP, SEXP ltruncSEXP, SEXP rtruncSEXP, SEXP censSEXP, SEXP truncSEXP, SEXP tolSEXP, SEXP zerotolSEXP, SEXP maxiterSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type tsets(tsetsSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type lcens(lcensSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type rcens(rcensSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type ltrunc(ltruncSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type rtrunc(rtruncSEXP);
     Rcpp::traits::input_parameter< bool >::type cens(censSEXP);
     Rcpp::traits::input_parameter< bool >::type trunc(truncSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< double >::type zerotol(zerotolSEXP);
     Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
-    rcpp_result_gen = Rcpp::wrap(turnbullem(x, censLow, censUpp, truncLow, truncUpp, cens, trunc, tol, maxiter));
+    rcpp_result_gen = Rcpp::wrap(turnbullem(tsets, n, lcens, rcens, ltrunc, rtrunc, cens, trunc, tol, zerotol, maxiter));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_longevity_turnbullem", (DL_FUNC) &_longevity_turnbullem, 9},
+    {"_longevity_turnbull_intervals", (DL_FUNC) &_longevity_turnbull_intervals, 2},
+    {"_longevity_censTruncLimits", (DL_FUNC) &_longevity_censTruncLimits, 7},
+    {"_longevity_turnbullem", (DL_FUNC) &_longevity_turnbullem, 11},
     {NULL, NULL, 0}
 };
 

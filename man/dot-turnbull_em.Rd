@@ -5,35 +5,35 @@
 \title{Turnbull EM algorithm (low storage implementation)}
 \usage{
 .turnbull_em(
-  x,
-  censLow,
-  censUpp,
-  truncLow,
-  truncUpp,
+  tsets,
+  n,
+  lcens,
+  rcens,
+  ltrunc,
+  rtrunc,
   cens = TRUE,
   trunc = TRUE,
   tol = 1e-12,
+  zerotol = 1e-40,
   maxiter = 100000L
 )
 }
 \arguments{
-\item{x}{vector of ordered unique elements at which to estimate probabilities}
+\item{tsets}{Turnbull's sets}
 
-\item{censLow}{integer vector in [0, J-1]; the lowest \code{x} value at which the observation could be observed to fail (left censoring)}
+\item{lcens}{numeric vector of left censoring}
 
-\item{censUpp}{integer vector in [0, J-1]; the largest \code{x} value at which the observation could fail (right-censoring)}
+\item{rcens}{numeric vector of right censoring}
 
-\item{truncLow}{integer vector in [0, J-1]; the lowest \code{x} such that \eqn{a_i < x} (left-truncation)}
+\item{ltrunc}{numeric vector of left truncation}
 
-\item{truncUpp}{integer vector in [0, J-1]; the largest \code{x} such that \eqn{b_i > x} (right-truncation)}
+\item{rtrunc}{numeric vector of right truncation}
 
 \item{cens}{logical; if \code{FALSE}, then \code{censUpp = censLow} and a particular update can be avoided in the EM algorithm}
 
 \item{tol}{tolerance level for terminating the EM algorithm}
 
 \item{maxiter}{maximum number of iteration for the EM algorithm}
-
-\item{zerotol}{tolerance level for setting a probability to zero}
 }
 \value{
 a list with the probabilities and the standard errors

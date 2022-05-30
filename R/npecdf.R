@@ -1,10 +1,61 @@
+#' Turnbull's sets
+#'
+#' Given censoring and truncation set,
+#' compute the regions of the real line that
+#' get positive mass and over which the distribution
+#' function is well-defined.
+#'
+#' @references Frydman, H. (1994). \emph{A Note on Nonparametric Estimation of the Distribution Function from Interval-Censored and Truncated Observations}, Journal of the Royal Statistical Society. Series B (Methodological) \bold{56}(1), 71-74.
+#' @references Turnbull, B. W. (1976). \emph{The Empirical Distribution Function with Arbitrarily Grouped, Censored and Truncated Data.} Journal of the Royal Statistical Society, Series B \bold{38}, 290-295.
+#' @export
+#' @keywords internal
+#' @inheritParams npsurv
+turnbull_intervals <- function(
+    time,
+    time2 = NULL,
+    status,
+    ltrunc = NULL,
+    rtrunc = NULL
+){
+  stopifnot(length(time) > 0,
+            length(status) == length(time),
+            length(time) == length(time2))
+  if(!isTRUE(all(is.finite(time2[status == 3L])))){
+    stop("Invalid input: user specified interval censored observations, but \"time2\" is missing.")
+  }
+  lcens <- ifelse(status == 2L, -Inf, time)
+  rcens <- ifelse(status %in% c(1L, 2L), time,
+                  ifelse(status == 0L, Inf, time2))
+  if(!is.null(rtrunc)){
+    rtrunc <- rtrunc[is.finite(rtrunc)]
+    #don't put Inf, otherwise wrong...
+  }
+  if(is.null(ltrunc)){
+    ltrunc <- ltrunc[is.finite(ltrunc)]
+  }
+  if(isTRUE(any(status == 3L))){
+    intCens <- TRUE
+    # Frydman's correction with interval-censored and truncated
+    # Without truncation, rtrunc and ltrunc are NULL
+    result <- .turnbull_intervals(Lset = c(lcens, rtrunc),
+                                  Rset = c(rcens, ltrunc))
+  } else{
+    result <- .turnbull_intervals(Lset = lcens,
+                                  Rset = rcens)
+  }
+  colnames(result) <- c("q", "p")
+  return(result)
+}
+
+
+
 #' Nonparametric estimation of the survival function
 #'
 #' The survival function is obtained through the EM algorithm
-#' described in Turnbull (1976) for left-truncated right-censored
-#' or else doubly truncated observations; censoring is assumed to be
-#' non-informative. The survival function changes only
-#' at the \code{J} distinct exceedances \eqn{y_i-u} and truncation points.
+#' described in Turnbull (1976); censoring and truncation are
+#' assumed to be non-informative.
+#' The survival function changes only at the \code{J} distinct
+#' exceedances \eqn{y_i-u} and truncation points.
 #'
 #' @note This function is a vanilla R implementation of the EM algorithm;
 #' the function \link{npsurv} uses a backbone Cpp implementation
@@ -52,7 +103,10 @@
 np_elife <- function(time,
                      time2 = NULL,
                      event = NULL,
-                     type = c("right","left","interval","interval2"),
+                     type = c("right",
+                              "left",
+                              "interval",
+                              "interval2"),
                      thresh = 0,
                      ltrunc = NULL,
                      rtrunc = NULL,
@@ -84,7 +138,9 @@ np_elife <- function(time,
     # Keep only exceedances, shift observations
     # We discard left truncated observations and interval censored
     # if we are unsure whether there is an exceedance
-    ind <- ifelse(status == 2, FALSE, time > thresh[1])
+    ind <- ifelse(status == 2,
+                  FALSE,
+                  time > thresh[1])
     weights <- weights[ind] # in this order
     time <- time[ind] - thresh[1]
     time2 <- time2[ind] - thresh[1]
@@ -102,15 +158,18 @@ np_elife <- function(time,
     }
   }
   if(!is.null(rtrunc)){
-    if(isTRUE(any(rtrunc < time, rtrunc < time2, na.rm = TRUE))){
+    if(isTRUE(any(rtrunc < time,
+                  rtrunc < time2,
+                  na.rm = TRUE))){
       stop("Right-truncation must be lower than observation times.")
     }
   }
   n <- length(time)
-  cens <- !isTRUE(all(status == 1L, na.rm = TRUE))
+  cens <- !isTRUE(all(status == 1L,
+                      na.rm = TRUE))
   if (!is.null(rtrunc)) {
     stopifnot(
-      "`rtrunc`` should be a vector" = is.vector(rtrunc),
+      "`rtrunc` should be a vector" = is.vector(rtrunc),
       "`rtrunc` should be the same length as `time`" =  length(rtrunc) == n
     )
   }
@@ -128,67 +187,62 @@ np_elife <- function(time,
   } else{
     trunc <- TRUE
   }
-  # Two scenarios:
-  if(cens){
-    unex <- sort(unique(time[status == 1L]))
-  } else{
-    unex <- sort(unique(time))
-  }
-  J <- length(unex)
-  if (length(unex) < 2) {
+  unex <- turnbull_intervals(
+    time = time,
+    time2 = time2,
+    status = status,
+    ltrunc = ltrunc,
+    rtrunc = rtrunc)
+    # time <- ifelse(status %in% c(0L, 3L), time + 1e-10, time)
+    # time2 <- ifelse(status %in% c(2L, 3L), time2 - 1e-10, time2)
+  J <- nrow(unex)
+  if (J < 2) {
     stop("Only one interval: consider increasing the size of `delta`.")
   }
-  if(length(J) > 2500L){
-    stop("The R implementation is currently limited to 2500 unique failure times for memory reasons.")
+  if(J > 2500L){
+    stop("The pure R implementation is currently limited to 2500 unique failure times for memory reasons.")
   }
-  # Find in which interval the observation lies
-  cens_lb <- pmin(J-1, findInterval(
-    x = time + (status %in% c(0L,3L))*1e-10,
-    vec = unex,
-    left.open = TRUE,
-    all.inside = FALSE)) + 1L
-  # get the first observation
-  cens_lb[is.na(cens_lb)] <- 1L
-  # values before first observation
-  if(!cens){
-    cens_ub <- cens_lb
-  } else{
-    cens_ub <- pmax(0, findInterval(x = time2 - (status %in% c(2,3))*1e-10,
-                                    vec = unex,
-                                    left.open = TRUE,
-                                    all.inside = FALSE)) + 1L
-    cens_ub[is.na(cens_ub)] <- J
+  if(is.null(ltrunc)){
+    ltrunc <- -Inf
+  }
+  if(is.null(rtrunc)){
+    rtrunc <- Inf
   }
 
-  if(is.null(ltrunc) & is.null(rtrunc)){
-    trunc <- FALSE
-    trunc_lb <- rep(1L, n)
-    trunc_ub <- rep(J, n)
-  } else{
-    trunc <- TRUE
-    if(!is.null(ltrunc)){
-      trunc_lb <- findInterval(x = ltrunc,
-                               vec = unex,
-                               left.open = TRUE,
-                               all.inside = FALSE) + 1L
-    } else{
-      trunc_lb <- rep(1L, n)
-    }
-    if(!is.null(rtrunc)){
-      trunc_ub <- pmin(J, findInterval(x = rtrunc,
-                               vec = unex,
-                               left.open = TRUE,
-                               all.inside = FALSE) + 1L)
-    } else{
-      trunc_ub <- rep(J, n)
-    }
+  dummy1 <- matrix(NA, nrow = J, ncol = n)
+  dummy2 <- matrix(NA, nrow = J, ncol = n)
+  for(i in seq_len(J)){
+    dummy1[i,] <- unex[i,1] >= time & unex[i,2] <= time2
+    dummy2[i,] <- unex[i,1] >= ltrunc & unex[i,2] <= rtrunc
   }
+  # Reduce the data to range
+  intervals1 <- apply(dummy1, 2,
+                      function(x){
+                        interv <- which(x)
+                        if(length(interv) == 0L){
+                          return(rep(J+1L, 2))
+                        } else{
+                          return(range(interv))
+                        }})
+  intervals2 <- apply(dummy2, 2,
+                     function(x){
+                       interv <- which(x)
+                       if(length(interv) == 0L){
+                         return(rep(J+1L, 2))
+                       } else{
+                         return(range(interv))
+                       }})
+  cens_lb <- intervals1[1,]
+  cens_ub <- intervals1[2,]
+  cens <- isTRUE(all(status == 1L))
+  trunc_lb <- intervals2[1,]
+  trunc_ub <- intervals2[2,]
   p <- rep(1/J, J)
   pnew <- rep(0, J)
   C_mat <- D_mat <- matrix(0, nrow = n, ncol = J)
   n_iter <- 0L
   n_iter_max <- 1e4L
-  for (i in 1:n) {
+  for (i in seq_len(n)) {
     # this doesn't need to be updated
     C_mat[i, cens_lb[i]] <- 1
   }
@@ -197,15 +251,21 @@ np_elife <- function(time,
     # E-step
     # Update C_mat (only relevant for right-censored data)
     if (!cens){
-      for (i in 1:n) {
+      for (i in seq_len(n)) {
           ij <- cens_lb[i]:cens_ub[i]
-          C_mat[i, ij] <- p[ij] / sum(p[ij])
+          if(!isTRUE(all.equal(ij, J + 1L))){
+           C_mat[i, ij] <- p[ij] / sum(p[ij])
+          }
       }
     }
-    # Update D_mat
-    for (i in 1:n) {
-      ij <- trunc_lb[i]:trunc_ub[i]
-      D_mat[i, -ij] <- p[-ij] / sum(p[ij])
+    if(!trunc){
+      # Update D_mat
+      for (i in seq_len(n)) {
+        ij <- trunc_lb[i]:trunc_ub[i]
+        if(!isTRUE(all.equal(ij, J + 1L))){
+         D_mat[i, -ij] <- p[-ij] / sum(p[ij])
+        }
+      }
     }
 
     # M-step: maximize the log-likelihood
@@ -222,8 +282,8 @@ np_elife <- function(time,
   uij <- C_mat + D_mat
   Omega_mat <- Eta_mat <- matrix(FALSE, nrow = n, ncol = J)
   for(i in 1:n){
-    Omega_mat[i,cens_lb[i]:cens_ub[i]] <- TRUE
-    Eta_mat[i,trunc_lb[i]:trunc_ub[i]] <- TRUE
+    Omega_mat[i, cens_lb[i]:cens_ub[i]] <- TRUE
+    Eta_mat[i, trunc_lb[i]:trunc_ub[i]] <- TRUE
   }
   sum_Omega_i_sq <- as.numeric(Omega_mat %*% p)^2
   sum_Eta_i_sq <- as.numeric(Eta_mat %*% p)^2
@@ -242,7 +302,10 @@ np_elife <- function(time,
   } else{
     covmat <- NULL
   }
-  survfun <- .wecdf(x = unex, w = p, type = "surv")
+  # TODO check this based on definition
+  survfun <- .wecdf(x = unex[,2],
+                    w = p,
+                    type = "surv")
   std.err <- NULL
   if(vcov && !is.null(covmat)){
     if(is.matrix(covmat) & nrow(covmat) >= 1){
@@ -358,7 +421,10 @@ logit <- function(x) {
 .check_surv <- function(time,
                         time2 = NULL,
                         event = NULL,
-                        type = c("right","left","interval","interval2")){
+                        type = c("right",
+                                 "left",
+                                 "interval",
+                                 "interval2")){
   stopifnot("User must provide a time argument" = !missing(time))
    time <- as.numeric(time)
    n <- length(time)
@@ -389,7 +455,8 @@ logit <- function(x) {
        event <- rep(event, n)
      }
      stopifnot("Event should be a vector of integers between 0 and 3" = isTRUE(all(event %in% 0:3)))
-     time2 <- ifelse(event == 0L, NA, ifelse(event %in% c(1L,2L), time, time2))
+     time2 <- ifelse(event == 0L, NA,
+                     ifelse(event %in% c(1L,2L), time, time2))
      time <- ifelse(event == 2L, NA, time)
      status <- event
    } else if (type == "interval2") {
@@ -402,8 +469,12 @@ logit <- function(x) {
        stop("Invalid data; time is not resolved")
      }
    }
-  status <- ifelse(is.na(time), 2L, ifelse(is.na(time2), 0L, ifelse(time == time2, 1L, 3L)))
-  return(list(time = time, time2 = time2, status = status))
+  status <- ifelse(is.na(time), 2L,
+                   ifelse(is.na(time2), 0L,
+                          ifelse(time == time2, 1L, 3L)))
+  return(list(time = ifelse(is.na(time), -Inf, time),
+              time2 = ifelse(is.na(time2), Inf, time2),
+              status = status))
 }
 
 #' Nonparametric maximum likelihood estimation for arbitrary truncation
@@ -417,7 +488,7 @@ logit <- function(x) {
 #' @param time excess time of the event of follow-up time, depending on the value of event
 #' @param event status indicator, normally 0=alive, 1=dead. Other choices are \code{TRUE}/\code{FALSE} (\code{TRUE} for death).
 #' For interval censored data, the status indicator is 0=right censored, 1=event at time, 2=left censored, 3=interval censored.
-#' Although unusual, the event indicator can be omitted, in which case all subjects are assumed to have an event.
+#' Although unusual, the event indicator can be omitted, in which case all subjects are assumed to have experienced an event.
 #' @param time2 ending excess time of the interval for interval censored data only.
 #' @param type character string specifying the type of censoring. Possible values are "\code{right}", "\code{left}", "\code{interval}", "\code{interval2}".
 #' @param ltrunc lower truncation limit, default to \code{NULL}
@@ -425,8 +496,8 @@ logit <- function(x) {
 #' @seealso \code{\link[survival]{Surv}}
 #' @return a list with components
 #' \itemize{
-#' \item{\code{xval}: }{unique ordered values of observed failure times}
-#' \item{\code{prob}: }{estimated probability of failure}
+#' \item{\code{sets}: }{unique ordered values of sets on which the distribution function is defined}
+#' \item{\code{prob}: }{estimated probability of failure on intervals}
 #' \item{\code{convergence}: }{logical; \code{TRUE} if the EM algorithm iterated until convergence}
 #' \item{\code{niter}: }{logical; number of iterations for the EM algorithm}
 #' \item{\code{cdf}: }{weighted empirical distribution function}
@@ -435,9 +506,14 @@ logit <- function(x) {
 npsurv <- function(time,
                    time2 = NULL,
                    event = NULL,
-                   type = c("right","left","interval","interval2"),
+                   type = c("right",
+                            "left",
+                            "interval",
+                            "interval2"),
                    ltrunc = NULL,
-                   rtrunc = NULL){
+                   rtrunc = NULL,
+                   ...){
+
   stopifnot("`time` must be a numeric vector." = is.numeric(time))
   survout <- .check_surv(time = time,
               time2 = time2,
@@ -447,75 +523,86 @@ npsurv <- function(time,
   time2 <- survout$time2
   status <- survout$status
   n <- length(time)
-    # unique survival time
-  if(sum(status == 1L) < 2){
-    warning("There are not enough uncensored observations to estimate the distribution.")
-  }
-  unex <- sort(unique(time[status == 1L]))
-  J <- length(unex)
+  unex <- turnbull_intervals(time = time,
+                             time2 = time2,
+                             status = status,
+                             ltrunc = ltrunc,
+                             rtrunc = rtrunc)
+  J <- nrow(unex)
   if(isTRUE(any(status != 1L))){
     cens <- TRUE
   } else{
     cens <- FALSE
   }
-  # Find in which interval the observation lies
-  cens_lb <- pmin(J-1, findInterval(
-                 x = time + (status %in% c(0L,3L))*1e-10,
-                 vec = unex,
-                 left.open = TRUE,
-                 all.inside = FALSE))
-  # get the first observation
-  cens_lb[is.na(cens_lb)] <- 0L
-  # values before first observation
-  if(!cens){
-    cens_ub <- cens_lb
-  } else{
-    cens_ub <- pmax(0, findInterval(x = time2 - (status %in% c(2,3))*1e-10,
-                          vec = unex,
-                          left.open = TRUE,
-                          all.inside = FALSE))
-    cens_ub[is.na(cens_ub)] <- J - 1L
-  }
   if(is.null(ltrunc) & is.null(rtrunc)){
     trunc <- FALSE
-    trunc_lb <- 0L
-    trunc_ub <- J-1L
   } else{
     trunc <- TRUE
-  if(!is.null(ltrunc)){
-    trunc_lb <- rep(x = findInterval(x = ltrunc,
-                             vec = unex,
-                             left.open = TRUE,
-                             all.inside = FALSE), length.out = n)
-  } else{
-    trunc_lb <- rep(0L, n)
   }
-    if(!is.null(rtrunc)){
-      trunc_ub <- rep(pmin(J-1, findInterval(x = rtrunc,
-                               vec = unex,
-                               left.open = TRUE,
-                               all.inside = FALSE)), length.out = n)
-    } else{
-      trunc_ub <- rep(J-1, n)
+  if(is.null(ltrunc)){
+    ltrunc <- rep(-Inf, length(time))
+  }
+  if(is.null(rtrunc)){
+    rtrunc <- rep(Inf, length(time))
+  }
+
+  args <- list(...)
+  if(!is.null(args$tol)){
+    tol <- args$tol
+    if(isTRUE(any(length(tol) != 1L,
+                  tol > 1/J,
+                  tol <= 0))){
+      stop("Invalid argument \"tol\".")
     }
+  } else{
+    tol <- 1e-9
   }
-  survfit_res <- .turnbull_em(x = unex,
-               censLow = as.integer(cens_lb),
-               censUpp = as.integer(cens_ub),
-               truncLow = as.integer(trunc_lb),
-               truncUpp = as.integer(trunc_ub),
-               cens = cens,
-               trunc = trunc,
-               tol = 1e-12
+  if(!is.null(args$zerotol)){
+    zerotol <- args$zerotol
+    if(isTRUE(any(!is.numeric(zerotol),
+                  length(zerotol) != 1,
+                  zerotol <= 0,
+                  zerotol > tol))){
+      stop("Invalid argument \"zerotol\".")
+    }
+  } else{
+    zerotol <- 1e-40
+  }
+  if(!is.null(args$maxiter)){
+    maxiter <- as.integer(args$maxiter)
+    if(isTRUE(any(maxiter <= 1L,
+                  maxiter > 1e6,
+                  !is.finite(maxiter)))){
+      stop("Invalid argument \"maxiter\": must be a finite integer no bigger than a million.")
+    }
+  } else{
+    maxiter <- 1e5L
+  }
+  survfit_res <- .turnbull_em(
+    tsets = unex,
+    n = as.integer(n),
+    lcens = as.numeric(time),
+    rcens = as.numeric(time2),
+    ltrunc = as.numeric(rep(ltrunc, length.out = n)),
+    rtrunc = as.numeric(rep(rtrunc, length.out = n)),
+    cens = as.logical(cens),
+    zerotol = as.numeric(zerotol),
+    tol = as.numeric(tol),
+    maxiter = as.integer(maxiter),
+    trunc = as.logical(trunc)
   )
   if(!survfit_res$conv){
-    warning(paste("EM algorithm did not converge after", survfit_res$niter, "iterations."))
+    warning(paste("EM algorithm did not converge after",
+                  survfit_res$niter,
+                  "iterations."))
   }
+  probs <- as.numeric(survfit_res$p)
   structure(
-    list(cdf = .wecdf(x = unex, w = survfit_res$p),
-       xval = unex,
-       prob = as.numeric(survfit_res$p),
+    list(#cdf = .wecdf(x = unex, w = survfit_res$p),
+       xval = unex[probs > 0, ],
+       prob = probs[probs > 0],
        niter = survfit_res$neval,
+       abstol = survfit_res$abstol,
        convergence = survfit_res$conv),
     class = "npcdf"
   )
