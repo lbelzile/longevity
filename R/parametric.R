@@ -18,10 +18,19 @@ nll_elife <- function(par,
                       time,
                       time2 = NULL,
                       event = NULL,
-                      type = c("right","left","interval","interval2"),
+                      type = c("right",
+                               "left",
+                               "interval",
+                               "interval2"),
                       ltrunc = NULL,
                       rtrunc = NULL,
-                      family = c("exp","gp","gomp","gompmake","weibull","extgp","gppiece"),
+                      family = c("exp",
+                                 "gp",
+                                 "gomp",
+                                 "gompmake",
+                                 "weibull",
+                                 "extgp",
+                                 "gppiece"),
                       thresh = 0,
                       weights = rep(1, length(time)),
                       status = NULL,
@@ -324,6 +333,7 @@ fit_elife <- function(time,
     stopifnot("`ltrunc` must be larger than `ltrunc" = isTRUE(all(rtrunc > ltrunc)))
   }
   if(thresh[1] > 0){
+    thresh0 <- thresh
     # Keep only exceedances, shift observations
     # We discard left truncated observations and interval censored
     # if we are unsure whether there is an exceedance
@@ -633,7 +643,7 @@ fit_elife <- function(time,
                           convergence = conv,
                           type = type,
                           family = family,
-                          thresh = thresh,
+                          thresh = thresh0,
                           time = time,
                           time2 = time2,
                           event = event,

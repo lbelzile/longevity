@@ -73,7 +73,6 @@ devtools::install_github("lbelzile/longevity")
 - [x] Check functions fail when packages listed in 'Suggests' are absent
 - [x] Check that all ANOVA nesting works as expected (with null distribution)
 - [ ] Fix starting values for `gomp` and `gompmake` and make sure model is as good as submodel
-- [ ] 
 - [ ] Verify fitting procedure in multiple instances, including interval censoring, left and right truncation, etc.
 - [ ] Check all plots type are produced with both base **R** and `ggplot2`
 

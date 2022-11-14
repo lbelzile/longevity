@@ -1,0 +1,67 @@
+---
+title: "Nonparametric maximum likelihood estimation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{npmle}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: longevity.bib
+---
+
+```{r}
+#| label: options
+#| echo: false
+#| eval: true
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(longevity)
+```
+
+
+This note goes over the details of the expectation-maximisation (EM) algorithm of @Turnbull:1976 for the calculation of the nonparametric maximum likelihood estimation of arbitrary (interval) censored and (interval) truncated data. It incorporates the correction of @Frydman:1994 for interval censored and truncated data. The note aims to provide details through toy examples that are easy to work out. The sanity checks aim to compare the output from `longevity` with that of other packages.
+
+
+The data for individual $i$ consists of the tuple $\{L_i, R_i, V_i, U_i\}$, where $L_i \leq R_i$ is the censoring interval of individual $i$ and $V_i \leq U_i$ is the truncation interval, with $V_i \leq L_i \leq R_i \leq U_i$, and some of the bounds are potentially zero (lower bounds) or infinite (upper bounds). 
+
+Turnbull shows how one can build disjoint intervals $C = \bigsqcup_{i=1}^n [q_i, p_i]$ with $q_i \in \{L_i\}$ and $p_i \in \{R_i\}$ $(i=1, \ldots, n)$ with $q_1 \leq p_1 < \cdots < q_n \leq p_n$. We assign probability $f_i = F(p_j^{+}) - F(q_j^{-}) \geq 0$ to each of the $m$ interval so that $\sum_{i=1}^m f_i = 1$.
+
+The nonparametric maximum likelihood estimator of the distribution function $F$ is then 
+\begin{align*}
+\widehat{F}(t) = \begin{cases} 0 & t < q_1,\\
+\widehat{f}_1 + \cdots + \widehat{f}_j & p_j < t < q_{j+1} \quad (1 \leq j \leq m-1)\\ 
+1 & t > p_m,
+\end{cases}
+\end{align*}
+and is undefined for $t \in [q_j, p_j]$ $(j=1, \ldots, m)$.
+
+
+@Frydman:1994 shows that the definition of @Turnbull:1976 must be amended by adding the left truncation times to the right censoring intervals $\{R_1, \ldots, R_n, V_1, \ldots, V_n\}$ and $\{L_1, \ldots, L_n, U_1, \ldots, U_n\}$ for the estimator to return the correct answer if observations are interval censored and truncated.
+ 
+The algorithm uses a $m \times n$ matrix, with $(i,j)$ entry 1 if $[q_j, p_j] \subseteq A_i$ and zero otherwise. Since the intervals forming $C$ are disjoint and ordered, we can instead find the smallest integer $j$ such that $L_i \leq q_j$ and the largest $R_i \geq p_j$ $(j=1, \ldots, m)$ for each observation. The same procedure applies for the truncation set with $B_i = (V_i, U_i)$ instead.
+ 
+We now check that the procedure returns the correct answer in instances where explicit solutions exist for the maximum likelihood estimator, or alternative algorithms can be used to compute. 
+ 
+### Example: Kaplan--Meier product limit estimator
+
+This is one instance with a closed-form solution, provided by the celebrated product limit estimator [@Kaplan.Meier:1958].
+Consider data exhibiting random right censoring, meaning $V_i = 0, U_i = \infty$ and either $L_i=R_i$ or $L_i < R_i = \infty$. We next order observations so that $L_1 \leq L_2 \leq \cdots$, which gives $C = \bigsqcup_{j: L_j=R_j} \{L_j\}$ if the largest failure time is observed and $C = \bigsqcup_{j: L_j=R_j} \{L_j\} \sqcup [L_n, \infty)$ if the last observation is censored, in which case the resulting distribution function is deficient. The distribution function is undefined at the jumps (observed failure times).
+
+
+### Lynden-Bell estimator for random left truncation
+
+Let $q_j$ $(j=1, \ldots, m)$ denote the unique failure times and let $V_i$ $(i=1, \ldots, n)$ denote the left truncation bounds. The estimator of the survival function is analogous to that of the product-limit estimator [@Lynden-Bell:1971], where
+\begin{align*}
+\widehat{S}_n(t) = \prod_{q_j \leq t} \left(1- \frac{d_j}{r_j}\right)
+\end{align*}
+where $d_j$ is the number of instances of $q_j$ (that is, the number of failures at time $q_j$) and $r_j$ is the number of elements at risk at time $q_j$, viz. $\#\{i: V_i < q_j \leq T_i\}$. In this case, the sets forming $C$ are the unique instances of the failure times $q_j$ $(j=1, \ldots, m)$ and the nonparametric MLE of the distribution function is 1 beyond $q_m$.
+
+
+
+### Left truncated right censored observations
+
+@Tsai.Jewell.Wang:1987 provide a closed-form solution when observations are left truncated and right censored.
+
+
+## References

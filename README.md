@@ -36,61 +36,58 @@ devtools::install_github("lbelzile/longevity")
 
 ## Current features
 
--   [x] maximum likelihood estimation routines
--   [x] simulation of left-truncated and right-truncated/right-censored
-    data
--   [x] hazard plots with profile-likelihood based confidence intervals
--   [x] threshold selection diagnostics with profile and Wald pointwise
-    confidence intervals
--   [x] quantile-quantile plots
--   [x] likelihood ratio tests for nested models
--   [x] likelihood ratio tests for a categorical explanatory
--   [x] score and likelihood ratio tests for piecewise generalized
-    Pareto distribution, extending Northrop and Coleman (2014), with
-    ![p](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;p "p")-value
-    plots
--   [x] nonparametric maximum likelihood estimate of the distribution
-    function with arbitrary truncation and censoring using the EM
-    algorithm of Turnbull (1976) - C++ implementation.
--   [x] profile likelihood for generalized Pareto (endpoint)
--   [x] Adapt `npsurv` for interval censoring
+- [x] maximum likelihood estimation routines
+- [x] simulation of left-truncated and right-truncated/right-censored
+  data
+- [x] hazard plots with profile-likelihood based confidence intervals
+- [x] threshold selection diagnostics with profile and Wald pointwise
+  confidence intervals
+- [x] quantile-quantile plots
+- [x] likelihood ratio tests for nested models
+- [x] likelihood ratio tests for a categorical explanatory
+- [x] score and likelihood ratio tests for piecewise generalized Pareto
+  distribution, extending Northrop and Coleman (2014), with $p$-value
+  plots
+- [x] nonparametric maximum likelihood estimate of the distribution
+  function with arbitrary truncation and censoring using the EM
+  algorithm of Turnbull (1976) - C++ implementation.
+- [x] profile likelihood for generalized Pareto (endpoint)
+- [x] Adapt `npsurv` for interval censoring
 
 ## Improvements
 
--   [ ] Add empirical distribution function for `npelife` and `npsurv`
--   [ ] Remove/keep Kolmogorov-Smirnov test (depending on whether it
-    makes sense given null distribution)
--   [ ] Add plots of (local) hazards with delta-method based confidence
-    intervals
--   [ ] Change bootstrap procedure for Q-Q plots and other graphical
-    diagnostics
--   [ ] S3 methods
+- [ ] Add empirical distribution function for `npelife` and `npsurv`
+- [ ] Remove/keep Kolmogorov-Smirnov test (depending on whether it makes
+  sense given null distribution)
+- [ ] Add plots of (local) hazards with delta-method based confidence
+  intervals
+- [ ] Change bootstrap procedure for Q-Q plots and other graphical
+  diagnostics
+- [ ] S3 methods
 
 ## Testing
 
--   [x] Check `npsurv` for the case of
-    1)  right-censoring
-    2)  left-truncation (Bell-Lynden estimator)
-    3)  left-truncation and right-censoring (Tsai, Jewell and Wang)
-    4)  Frydman (1994) correction for interval censored truncated data
-    5)  double truncation (problem in `DTDA`?)
--   [x] Check functions fail when packages listed in ‘Suggests’ are
-    absent
--   [x] Check that all ANOVA nesting works as expected (with null
-    distribution)
--   [ ] Fix starting values for `gomp` and `gompmake` and make sure
-    model is as good as submodel
--   \[ \]
--   [ ] Verify fitting procedure in multiple instances, including
-    interval censoring, left and right truncation, etc.
--   [ ] Check all plots type are produced with both base **R** and
-    `ggplot2`
+- [x] Check `npsurv` for the case of
+  1)  right-censoring
+  2)  left-truncation (Bell-Lynden estimator)
+  3)  left-truncation and right-censoring (Tsai, Jewell and Wang)
+  4)  Frydman (1994) correction for interval censored truncated data
+  5)  double truncation (problem in `DTDA`?)
+- [x] Check functions fail when packages listed in ‘Suggests’ are absent
+- [x] Check that all ANOVA nesting works as expected (with null
+  distribution)
+- [ ] Fix starting values for `gomp` and `gompmake` and make sure model
+  is as good as submodel
+- [ ] Verify fitting procedure in multiple instances, including interval
+  censoring, left and right truncation, etc.
+- [ ] Check all plots type are produced with both base **R** and
+  `ggplot2`
 
 ## Package on CRAN
 
--   [ ] Add tests and examples for each function
--   [ ] Add vignettes
--   [x] Use `pkgdown` to create a webpage
--   [ ] Root out data sets that cannot go on CRAN (with accompanying
-    examples)
--   [ ] Submit to the CRAN
+- [ ] Add tests and examples for each function
+- [ ] Add vignettes
+- [x] Use `pkgdown` to create a webpage
+- [ ] Root out data sets that cannot go on CRAN (with accompanying
+  examples)
+- [ ] Submit to the CRAN
