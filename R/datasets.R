@@ -206,6 +206,25 @@
 "idl"
 
 
+#' IDL metadata
+#'
+#' This data frame contains country codes
+#' and the associated data collection period
+#' corresponding to the range for age at death.
+#' 
+#' @details Due to confidentiality restrictions, some data that were available in previous versions of the IDL for Switzerland, Italy and some entries for Japan and Belgium have been removed. As the IDL metadata are updated somewhat regularly and former versions of the database are not preserved, results from published analyses are replicable but not reproducible.
+#' 
+#' @references International Database on Longevity, data was extracted on February 13th, 2023
+#' @format A data frame with 21 rows and 4 variables:
+#' \describe{
+#' \item{country}{factor, one of \code{AUT} (Austria), \code{BEL} (Belgium), \code{CAN} (Quebec), \code{DEU} (Germany), \code{DNK} (Denmark), \code{ESP} (Spain), \code{FIN} (Finland), \code{FRA} (France), \code{JPN} (Japan), \code{NOR} (Norway), \code{SWE} (Sweden), \code{EAW} (England and Wales) and \code{USA} (United States of America)}
+#' \item{group}{factor, either \code{105-109"} for semi-supercentenarians or \code{110+} for supercentenarians"}
+#' \item{ldate}{Date, smallest death date, formatted as "DD-MM-YYYY"}
+#' \item{rdate}{Date, latest death date, formatted as "DD-MM-YYYY"}
+#' }
+"idlmetadata"
+
+
 #' @importFrom graphics abline
 #' @importFrom graphics arrows
 #' @importFrom graphics hist
