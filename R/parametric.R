@@ -3,13 +3,13 @@
 #' Computes the log-likelihood for various parametric models suitable for threshold
 #' exceedances. If threshold is non-zero, then only right-censored, observed event time and interval censored
 #' data whose timing exceeds the thresholds are kept.
-#' @param par vector of parameters
+#' @param par vector of parameters, in order scale, rate and shape
 #' @param thresh vector of thresholds
 #' @inheritParams npsurv
 #' @param ltrunc lower truncation limit, default to \code{NULL}
 #' @param rtrunc upper truncation limit, default to \code{NULL}
 #' @param weights weights for observations
-#' @param family string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).
+#' @param family string; choice of parametric family
 #' @param status integer vector giving status of an observation. If \code{NULL} (default), this argument is computed internally based on \code{type}.
 #' @param ... additional arguments for optimization, currently ignored.
 #' @return log-likelihood value
@@ -30,13 +30,20 @@ nll_elife <- function(par,
                                  "gompmake",
                                  "weibull",
                                  "extgp",
-                                 "gppiece"),
+                                 "gppiece",
+                                 "extweibull",
+                                 "perks",
+                                 "beard",
+                                 "perksmake",
+                                 "beardmake"),
                       thresh = 0,
                       weights = rep(1, length(time)),
                       status = NULL,
                       ...){
   family <- match.arg(family)
   type <- match.arg(type)
+  # All parameters must be finite values
+  stopifnot(isTRUE(all(is.finite(par))))
   stopifnot("Threshold must be non-negative" = thresh >= 0,
             "Only a single threshold value is allowed" = family == "gppiece" || length(thresh) == 1L
   )
@@ -100,7 +107,7 @@ nll_elife <- function(par,
     }
   }
   # For gppiece model
-  #
+
   if(family == "gomp"){
     family <- "extgp"
     par <- c(par, 0)
@@ -130,12 +137,24 @@ nll_elife <- function(par,
     lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
       pgpd(q = dat, loc = 0, scale = par[1], shape = par[2], lower.tail = lower.tail, log.p = log.p)}
   } else if(family == "weibull"){
+    stopifnot("Length of parameters for Weibull family is two." = length(par) == 2)
     if(par[1] <= 0 || par[2] <= 0){
       return(1e20)
     }
     ldensf <- function(par, dat){dweibull(x = dat, scale = par[1], shape = par[2], log = TRUE)}
     lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){pweibull(q = dat, scale = par[1], shape = par[2], lower.tail = lower.tail, log.p = log.p)}
+   } else if(family == "extweibull"){
+     stopifnot("Length of parameters for extended Weibull family is three." = length(par) == 3)
+    if(par[1] <= 0 || par[3] <= 0){
+      return(1e20)
+    }
+    ldensf <- function(par, dat){
+    dextweibull(x = dat, scale = par[1], shape1 = par[2], shape2 = par[3], log = TRUE)}
+    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
+    pextweibull(q = dat, scale = par[1], shape1 = par[2], shape2 = par[3],
+                lower.tail = lower.tail, log.p = log.p)}
   } else if(family == "extgp"){
+    stopifnot("Length of parameters for extended generalized Pareto family is three." = length(par) == 3)
     # scale par[1]
     # beta = par[2]; if zero, recover generalized Pareto
     # xi = par[3]; if zero, recover Gompertz
@@ -170,20 +189,79 @@ nll_elife <- function(par,
       dextgp(x = dat, scale = par[1], shape1 = par[2], shape2 = par[3], log = TRUE)
     }
   } else if(family == "gompmake"){
+    stopifnot("Length of parameters for Gompertz Makeham family is three." = length(par) == 3)
     scale <- par[1]
-    lambda <- par[3]
-    shape <- par[2]
-    if(scale <=0 || lambda < 0 || shape <= 0){
+    rate <- par[2]
+    shape <- par[3]
+    if(scale <= 0 || rate < 0 || shape <= 0){
       return(1e20)
     }
     ldensf <- function(par, dat){
-      dgompmake(x = dat, scale = par[1], shape = par[2], lambda = par[3], log = TRUE)
+      dgompmake(x = dat, scale = par[1], shape = par[3], lambda = par[2], log = TRUE)
     }
     lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
-      pgompmake(q = dat, scale = par[1], shape = par[2], lambda = par[3], lower.tail = lower.tail, log.p = log.p)
+      pgompmake(q = dat, scale = par[1], shape = par[3], lambda = par[2], lower.tail = lower.tail, log.p = log.p)
     }
 
+  } else if(family == "perks"){
+    stopifnot("Length of parameters for Gompertz Makeham family is two." = length(par) == 2)
+    rate <- par[1]
+    shape <- par[2]
+    if(rate < 0 || shape <= 0){
+      return(1e20)
+    }
+    ldensf <- function(par, dat){
+      dperks(x = dat, rate = par[1], shape = par[2], log = TRUE)
+    }
+    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
+      pperks(q = dat,  rate = par[1], shape = par[2],
+                  lower.tail = lower.tail, log.p = log.p)
+    }
+  }  else if(family == "perksmake"){
+    stopifnot("Length of parameters for Perks Makeham family is three." = length(par) == 3)
+    rate <- par[1]
+    lambda <- par[2]
+    shape <- par[3]
+    if(rate < 0 || lambda < 0 || shape <= 0){
+      return(1e20)
+    }
+    ldensf <- function(par, dat){
+      dperksmake(x = dat,  rate = par[1], lambda = par[2], shape = par[3], log = TRUE)
+    }
+    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
+      pperksmake(q = dat, rate = par[1], lambda = par[2], shape = par[3],
+             lower.tail = lower.tail, log.p = log.p)
+    }
+  } else if(family == "beard"){
+    stopifnot("Length of parameters for Beard family is three." = length(par) == 3)
+    rate <- par[1]
+    shape <- par[2:3]
+    if(rate < 0 || shape[1] <= 0 || shape[2] < 0){
+      return(1e20)
+    }
+    ldensf <- function(par, dat){
+      dbeard(x = dat, rate = par[1], shape1 = par[2], shape2 = par[3], log = TRUE)
+    }
+    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
+      pbeard(q = dat,  rate = par[1], shape1 = par[2], shape2 = par[3],
+             lower.tail = lower.tail, log.p = log.p)
+    }
+  }  else if(family == "beardmake"){
+    stopifnot("Length of parameters for Beard Makeham family is four." = length(par) == 4)
+    rate <- par[1:2]
+    shape <- par[3:4]
+    if(isTRUE(any(rate < 0)) || shape[1] <= 0 || shape[2] < 0){
+      return(1e20)
+    }
+    ldensf <- function(par, dat){
+      dbeardmake(x = dat, rate = par[1], lambda = par[2], shape1 = par[3], shape2 = par[4], log = TRUE)
+    }
+    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
+      pperks(q = dat, rate = par[1], lambda = par[2], shape1 = par[3], shape2 = par[4],
+             lower.tail = lower.tail, log.p = log.p)
+    }
   } else if(family == "gppiece"){
+    stopifnot("Length of parameters for piecewise generalized Pareto \nfamily is the number of threshold values plus one." = length(par) == length(thresh) + 1L)
     thresh <- thresh - thresh[1]
     # Check constraints for the model
     scale <- par[1]
@@ -261,7 +339,9 @@ fit_elife <- function(time,
                       rtrunc = NULL,
                       thresh = 0,
                       status = NULL,
-                      family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp","gppiece"),
+                      family = c("exp", "gp", "weibull", "gomp",
+                                 "gompmake", "extgp", "gppiece", "extweibull",
+                                 "perks", "perksmake", "beard", "beardmake"),
                       weights = NULL,
                       export = FALSE,
                       start = NULL,
@@ -269,6 +349,7 @@ fit_elife <- function(time,
 ){
   stopifnot("Argument `restart` should be a logical vector" = is.logical(restart) & length(restart) == 1L)
   stopifnot("Argument `event` must be NULL, a vector of the same length as time or a scalar." = isTRUE(is.null(event) | length(event) %in% c(1L, length(time))))
+  family <- match.arg(family)
   if(!is.null(event) & length(event) == 1L){
     event <- rep(event, length.out = length(time))
   }
@@ -308,7 +389,6 @@ fit_elife <- function(time,
   } else{
     stopifnot("All weights should be positive" = isTRUE(all(weights >=0 )))
   }
-  family <- match.arg(family, several.ok = TRUE)
   type <- match.arg(type)
   stopifnot("Threshold must be positive" = thresh >= 0,
             "Only a single threshold is allowed" = length(thresh) == 1L || family == "gppiece",
@@ -453,10 +533,10 @@ fit_elife <- function(time,
       }
     } else if(family == "gompmake"){
       hin <- function(par, maxdat = NULL, thresh = 0, ...){par[1:3] }
-      ineqLB <- LB <- c(0, 1e-3, 0)
+      ineqLB <- LB <- c(0, 0, 1e-3)
       ineqUB <- UB <- rep(Inf, 3)
       if(is.null(start)){
-        start <- c(mean(dat, na.rm = TRUE), 0.1, 0.5)
+        start <- c(mean(dat, na.rm = TRUE), 0.5, 0.1)
       } else{
         stopifnot("Incorrect parameter length." = length(start) == 3L)
         ineq <- hin(start)
@@ -466,12 +546,67 @@ fit_elife <- function(time,
       # If shape1=0, then exponential model (but only the sum "1/par[1]+par[3]" is identifiable)
     } else if(family == "gomp"){
       hin <- function(par, maxdat = NULL, thresh = 0, ...){ par[1:2] }
-      ineqLB <- LB <- rep(0,2)
+      ineqLB <- LB <- rep(0, 2)
       ineqUB <- UB <- rep(Inf, 2)
       if(is.null(start)){
         start <- c(mean(dat, na.rm = TRUE), 0.1)
       } else{
         stopifnot("Incorrect parameter length." = length(start) == 2L)
+        ineq <- hin(start)
+        stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
+      }
+    }  else if(family == "extweibull"){
+      hin <- function(par, maxdat = NULL, thresh = 0, ...){ par[c(1,3)] }
+      ineqLB <- LB <- rep(0, 2)
+      ineqUB <- UB <- rep(Inf, 2)
+      if(is.null(start)){
+        start <- c(mean(dat, na.rm = TRUE), 0.1, 0.5)
+      } else{
+        stopifnot("Incorrect parameter length." = length(start) == 3L)
+        ineq <- hin(start)
+        stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
+      }
+    }  else if(family == "perks"){
+      hin <- function(par, maxdat = NULL, thresh = 0, ...){ par }
+      ineqLB <- LB <- rep(0, 2)
+      ineqUB <- UB <- rep(Inf, 2)
+      if(is.null(start)){
+        start <- c(1/mean(dat, na.rm = TRUE), 1)
+      } else{
+        stopifnot("Incorrect parameter length." = length(start) == 2L)
+        ineq <- hin(start)
+        stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
+      }
+    }  else if(family == "perksmake"){
+      hin <- function(par, maxdat = NULL, thresh = 0, ...){ par }
+      ineqLB <- LB <- rep(0, 3)
+      ineqUB <- UB <- rep(Inf, 3)
+      if(is.null(start)){
+        start <- c(1/mean(dat, na.rm = TRUE), 0.1, 1)
+      } else{
+        stopifnot("Incorrect parameter length." = length(start) == 3L)
+        ineq <- hin(start)
+        stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
+      }
+    }  else if(family == "beard"){
+      hin <- function(par, maxdat = NULL, thresh = 0, ...){ par }
+      ineqLB <- LB <- rep(0, 3)
+      ineqUB <- UB <- rep(Inf, 3)
+      if(is.null(start)){
+        start <- c(1/mean(dat, na.rm = TRUE), 1, 0.5)
+      } else{
+        stopifnot("Incorrect parameter length." = length(start) == 3L)
+        ineq <- hin(start)
+        stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
+      }
+    }  else if(family == "beardmake"){
+      hin <- function(par, maxdat = NULL, thresh = 0, ...){ par }
+      ineqLB <- LB <- rep(0, 4)
+      ineqUB <- UB <- rep(Inf, 4)
+      if(is.null(start)){
+        start <- c(1/mean(dat, na.rm = TRUE), 0.1, 1, 0.5)
+      } else{
+        stopifnot("Incorrect parameter length." = length(start) == 4L)
         ineq <- hin(start)
         stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
       }
@@ -602,14 +737,20 @@ fit_elife <- function(time,
     ll <- -opt_mle$values[length(opt_mle$values)]
     conv <- opt_mle$convergence == 0
   }
-  names(mle) <- names(se_mle) <- switch(family,
-                                        "exp" = c("scale"),
-                                        "gomp" = c("scale","shape"),
-                                        "gompmake" = c("scale","shape","lambda"),
-                                        "weibull" = c("scale","shape"),
-                                        "gp" = c("scale","shape"),
-                                        "extgp" = c("scale","beta","gamma"),
-                                        "gppiece" = c("scale", paste0("shape",1:(length(mle)-1L))),
+  names(mle) <- names(se_mle) <-
+    switch(family,
+          "exp" = c("scale"),
+          "gomp" = c("scale","shape"),
+          "gompmake" = c("scale","lambda","shape"),
+          "weibull" = c("scale","shape"),
+          "extweibull" = c("scale","shape", "xi"),
+          "gp" = c("scale","shape"),
+          "extgp" = c("scale","beta","gamma"),
+          "gppiece" = c("scale", paste0("shape",1:(length(mle)-1L))),
+          "perks" = c("rate","shape"),
+          "perksmake" = c("rate","lambda","shape"),
+          "beard" = c("rate","alpha","beta"),
+          "beardmake" = c("rate","lambda","alpha","beta")
   )
   if(isTRUE(all(status == 1L, na.rm = TRUE))){
     cens_type <- "none"
@@ -643,7 +784,7 @@ fit_elife <- function(time,
                           convergence = conv,
                           type = type,
                           family = family,
-                          thresh = thresh0,
+                          thresh = thresh,
                           time = time,
                           time2 = time2,
                           event = event,
@@ -753,7 +894,12 @@ print.elife_par <-
                          weibull = "Weibull",
                          extgp = "extended generalized Pareto",
                          gp = "generalized Pareto",
-                         gppiece = "piecewise generalized Pareto"),
+                         gppiece = "piecewise generalized Pareto",
+                         extweibull = "extended Weibull",
+                         perks = "Perks",
+                         perksmake = "Perks-Makeham",
+                         beard = "Beard",
+                         bearmake = "Beard-Makeham"),
         "distribution.", "\n")
     if(x$cens_type != "none" || x$trunc_type != "none"){
       cat("Sampling: ",

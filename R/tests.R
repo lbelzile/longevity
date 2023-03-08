@@ -36,7 +36,12 @@ test_elife <- function(time,
                                   "weibull",
                                   "gomp",
                                   "gompmake",
-                                  "extgp"),
+                                  "extgp",
+                                  "extweibull",
+                                  "perks",
+                                  "perksmake",
+                                  "beard",
+                                  "beardmake"),
                        weights = rep(1, length(time))) {
   family <- match.arg(family)
   type <- match.arg(type)
@@ -49,7 +54,12 @@ test_elife <- function(time,
                "gomp" = 2L,
                "gompmake" = 3L,
                "extgp" = 3L,
-               "weibull" = 2L)
+               "weibull" = 2L,
+               "extweibull" = 3L,
+               "perks" = 2L,
+               "perksmake" = 3L,
+               "beard" = 3L,
+               "beardmake" = 4L)
   if(isTRUE(all(is.matrix(ltrunc),
                 is.matrix(rtrunc),
                 ncol(ltrunc) == ncol(rtrunc),
@@ -135,7 +145,12 @@ print.elife_par_test <-   function(x,
                            weibull = "Weibull",
                            extgp = "extended generalized Pareto",
                            gp = "generalized Pareto",
-                           gppiece = "piecewise generalized Pareto"),
+                           gppiece = "piecewise generalized Pareto",
+                           extweibull = "extended Weibull",
+                           perks = "Perks",
+                           perksmake = "Perks-Makeham",
+                           beard = "Beard",
+                           beardmake = "Beard-Makeham"),
           "distribution.", "\n")
       cat("Threshold:", round(x$thresh, digits), "\n")
       cat("Number of exceedances per covariate level:\n")
@@ -151,12 +166,12 @@ print.elife_par_test <-   function(x,
 anova.elife_par <- function(object,
                             object2,
                             ...,
-                            test = c("Chisq",
-                                     "bootstrap")){
+                            test = "Chisq"){
   if (any(missing(object), missing(object2))){
     stop("Two models must be specified.")
   }
-  test <- match.arg(test)
+  #test <- match.arg(test)
+  test <- "Chisq" # only option implemented so far
   model1 <- deparse(substitute(object))
   model2 <- deparse(substitute(object2))
   models <- c(model1, model2)
@@ -201,22 +216,39 @@ anova.elife_par <- function(object,
   }
   # Cases considered
   nmods <- rbind(
-    c("exp", "weibull", "regular"),
-    c("exp", "gp", "regular"),
-    c("exp", "gppiece", "regular"),
-    c("gomp", "extgp", "regular"),
-    c("gp", "gppiece", "regular"),
-    c("gomp", "gompmake", "regular"),
-    c("exp", "gompmake", "boundary"),
-    c("exp", "gomp", "boundary"),
-    c("exp", "extgp", "boundary"),
-    c("gp", "extgp", "boundary")
+    c("exp", "weibull", "regular"),    # chisq(1)
+    c("exp", "gp", "regular"),         # chisq(1)
+    c("exp", "gppiece", "regular"),    # chisq(K)
+    c("exp", "gomp", "boundary"),      # 0.5 chisq(0) + 0.5 chisq(1)
+    c("exp", "extgp", "boundary"),     # 0.5 chisq(1) + 0.5 chisq(2)
+    c("exp", "gompmake", "invalid"),
+    c("gp", "extgp", "boundary"),      # 0.5 chisq(0) + 0.5 chisq(1)
+    c("gomp", "extgp", "regular"),     # chisq(1)
+    c("gp", "gppiece", "regular"),     # chisq(K-1)
+    c("gomp", "gompmake", "boundary"),  # 0.5 chisq(0) + 0.5 chisq(1)
+    c("weibull","extweibull","regular"), # chisq(1)
+    c("gp","extweibull","regular"), # chisq(1)
+    c("exp","extweibull","regular"), # chisq(2)
+    c("exp", "perks","boundary"),  # 0.5 chisq(0) + 0.5 chisq(1)
+    c("exp", "beard","boundary"),  # 0.5 chisq(1) + 0.5 chisq(2)
+    c("gomp", "beard","boundary"), # 0.5 chisq(0) + 0.5 chisq(1)
+    c("perks", "beard","regular"), # chisq(1)
+    c("perks", "perksmake","boundary"), # 0.5 chisq(0) + 0.5 chisq(1)
+    c("beard", "beardmake","boundary"), # 0.5 chisq(0) + 0.5 chisq(1)u
+    c("perks", "beardmake","boundary"), # 0.5 chisq(0) + 0.5 chisq(1)
+    c("perksmake", "beardmake","regular"),
+    c("gompmake", "beardmake","boundary"),
+    c("gomp", "beardmake","boundary2"), # 0.25 chisq(0) + 0.5 chisq(1) + 0.25 chisq(2)
+    c("exp", "beardmake","invalid"),
+    c("exp", "perksmake","invalid")
   )
   match_family <- which(apply(nmods[,1:2], 1,
                               function(fam){
                                 isTRUE(all(family %in% fam))}))
   stopifnot("Invalid input: models are not nested" = length(match_family) == 1L)
-
+  if(nmods[match_family,3] == "invalid"){
+    stop("Models are nested, but parameters are not identifiable.\nThe information matrix is singular.")
+  }
   df <- -diff(npar)
   dvdiff <- diff(dev)
   if(dvdiff < 0 && dvdiff > -1e-4){
@@ -238,7 +270,16 @@ anova.elife_par <- function(object,
         0.5*pchisq(dvdiff,
                    df = df - 1L,
                    lower.tail = FALSE)
-    }
+    } else if(nmods[match_family,3] == "boundary2"){
+      pval <- 0.25*pchisq(dvdiff,
+                         df = df,
+                         lower.tail = FALSE) +
+        0.5*pchisq(dvdiff,
+                   df = df - 1L,
+                   lower.tail = FALSE) +
+        0.25*pchisq(dvdiff,
+                   df = df - 2L,
+                   lower.tail = FALSE)
   }
   table <- data.frame(npar, dev, c(NA, df), c(NA, dvdiff), c(NA,pval))
   dimnames(table) <- list(models,
@@ -554,8 +595,8 @@ ks_test <- function(time,
                     thresh = 0,
                     ltrunc = NULL,
                     rtrunc = NULL,
-                    type = c("right", "left","interval","interval2"),
-                    family = c("exp", "gp", "weibull", "gomp", "extgp","gppiece"),
+                    type = c("right", "left", "interval", "interval2"),
+                    family = c("exp", "gp", "weibull", "gomp", "extgp", "gppiece"),
                     B = 999L){
 
   # Exclude doubly interval truncated data
