@@ -55,9 +55,41 @@ p_extgp_v_gomp <- longevity::pextgp(ddata,
                                     scale = 2,
                                     shape1 = 0.5,
                                     shape2 = 0)
+# TODO Check endpoint with negative shape
+p_extweibull_v_pos <- longevity::pextweibull(ddata,
+                                             scale = 2,
+                                             shape1 = 0.5,
+                                             shape2 = 0.5)
+p_extweibull_v_neg  <- longevity::pextweibull(ddata,
+                                             scale = 2,
+                                             shape1 = -0.5,
+                                             shape2 = 0.5)
+p_extweibull_v_gp <- longevity::pextweibull(ddata,
+                                               scale = 2,
+                                               shape1 = 0.5,
+                                               shape2 = 1)
+p_extweibull_v_exp <-  longevity::pextweibull(ddata,
+                                              scale = 2,
+                                              shape1 = 0,
+                                              shape2 = 1)
+p_extweibull_v_weibull  <- longevity::pextweibull(ddata,
+                                             scale = 2,
+                                             shape1 = 0,
+                                             shape2 = 0.5)
+p_perks_v <- longevity::pperks(ddata, shape1 = 0.5, shape2 = 0.5)
+p_perks_v_exp <- longevity::pperks(ddata, shape1 = 0, shape2 = 1/3)
+p_beard_v <- longevity::pperks(ddata, shape1 = 0.5, shape2 = 0.5, shape3 = 0.1)
+p_beard_v_exp  <- longevity::pbeard(ddata, shape1 = 0, shape2 = 1/3)
+p_beard_v_perks <- longevity::pbeard(ddata, shape1 = 0.5, shape2 = 0.5, shape3 = 1)
+p_perksmake_v_perks <- longevity::pperks(ddata, shape1 = 0.5, shape2 = 0.5, lambda = 0)
+p_beardmake_v_perks <- longevity::pbeardmake(ddata, shape1 = 0.5, shape2 = 0.5, shape3 = 1, lambda = 0)
+p_beardmake_v_perksmake <- longevity::pbeardmake(ddata, shape1 = 0.5, shape2 = 0.5, shape3 = 1, lambda = 2)
+p_beardmake_v_exp <- longevity::pbeardmake(ddata, shape1 = 0, shape2 = 0.25, shape3 = 4, lambda = 0.25)
+p_beardmake_v_gomp <- longevity::pbeardmake(ddata, shape1 = 1, shape2 = 0.5, shape3 = 0, lambda = 0)
+p_beardmake_v_gompmake <- longevity::pbeardmake(ddata, shape1 = 1, shape2 = 0.5, shape3 = 0, lambda = 0.5)
 
-
-
+## TODO continue checks from here...
+## also check support of the extended Weibull
 p_exp_r <- pexp(ddata,
                 rate = 1 / 2,
                 lower.tail = FALSE,
@@ -176,7 +208,24 @@ models <-
     "p_extgp_v_gomp",
     "p_extgp_v_gpd",
     "p_extgp_v_neg",
-    "p_extgp_v_pos"
+    "p_extgp_v_pos",
+    "p_extweibull_v_pos",
+    "p_extweibull_v_neg",
+    "p_extweibull_v_gp",
+    "p_extweibull_v_exp",
+    "p_extweibull_v_weibull",
+    "p_perks_v",
+    "p_perks_v_exp",
+    "p_beard_v",
+    "p_beard_v_exp",
+    "p_beard_v_perks",
+    "p_perksmake_v_perks",
+    "p_beardmake_v_beard",
+    "p_beardmake_v_perks",
+    "p_beardmake_v_perksmake",
+    "p_beardmake_v_exp",
+    "p_beardmake_v_gomp",
+    "p_beardmake_v_gompmake",
   )
 
 zerocdf <- sapply(models,

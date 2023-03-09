@@ -45,7 +45,7 @@ devtools::install_github("lbelzile/longevity")
 - [x] quantile-quantile plots
 - [x] likelihood ratio tests for nested models
 - [x] likelihood ratio tests for a categorical explanatory
-- \[\] likelihood ratio tests for changepoints
+- [ ] likelihood ratio tests for changepoints
 - [x] score and likelihood ratio tests for piecewise generalized Pareto
   distribution, extending Northrop and Coleman (2014), with $p$-value
   paths

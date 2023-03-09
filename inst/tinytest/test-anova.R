@@ -99,7 +99,9 @@ tinytest::expect_equal(
   0.5*pchisq(deviance(fit_exp) - deviance(fit_gompmake),
          df = 1, lower.tail = FALSE) +
     0.25*pchisq(deviance(fit_exp) - deviance(fit_gompmake),
-               df = 2, lower.tail = FALSE))
+               df = 2, lower.tail = FALSE) +
+    0.25*pchisq(deviance(fit_exp) - deviance(fit_gompmake),
+                df = 0, lower.tail = FALSE))
 
 
 # Invalid comparisons - non-nested models

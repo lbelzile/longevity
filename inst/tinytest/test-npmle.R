@@ -1,8 +1,9 @@
 # Checking the nonparametric maximum
 # likelihood estimator of Turnbull
 # against the implementation.
-
-# [1] Toy examples
+library(survival)
+library(longevity)
+# [1] Toy example with interval censoring and right censoring
 #
 # Two observations: A1: [1,3], A2: 4
 # Probability of 0.5
@@ -30,6 +31,9 @@ test_simple3 <- npsurv(time,
 tinytest::expect_equal(c(1/3, 2/3),
                        test_simple3$prob)
 
+interval::icfit(L = c(1,1,2), R = c(1,Inf,2))
+
+# This fails _problem with definition in Turnbull?_
 
 # [2] Left truncated data
 n <- 100L
@@ -50,12 +54,12 @@ npmle_ltrunc_long <-
 tinytest::expect_equal(npmle_ltrunc_long$prob,
                        density_bl)
 
-# [3] Left-truncated right censored data
+# [3] Left-truncated right-censored data
 # Create fake data with ties
 set.seed(1234)
 n <- 100L
 ltrunc <- pmax(0, rnorm(n))
-# Since about half of lower truncation bounds are null
+# Since about half of lower truncation bounds are zero
 # The following creates ties!
 time <- rexp(10) + ltrunc
 # 0 for right-censored, 1 for observed
@@ -175,3 +179,38 @@ tinytest::expect_equal(F_int,
 tinytest::expect_equal(test$prob,
                        c(0.5,0.25,0.25))
 
+# [6] Interval censoring
+
+# Icens only deals with finite bounds
+
+interval::icfit(L = c(1,1,4), R = c(3,2,Inf))
+longevity::npsurv(time = c(1,1,4),
+                  time2 = c(3,2,Inf),
+                  type = "interval2")
+
+interval::icfit(L = c(1,1,2,3), R = c(2,2,3,4))
+longevity::npsurv(time = c(1,2,3),
+                  time2 = c(2,3,4),
+                  type = "interval2",
+                  weights = c(2,1,1))
+
+# [7] Example from Gentleman and Geyer (1994)
+# Interval censoring
+# Solution is 1/3 in (0,1], 1/3 in (1,2] and 1/3 in (2,3]
+# whereas Turnbull may return 0.5,0,0.5
+time = c(0,1,1,0,0,2)
+time2 = c(1,3,3,2,2,3)
+longevity::npsurv(time = time,
+                  time2 = time2,
+                  type = "interval2")
+interval::icfit(L = time, R = time2)
+
+
+# AIDS example from Lindsey and Ryan
+
+left <- c(0,15,12,17,13,0,6,0,14,12,13,12,12,0,0,0,0,3,4,1,13,0,0,6,0,2,1,0,0,2,0)
+right <- c(16, rep(Inf, 4), 24, Inf, 15, rep(Inf, 5), 18, 14, 17, 15, Inf, Inf, 11, 19, 6, 11, Inf, 6, 12, 17, 14, 25, 11, 14)
+test <- longevity::npsurv(time = left,
+                  time2 = right,
+                  type = "interval2")
+test2 <- interval::icfit(L = left, R = right)
