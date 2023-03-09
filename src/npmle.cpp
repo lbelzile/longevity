@@ -19,8 +19,8 @@ arma::mat turnbull_intervals(
   // Sort and get unique elements of left and right sets
   Lset = arma::unique(Lset);
   Rset = arma::unique(Rset);
-  // Rcpp::Rcout << min(Lset) << " and " << max(Rset) << std::endl;
-  int n = std::min(Lset.n_elem, Rset.n_elem);
+  arma::vec tau = arma::sort(arma::unique(arma::join_cols(Lset, Rset)));
+  int n = tau.n_elem + 1; //std::min(Lset.n_elem, Rset.n_elem);
   // Create container, reduce size latter
   arma::mat turnset(n, 2);
   arma::uword Lind = 0;
@@ -179,6 +179,7 @@ return Rcpp::List::create(Rcpp::Named("truncLow") = truncLow,
 //' @param cens logical; if \code{FALSE}, then \code{censUpp = censLow} and a particular update can be avoided in the EM algorithm
 //' @param tol tolerance level for terminating the EM algorithm
 //' @param maxiter maximum number of iteration for the EM algorithm
+//' @param weights vector of weights for observations
 //' @return a list with the probabilities and the standard errors
 //' @keywords internal
 // [[Rcpp::export(.turnbull_em)]]
@@ -189,6 +190,7 @@ Rcpp::List turnbullem(
     arma::vec rcens,
     arma::vec ltrunc,
     arma::vec rtrunc,
+    arma::vec weights,
     bool cens = true,
     bool trunc = true,
     double tol = 1e-12,
@@ -198,6 +200,9 @@ Rcpp::List turnbullem(
   arma::uvec censUpp(n);
   arma::uvec truncLow(n);
   arma::uvec truncUpp(n);
+  if(weights.n_elem != n){
+    Rcpp::stop("Invalid weight vector");
+  }
   if(lcens.n_elem != n | rcens.n_elem != n){
     Rcpp::stop("All vectors of censoring intervals should be of the same length.");
   }
@@ -274,10 +279,10 @@ Rcpp::List turnbullem(
         if(cens){
           sum_p = arma::sum(pCur(arma::span(censLow(i), censUpp(i))));
           for(arma::uword j = censLow(i); j <= censUpp(i); ++j){
-            uiCum(j) += pCur(j)/sum_p;
+            uiCum(j) += weights(i) * pCur(j)/sum_p;
           }
           } else{
-          uiCum(censLow(i)) += 1;
+          uiCum(censLow(i)) +=  weights(i);
         }
       }
       if(trunc & truncLow(i) < J){
@@ -285,7 +290,7 @@ Rcpp::List turnbullem(
         sum_p = arma::sum(pCur(arma::span(truncLow(i), truncUpp(i))));
         for(arma::uword j = 0; j < J; ++j){
           if(j < truncLow(i) || j > truncUpp(i)){
-            uiCum(j) += pCur(j) / sum_p;
+            uiCum(j) +=  weights(i) * pCur(j) / sum_p;
           }
         }
       }

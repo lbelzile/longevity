@@ -258,7 +258,7 @@ anova.elife_par <- function(object,
   if(dvdiff < 0){
     stop("The alternative model has a lower likelihood value than the null model, indicating convergence problems.")
   }
-  if(test == "Chisq"){
+  # if(test == "Chisq"){
     if(nmods[match_family,3] == "regular"){ #regular model
      pval <- pchisq(dvdiff,
                     df = df,
@@ -292,8 +292,9 @@ anova.elife_par <- function(object,
   structure(table,
             heading = c("Analysis of Deviance Table\n"),
             class = c("anova", "data.frame"))
+  return(table)
+# }
 }
-
 #' Score test of Northrop and Coleman
 #'
 #' This function computes the score test
@@ -476,7 +477,7 @@ plot.elife_northropcoleman <- function(x,
              caption = testname) +
         ggplot2::scale_y_continuous(breaks = c(0,0.25,0.5,0.75,1),
                                     limits = c(0,1),
-                                    expand = c(0,0)) +
+                                    expand = c(0,0.1)) +
         ggplot2::theme_classic()
       if(plot){
         get("print.ggplot", envir = loadNamespace("ggplot2"))(g1)

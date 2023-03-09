@@ -45,9 +45,10 @@ devtools::install_github("lbelzile/longevity")
 - [x] quantile-quantile plots
 - [x] likelihood ratio tests for nested models
 - [x] likelihood ratio tests for a categorical explanatory
+- \[\] likelihood ratio tests for changepoints
 - [x] score and likelihood ratio tests for piecewise generalized Pareto
   distribution, extending Northrop and Coleman (2014), with $p$-value
-  plots
+  paths
 - [x] nonparametric maximum likelihood estimate of the distribution
   function with arbitrary truncation and censoring using the EM
   algorithm of Turnbull (1976) - C++ implementation.
@@ -56,7 +57,10 @@ devtools::install_github("lbelzile/longevity")
 
 ## Improvements
 
+- [ ] Add logistic-type models, including distributions, optimization
+  routines, tests
 - [ ] Add empirical distribution function for `npelife` and `npsurv`
+- [ ] Fix `npsurv` and add weighting argument to Cpp routine.
 - [ ] Remove/keep Kolmogorov-Smirnov test (depending on whether it makes
   sense given null distribution)
 - [ ] Add plots of (local) hazards with delta-method based confidence

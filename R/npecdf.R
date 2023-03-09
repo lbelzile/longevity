@@ -72,7 +72,9 @@ turnbull_intervals <- function(
 #' @inheritParams npsurv
 #' @param thresh double thresh
 #' @param tol double, relative tolerance for convergence of the EM algorithm
+#' @param weights double, vector of weights for the observations
 #' @param vcov logical; should the observed information matrix be computed? Default to \code{FALSE}
+#' @param ... additional arguments, currently ignored
 #' @return a list with elements
 #' \itemize{
 #' \item{\code{cdf}: }{right-continuous \code{stepfun} object defined by probabilities}
@@ -90,12 +92,13 @@ turnbull_intervals <- function(
 #' # Create fake data
 #' ltrunc <- pmax(0, runif(n, -0.5, 1))
 #' rtrunc <- runif(n, 6, 10)
-#' dat <- samp_elife(n = n, scale = 1,
-#'                shape = -0.1,
-#'                lower = ltrunc,
-#'                upper = rtrunc,
-#'                family = "gp",
-#'                type2 = "ltrt")
+#' dat <- samp_elife(n = n,
+#'                   scale = 1,
+#'                   shape = -0.1,
+#'                   lower = ltrunc,
+#'                   upper = rtrunc,
+#'                   family = "gp",
+#'                   type2 = "ltrt")
 #' npi <- np_elife(time = dat,
 #'                 rtrunc = rtrunc,
 #'                 ltrunc = ltrunc,
@@ -111,7 +114,9 @@ np_elife <- function(time,
                      ltrunc = NULL,
                      rtrunc = NULL,
                      tol = 1e-12,
-                     vcov = FALSE) {
+                     weights,
+                     vcov = FALSE,
+                     ...) {
   stopifnot(
     "Argument `thresh` should be positive." = min(thresh) >= 0,
     "Argument `thresh` should be a vector of length 1." = length(thresh) == 1L,
@@ -208,7 +213,9 @@ np_elife <- function(time,
   if(is.null(rtrunc)){
     rtrunc <- Inf
   }
-
+  # Check new definition of semi-infinite intervals are semi-closed
+  #time <- ifelse(is.finite(time2), time, time + 1e-8)
+  #time2 <- ifelse(is.finite(time), time2, time2 - 1e-8)
   dummy1 <- matrix(NA, nrow = J, ncol = n)
   dummy2 <- matrix(NA, nrow = J, ncol = n)
   for(i in seq_len(J)){
@@ -493,6 +500,7 @@ logit <- function(x) {
 #' @param type character string specifying the type of censoring. Possible values are "\code{right}", "\code{left}", "\code{interval}", "\code{interval2}".
 #' @param ltrunc lower truncation limit, default to \code{NULL}
 #' @param rtrunc upper truncation limit, default to \code{NULL}
+#' @param weights vector of weights, default to \code{NULL} for equiweighted
 #' @seealso \code{\link[survival]{Surv}}
 #' @return a list with components
 #' \itemize{
@@ -512,6 +520,7 @@ npsurv <- function(time,
                             "interval2"),
                    ltrunc = NULL,
                    rtrunc = NULL,
+                   weights = NULL,
                    ...){
 
   stopifnot("`time` must be a numeric vector." = is.numeric(time))
@@ -578,6 +587,11 @@ npsurv <- function(time,
   } else{
     maxiter <- 1e5L
   }
+  if(is.null(weights)){
+    weights <- rep(1, n)
+  } else{
+    stopifnot("Weights must be positive and finite." = isTRUE(all(weights > 0)) & isTRUE(all(is.finite(weights))))
+  }
   survfit_res <- .turnbull_em(
     tsets = unex,
     n = as.integer(n),
@@ -589,7 +603,8 @@ npsurv <- function(time,
     zerotol = as.numeric(zerotol),
     tol = as.numeric(tol),
     maxiter = as.integer(maxiter),
-    trunc = as.logical(trunc)
+    trunc = as.logical(trunc),
+    weights = as.numeric(weights)
   )
   if(!survfit_res$conv){
     warning(paste("EM algorithm did not converge after",

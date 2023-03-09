@@ -58,8 +58,7 @@ Let $q_j$ $(j=1, \ldots, m)$ denote the unique failure times and let $V_i$ $(i=1
 where $d_j$ is the number of instances of $q_j$ (that is, the number of failures at time $q_j$) and $r_j$ is the number of elements at risk at time $q_j$, viz. $\#\{i: V_i < q_j \leq T_i\}$. In this case, the sets forming $C$ are the unique instances of the failure times $q_j$ $(j=1, \ldots, m)$ and the nonparametric MLE of the distribution function is 1 beyond $q_m$.
 
 
-
-### Left truncated right censored observations
+### Left-truncated right-censored observations
 
 @Tsai.Jewell.Wang:1987 provide a closed-form solution when observations are left truncated and right censored.
 

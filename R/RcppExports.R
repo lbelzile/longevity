@@ -38,9 +38,10 @@
 #' @param cens logical; if \code{FALSE}, then \code{censUpp = censLow} and a particular update can be avoided in the EM algorithm
 #' @param tol tolerance level for terminating the EM algorithm
 #' @param maxiter maximum number of iteration for the EM algorithm
+#' @param weights vector of weights for observations
 #' @return a list with the probabilities and the standard errors
 #' @keywords internal
-.turnbull_em <- function(tsets, n, lcens, rcens, ltrunc, rtrunc, cens = TRUE, trunc = TRUE, tol = 1e-12, zerotol = 1e-40, maxiter = 1e5L) {
-    .Call(`_longevity_turnbullem`, tsets, n, lcens, rcens, ltrunc, rtrunc, cens, trunc, tol, zerotol, maxiter)
+.turnbull_em <- function(tsets, n, lcens, rcens, ltrunc, rtrunc, weights, cens = TRUE, trunc = TRUE, tol = 1e-12, zerotol = 1e-40, maxiter = 1e5L) {
+    .Call(`_longevity_turnbullem`, tsets, n, lcens, rcens, ltrunc, rtrunc, weights, cens, trunc, tol, zerotol, maxiter)
 }
 
