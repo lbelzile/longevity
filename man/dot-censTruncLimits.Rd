@@ -4,7 +4,7 @@
 \alias{.censTruncLimits}
 \title{Identification sets}
 \usage{
-.censTruncLimits(tsets, n, lcens, rcens, ltrunc, rtrunc, trunc)
+.censTruncLimits(tsets, lcens, rcens, ltrunc, rtrunc, trunc, cens)
 }
 \arguments{
 \item{tsets}{Turnbull's sets}

@@ -33,7 +33,7 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 
 \item{type}{character string specifying the type of censoring. Possible values are "\code{right}", "\code{left}", "\code{interval}", "\code{interval2}".}
 
-\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).}
+\item{family}{string; choice of parametric family}
 
 \item{B}{number of bootstrap simulations}
 }

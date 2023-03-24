@@ -13,7 +13,8 @@ fit_elife(
   rtrunc = NULL,
   thresh = 0,
   status = NULL,
-  family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp", "gppiece"),
+  family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp", "gppiece",
+    "extweibull", "perks", "perksmake", "beard", "beardmake"),
   weights = NULL,
   export = FALSE,
   start = NULL,
@@ -39,7 +40,7 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 
 \item{status}{integer vector giving status of an observation. If \code{NULL} (default), this argument is computed internally based on \code{type}.}
 
-\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).}
+\item{family}{string; choice of parametric family}
 
 \item{weights}{weights for observations}
 

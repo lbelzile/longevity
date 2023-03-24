@@ -470,3 +470,13 @@ uq1_qqplot_elife <-
 #   vcov <- object$vcov
 #
 # }
+
+
+#' @importFrom stats plot.ecdf
+plot.elife_ecdf <- function(x, ...){
+  args <- list(...)
+  args$main <- ""
+  args$x <- x
+  args$ylab <- expression(F[n](x))
+  do.call(plot.ecdf, args = args)
+}

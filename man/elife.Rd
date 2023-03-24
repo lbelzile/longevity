@@ -10,17 +10,21 @@
 \usage{
 qelife(
   p,
-  scale = 1,
+  rate,
+  scale,
   shape,
-  family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp"),
+  family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp", "extweibull", "perks",
+    "perksmake", "beard", "beardmake"),
   lower.tail = TRUE
 )
 
 pelife(
   q,
-  scale = 1,
+  rate,
+  scale,
   shape,
-  family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp"),
+  family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp", "extweibull", "perks",
+    "perksmake", "beard", "beardmake"),
   lower.tail = TRUE,
   log.p = FALSE
 )
@@ -29,25 +33,30 @@ relife(
   n,
   scale = 1,
   shape,
-  family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp")
+  family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp", "extweibull", "perks",
+    "perksmake", "beard", "beardmake")
 )
 
 delife(
   x,
   scale = 1,
+  rate,
   shape,
-  family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp"),
+  family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp", "extweibull", "perks",
+    "perksmake", "beard", "beardmake"),
   log = FALSE
 )
 }
 \arguments{
 \item{p}{vector of probabilities}
 
-\item{scale}{scale parameter(s)}
+\item{rate}{rate parameter(s); for models with Makeham component, the last entry should be part of the rate vector}
+
+\item{scale}{scale parameter}
 
 \item{shape}{vector of shape parameter(s).}
 
-\item{family}{string indicating the parametric model, one of \code{exp}, \code{gp}, \code{gomp}, \code{gompmake}, \code{weibull} and \code{extgp}}
+\item{family}{string indicating the parametric model, one of \code{exp}, \code{gp}, \code{gomp}, \code{gompmake}, \code{weibull}, \code{extgp}, \code{extweibull}, \code{perks}, \code{perksmake}, \code{beard} and \code{beardmake}}
 
 \item{lower.tail}{logical; if \code{TRUE} (default), the lower tail probability \eqn{\Pr(X \leq x)} is returned.}
 

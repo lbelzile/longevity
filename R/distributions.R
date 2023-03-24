@@ -65,10 +65,11 @@ dgpd <- function (x,
     ))
   }
   d <- (x - loc) / scale
-  index <- (d >= 0 & ((1 + shape * d) >= 0)) | is.na(d)
+  index <- (d >= 0 & ((1 + shape * d) >= 0)) & !is.na(d)
   d[index] <- log(1 / scale) -
     (1 / shape + 1) * log(1 + shape * d[index])
   d[!index & !is.na(d)] <- -Inf
+  d[is.na(d)] <- NA
   if (!log) {
     d <- exp(d)
   }
@@ -127,11 +128,12 @@ pextweibull <- function(q,
   check_elife_dist(scale = scale,
                    shape = c(shape1, shape2),
                    family = "extweibull")
-  q <- (q / scale) ^ shape2
-  if (shape == 0) {
-    p <- 1 - exp(-q)
+  q <- (pmax(0, q) / scale)^shape2
+  if (isTRUE(all.equal(shape1, 0, check.attributes = FALSE))){
+  # Weibull model
+      p <- 1 - exp(-q)
   } else {
-    p <- 1 - exp((-1 / shape) * log1p(pmax(-1, shape * q)))
+    p <- 1 - exp((-1 / shape1) * log1p(pmax(-1, shape1 * q)))
   }
   if (!lower.tail) {
     p <- 1 - p
@@ -181,10 +183,10 @@ dextweibull <- function (x,
     ))
   }
   d <- x / scale
-  index <- (d >= 0 & ((1 + shape1 * d ^ shape2) >= 0)) | is.na(d)
-  d[index] <- -log(scale) - (shape2 - 1) * log(d)
-  (1 / shape1 + 1) * log(1 + shape1 * d[index] ^ shape2)
+  index <- (d >= 0 & ((1 + shape1 * d^shape2) >= 0)) & !is.na(d)
+  d[index] <- -log(scale) + (shape2 - 1) * log(d[index]) - (1 / shape1 + 1) * log(1 + shape1 * d[index]^shape2) + log(shape2)
   d[!index & !is.na(d)] <- -Inf
+  d[is.na(d)] <- NA
   if (!log) {
     d <- exp(d)
   }
@@ -215,10 +217,10 @@ qextweibull <- function(p,
     return(-scale * log(p))
   } else if (isTRUE(all.equal(shape1, 0, check.attributes = FALSE))) {
     return(qweibull(
-      x = x,
+      p = p,
       shape = shape2,
       scale = scale,
-      log = log
+      lower.tail = FALSE
     ))
   } else if (isTRUE(all.equal(shape2, 1, check.attributes = FALSE))) {
     return(scale * (p ^ (-shape1) - 1) / shape1)
@@ -254,7 +256,7 @@ pgomp <- function(q,
   } else {
     p <-
       pmax(0, 1 - exp(-expm1(exp(
-        log(shape) + log(q) - log(scale)
+        log(shape) + log(pmax(0,q)) - log(scale)
       )) / shape))
   }
   if (!lower.tail) {
@@ -626,9 +628,10 @@ pperksmake <- function(q,
                        lambda = 0,
                        lower.tail = TRUE,
                        log.p = FALSE) {
+  q <- pmax(q, 0)
   check_elife_dist(rate = c(rate, lambda),
                    shape = shape,
-                   family = "perks")
+                   family = "perksmake")
   if (rate == 0) {
     p <- 1 - exp(-(lambda + shape / (shape + 1)) * q)
   } else {
@@ -660,7 +663,7 @@ dperksmake <- function (x,
                         log = FALSE) {
   check_elife_dist(rate = c(rate, lambda),
                    shape = shape,
-                   family = "perks")
+                   family = "perksmake")
   if (isTRUE(all.equal(rate, 0, check.attributes = FALSE))) {
     return(dexp(
       x = x,
@@ -671,8 +674,8 @@ dperksmake <- function (x,
   d <-  log1p(shape) / rate +
     log(lambda + shape * exp(rate * x) /
               (1 + shape *exp(rate * x))) - lambda * x - log1p(shape * exp(rate * x)) / rate
-  d[!is.finite(x)] <- -Inf
-
+  d[!is.finite(x) | x < 0] <- -Inf
+  d[is.na(x)] <- NA
   if (!log) {
     d <- exp(d)
   }
@@ -685,6 +688,7 @@ dperksmake <- function (x,
 #' @inheritParams pperksmake
 #' @return vector of quantiles
 #' @export
+#' @importFrom stats uniroot
 #' @keywords internal
 qperksmake <- function(p,
                        rate = 1,
@@ -695,13 +699,13 @@ qperksmake <- function(p,
     stop("\"p' must contain probabilities in (0,1)")
   check_elife_dist(rate = c(rate, lambda),
                    shape = shape,
-                   family = "perks")
+                   family = "perksmake")
   if (lower.tail) {
     p <- 1 - p
   }
   if (isTRUE(all.equal(rate, 0, check.attributes = FALSE))) {
     rate_e <- lambda + shape / (1 + shape)
-    return(qexp(p, rate = rate_e, lower.tail = lower.tail))
+    return(qexp(p, rate = rate_e, lower.tail = FALSE))
   } else if (isTRUE(all.equal(lambda, 0, check.attributes = FALSE))) {
     return(log((p ^ (-rate) * (1 + shape) - 1) / shape) / rate)
   } else{
@@ -878,6 +882,7 @@ pbeardmake <- function(q,
                        lambda = 0,
                        lower.tail = TRUE,
                        log.p = FALSE) {
+  q <- pmax(q,0)
   if (isTRUE(all.equal(shape2, 1, check.attributes = FALSE))) {
     # If subcase, return this instead
     return(
@@ -894,7 +899,7 @@ pbeardmake <- function(q,
     # If subcase, return this instead
     return(
       pgompmake(
-        x = x,
+        q = q,
         scale = 1 / shape1,
         shape = rate / shape1,
         lambda = lambda,
@@ -910,12 +915,9 @@ pbeardmake <- function(q,
   )
   if (isTRUE(all.equal(rate, 0, check.attributes = FALSE))) {
     p <- 1 - exp(-(lambda + shape1 / (shape1 * shape2 + 1)) * q)
-    # p <- pexp(q = q, rate = lambda + shape2/(shape2*shape3 + 1),
-    #           lower.tail = lower.tail, log.p = log.p)
   } else {
     p <-
-      1 - exp((log1p(shape1 * shape2) - log1p(shape1 * shape2 * exp(rate *
-                                                                      q))) / (shape2 * rate) - lambda * q)
+      1 - exp((log1p(shape1 * shape2) - log1p(shape1 * shape2 * exp(rate *q))) / (shape2 * rate) - lambda * q)
   }
   if (!lower.tail) {
     p <- 1 - p
@@ -949,13 +951,13 @@ dbeardmake <- function (x,
       lambda = lambda,
       log = log
     ))
-  } else if (isTRUE(all.equal(shape3, 0, check.attributes = FALSE))) {
+  } else if (isTRUE(all.equal(shape2, 0, check.attributes = FALSE))) {
     # If subcase, return this instead
     return(dgompmake(
       x = x,
-      scale = 1 / shape2,
-      shape = shape1 * shape2,
-      lambda = lambda,
+        scale = 1 / shape1,
+        shape = rate / shape1,
+        lambda = lambda,
       log = log
     ))
   }
@@ -964,18 +966,19 @@ dbeardmake <- function (x,
     shape = c(shape1, shape2),
     family = "beardmake"
   )
-  if (isTRUE(all.equal(shape1, 0, check.attributes = FALSE))) {
+  if (isTRUE(all.equal(rate, 0, check.attributes = FALSE))) {
     return(dexp(
       x = x,
-      rate = lambda + shape2 / (shape2 * shape3 + 1),
+      rate = lambda + shape1 / (1 + shape1 * shape2),
       log = log
     ))
   }
   d <-
-    (log1p(shape2 * shape3) - log1p(shape2 * shape3 * exp(shape1 * x))) / (shape3 *
-                                                                             shape1) - lambda * x + log(lambda + shape2 * exp(shape1 * x) / (1 + shape2 *
-                                                                                                                                               shape3 * exp(shape1 * x)))
-  d[!is.finite(x)] <- -Inf
+    (log1p(shape1 * shape2) - log1p(shape1 * shape2 * exp(rate * x))) /
+    (shape2 * rate) - lambda * x + log(lambda + shape1 * exp(rate * x) / (1 + shape1 *
+                                                                                                                                               shape2 * exp(rate * x)))
+  d[!is.finite(x) | x < 0] <- -Inf
+  d[is.na(x)] <- NA
   if (!log) {
     d <- exp(d)
   }
@@ -990,23 +993,23 @@ dbeardmake <- function (x,
 #' @export
 #' @keywords internal
 qbeardmake <- function(p,
+                       rate = 1,
                        shape1 = 1,
                        shape2 = 1,
-                       shape3 = 1,
                        lambda = 0,
                        lower.tail = TRUE) {
-  if (isTRUE(all.equal(shape3, 1, check.attributes = FALSE))) {
+  if (isTRUE(all.equal(shape2, 1, check.attributes = FALSE))) {
     # If subcase, return this instead
     return(
       qperksmake(
         p = p,
-        shape1 = shape1,
-        shape2 = shape2,
+        rate = rate,
+        shape = shape1,
         lambda = lambda,
         lower.tail = lower.tail
       )
     )
-  }  else if (isTRUE(all.equal(shape3, 0, check.attributes = FALSE))) {
+  }  else if (isTRUE(all.equal(shape2, 0, check.attributes = FALSE))) {
     # If subcase, return this instead
     return(
       qgompmake(
@@ -1030,7 +1033,7 @@ qbeardmake <- function(p,
   }
   if (isTRUE(all.equal(rate, 0, check.attributes = FALSE))) {
     rate_e <- lambda + shape1 / (1 + shape1 * shape2)
-    return(qexp(p, rate = rate_e, lower.tail = lower.tail))
+    return(qexp(p, rate = rate_e, lower.tail = FALSE))
   } else if (isTRUE(all.equal(lambda, 0, check.attributes = FALSE))) {
     return(log((
       p ^ (-rate * shape2) * (1 + shape1 * shape2) - 1
@@ -1313,6 +1316,7 @@ pelife <- function(q,
 #' @keywords internal
 relife <- function(n,
                    scale = 1,
+                   rate,
                    shape,
                    family = c(
                      "exp",
@@ -1334,7 +1338,7 @@ relife <- function(n,
   if(family == "exp"){
     if(missing(rate) & missing(scale)){
       stop("No scale parameter is provided")
-    } else if(missing(scale)){
+    } else if(!missing(rate) & missing(scale)){
       scale <- 1/rate
     }
   }
@@ -1394,7 +1398,7 @@ relife <- function(n,
       shape2 = shape[2],
       rate = rate
     ),
-    beardmake = qbeardsmake(
+    beardmake = qbeardmake(
       p = runif(n),
       lambda = rate[2],
       shape1 = shape[1],
@@ -1410,6 +1414,7 @@ relife <- function(n,
 #' @keywords internal
 delife <- function(x,
                    scale = 1,
+                   rate,
                    shape,
                    family = c(
                      "exp",
@@ -1432,7 +1437,7 @@ delife <- function(x,
   if(family == "exp"){
     if(missing(rate) & missing(scale)){
       stop("No scale parameter is provided")
-    } else if(missing(scale)){
+    } else if(!missing(rate) & missing(scale)){
       scale <- 1/rate
     }
   }
@@ -1607,7 +1612,7 @@ check_elife_dist <- function(rate,
                 )))
     stopifnot(
       "\"shape\" should be a vector of length 2." = length(shape) == 2L,
-      "\"shape\" must be finite." = isTRUE(is.finite(shape)),
+      "\"shape\" must be finite." = isTRUE(all(is.finite(shape))),
       "\"shape2\" must be positive." = shape[2] > 0
     )
   }  else if (family == "perks") {
@@ -1622,7 +1627,7 @@ check_elife_dist <- function(rate,
   }  else if (family == "perksmake") {
     stopifnot(
       "\"shape\" should be a vector of length 1." = length(shape) == 1L,
-      "\"shape\" must be finite." = isTRUE(is.finite(shape)),
+      "\"shape\" must be finite." = isTRUE(all(is.finite(shape))),
       "\"shape\" must be positive." = isTRUE(shape > 0)
     )
     stopifnot("Invalid rate parameter: must be a nonegative scalar." =
@@ -1634,7 +1639,7 @@ check_elife_dist <- function(rate,
   }   else if (family == "beard") {
     stopifnot(
       "\"shape\" should be a vector of length 2." = length(shape) == 2L,
-      "\"shape\" must be finite." = isTRUE(is.finite(shape)),
+      "\"shape\" must be finite." = isTRUE(all(is.finite(shape))),
       "First argument of \"shape\" must be positive." = isTRUE(shape[1] > 0),
       "Second argument of \"shape\" must be non-negative." = isTRUE(shape[2] > 0),
       "\"rate\" should be a vector of length 1." = length(rate) == 1L,
@@ -1644,14 +1649,14 @@ check_elife_dist <- function(rate,
   }  else if (family == "beardmake") {
     stopifnot(
       "\"shape\" should be a vector of length 2." = length(shape) == 2L,
-      "\"shape\" must be finite." = isTRUE(is.finite(shape)),
+      "\"shape\" must be finite." = isTRUE(all(is.finite(shape))),
       "First argument of \"shape\" must be positive." = isTRUE(shape[1] > 0),
       "Second argument of \"shape\" must be non-negative." = isTRUE(shape[2] > 0)
     )
     stopifnot("Invalid rate parameter: must be a nonegative scalar." =
                 isTRUE(all(
                   length(rate) == 2L,
-                  is.finite(rate),
+                  isTRUE(all(is.finite(rate))),
                   isTRUE(all(rate >= 0))
                 )))
   }

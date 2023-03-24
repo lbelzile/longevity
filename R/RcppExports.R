@@ -8,10 +8,15 @@
 #' left and right endpoints lie in L and R
 #' and which contain no other members of L and R
 #'
+#' @param Lcens set of left censoring limits
+#' @param Rcens vector of right censoring limits
+#' @param Ltrunc vector of left truncation limits
+#' @param Rtrunc vector of right truncation limits
+#' @param status integer vector giving status of censoring set
 #' @export
 #' @keywords internal
-.turnbull_intervals <- function(Lset, Rset) {
-    .Call(`_longevity_turnbull_intervals`, Lset, Rset)
+.turnbull_intervals <- function(Lcens, Rcens, Ltrunc, Rtrunc, status) {
+    .Call(`_longevity_turnbull_intervals`, Lcens, Rcens, Ltrunc, Rtrunc, status)
 }
 
 #' Identification sets
@@ -24,8 +29,8 @@
 #' @param trunc logical are observation truncated?
 #' @export
 #' @keywords internal
-.censTruncLimits <- function(tsets, n, lcens, rcens, ltrunc, rtrunc, trunc) {
-    .Call(`_longevity_censTruncLimits`, tsets, n, lcens, rcens, ltrunc, rtrunc, trunc)
+.censTruncLimits <- function(tsets, lcens, rcens, ltrunc, rtrunc, trunc, cens) {
+    .Call(`_longevity_censTruncLimits`, tsets, lcens, rcens, ltrunc, rtrunc, trunc, cens)
 }
 
 #' Turnbull EM algorithm (low storage implementation)
@@ -41,7 +46,7 @@
 #' @param weights vector of weights for observations
 #' @return a list with the probabilities and the standard errors
 #' @keywords internal
-.turnbull_em <- function(tsets, n, lcens, rcens, ltrunc, rtrunc, weights, cens = TRUE, trunc = TRUE, tol = 1e-12, zerotol = 1e-40, maxiter = 1e5L) {
-    .Call(`_longevity_turnbullem`, tsets, n, lcens, rcens, ltrunc, rtrunc, weights, cens, trunc, tol, zerotol, maxiter)
+.turnbull_em <- function(tsets, lcens, rcens, ltrunc, rtrunc, weights, cens = TRUE, trunc = TRUE, tol = 1e-12, zerotol = 1e-10, maxiter = 1e5L) {
+    .Call(`_longevity_turnbullem`, tsets, lcens, rcens, ltrunc, rtrunc, weights, cens, trunc, tol, zerotol, maxiter)
 }
 

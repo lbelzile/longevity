@@ -15,7 +15,7 @@ hazard_fn_elife(
 
 \item{par}{vector of scale and shape parameters}
 
-\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).}
+\item{family}{string; choice of parametric family}
 }
 \value{
 a vector with the value of the hazard function at \code{x}

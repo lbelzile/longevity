@@ -6,15 +6,15 @@
 \usage{
 .turnbull_em(
   tsets,
-  n,
   lcens,
   rcens,
   ltrunc,
   rtrunc,
+  weights,
   cens = TRUE,
   trunc = TRUE,
   tol = 1e-12,
-  zerotol = 1e-40,
+  zerotol = 1e-10,
   maxiter = 100000L
 )
 }
@@ -28,6 +28,8 @@
 \item{ltrunc}{numeric vector of left truncation}
 
 \item{rtrunc}{numeric vector of right truncation}
+
+\item{weights}{vector of weights for observations}
 
 \item{cens}{logical; if \code{FALSE}, then \code{censUpp = censLow} and a particular update can be avoided in the EM algorithm}
 

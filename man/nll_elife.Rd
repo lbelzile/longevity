@@ -12,7 +12,8 @@ nll_elife(
   type = c("right", "left", "interval", "interval2"),
   ltrunc = NULL,
   rtrunc = NULL,
-  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "gppiece"),
+  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "gppiece",
+    "extweibull", "perks", "beard", "perksmake", "beardmake"),
   thresh = 0,
   weights = rep(1, length(time)),
   status = NULL,
@@ -20,7 +21,7 @@ nll_elife(
 )
 }
 \arguments{
-\item{par}{vector of parameters}
+\item{par}{vector of parameters, in order scale, rate and shape}
 
 \item{time}{excess time of the event of follow-up time, depending on the value of event}
 
@@ -36,7 +37,7 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 
 \item{rtrunc}{upper truncation limit, default to \code{NULL}}
 
-\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).}
+\item{family}{string; choice of parametric family}
 
 \item{thresh}{vector of thresholds}
 

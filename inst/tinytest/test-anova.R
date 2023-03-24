@@ -94,14 +94,8 @@ tinytest::expect_equal(
              df = 1, lower.tail = FALSE)
 )
 # Non-regular comparison
-tinytest::expect_equal(
-  anova(fit_exp, fit_gompmake)[2,5],
-  0.5*pchisq(deviance(fit_exp) - deviance(fit_gompmake),
-         df = 1, lower.tail = FALSE) +
-    0.25*pchisq(deviance(fit_exp) - deviance(fit_gompmake),
-               df = 2, lower.tail = FALSE) +
-    0.25*pchisq(deviance(fit_exp) - deviance(fit_gompmake),
-                df = 0, lower.tail = FALSE))
+tinytest::expect_error(
+  anova(fit_exp, fit_gompmake))
 
 
 # Invalid comparisons - non-nested models
@@ -119,3 +113,4 @@ tinytest::expect_error(
   anova(fit_gompmake, fit_gp))
 tinytest::expect_error(
   anova(fit_gompmake, fit_extgp))
+

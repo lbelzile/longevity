@@ -4,7 +4,18 @@
 \alias{.turnbull_intervals}
 \title{Turnbull's sets}
 \usage{
-.turnbull_intervals(Lset, Rset)
+.turnbull_intervals(Lcens, Rcens, Ltrunc, Rtrunc, status)
+}
+\arguments{
+\item{Lcens}{set of left censoring limits}
+
+\item{Rcens}{vector of right censoring limits}
+
+\item{Ltrunc}{vector of left truncation limits}
+
+\item{Rtrunc}{vector of right truncation limits}
+
+\item{status}{integer vector giving status of censoring set}
 }
 \description{
 Given truncation and censoring sets,

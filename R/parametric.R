@@ -257,7 +257,7 @@ nll_elife <- function(par,
       dbeardmake(x = dat, rate = par[1], lambda = par[2], shape1 = par[3], shape2 = par[4], log = TRUE)
     }
     lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
-      pperks(q = dat, rate = par[1], lambda = par[2], shape1 = par[3], shape2 = par[4],
+      pbeardmake(q = dat, rate = par[1], lambda = par[2], shape1 = par[3], shape2 = par[4],
              lower.tail = lower.tail, log.p = log.p)
     }
   } else if(family == "gppiece"){
