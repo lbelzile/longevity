@@ -4,6 +4,15 @@
     <loc>https://lbelzile.github.io/longevity/404.html</loc>
   </url>
   <url>
+    <loc>https://lbelzile.github.io/longevity/README.knit.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/articles/index.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/articles/npmle.html</loc>
+  </url>
+  <url>
     <loc>https://lbelzile.github.io/longevity/authors.html</loc>
   </url>
   <url>
@@ -16,7 +25,16 @@
     <loc>https://lbelzile.github.io/longevity/reference/conf_interv.html</loc>
   </url>
   <url>
+    <loc>https://lbelzile.github.io/longevity/reference/dbeard.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/dbeardmake.html</loc>
+  </url>
+  <url>
     <loc>https://lbelzile.github.io/longevity/reference/dextgp.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/dextweibull.html</loc>
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/dgomp.html</loc>
@@ -28,10 +46,22 @@
     <loc>https://lbelzile.github.io/longevity/reference/dgpd.html</loc>
   </url>
   <url>
+    <loc>https://lbelzile.github.io/longevity/reference/dot-censTruncLimits.html</loc>
+  </url>
+  <url>
     <loc>https://lbelzile.github.io/longevity/reference/dot-turnbull_em.html</loc>
   </url>
   <url>
+    <loc>https://lbelzile.github.io/longevity/reference/dot-turnbull_intervals.html</loc>
+  </url>
+  <url>
     <loc>https://lbelzile.github.io/longevity/reference/dot-wecdf.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/dperks.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/dperksmake.html</loc>
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/dutch.html</loc>
@@ -65,6 +95,9 @@
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/idl.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/idlmetadata.html</loc>
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/index.html</loc>
@@ -109,7 +142,16 @@
     <loc>https://lbelzile.github.io/longevity/reference/npsurv.html</loc>
   </url>
   <url>
+    <loc>https://lbelzile.github.io/longevity/reference/pbeard.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/pbeardmake.html</loc>
+  </url>
+  <url>
     <loc>https://lbelzile.github.io/longevity/reference/pextgp.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/pextweibull.html</loc>
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/pgomp.html</loc>
@@ -121,10 +163,19 @@
     <loc>https://lbelzile.github.io/longevity/reference/pgpd.html</loc>
   </url>
   <url>
+    <loc>https://lbelzile.github.io/longevity/reference/plot.elife_ecdf.html</loc>
+  </url>
+  <url>
     <loc>https://lbelzile.github.io/longevity/reference/plot.elife_northropcoleman.html</loc>
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/plot.elife_par.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/pperks.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/pperksmake.html</loc>
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/prof_exp_scale.html</loc>
@@ -139,7 +190,16 @@
     <loc>https://lbelzile.github.io/longevity/reference/prof_gp_shape.html</loc>
   </url>
   <url>
+    <loc>https://lbelzile.github.io/longevity/reference/qbeard.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/qbeardmake.html</loc>
+  </url>
+  <url>
     <loc>https://lbelzile.github.io/longevity/reference/qextgp.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/qextweibull.html</loc>
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/qgomp.html</loc>
@@ -149,6 +209,12 @@
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/qgpd.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/qperks.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/qperksmake.html</loc>
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/r_ditrunc_elife.html</loc>
@@ -173,6 +239,9 @@
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/tstab.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/turnbull_intervals.html</loc>
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/uq1_qqplot_elife.html</loc>

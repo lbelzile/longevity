@@ -182,7 +182,25 @@ models <- list(
                         shape1 = 0.5,
                         shape2 = 0,
                         lambda = 0.5
-                      )))
+                      )),
+ gppieceneg = list(dist = "gppiece",
+                   args = list(
+                     scale = 0.2,
+                     shape = c(2, -0.1, -0.3),
+                     thresh = c(0,0.5,0.6)
+                   )),
+ gppiecepos = list(dist = "gppiece",
+                   args = list(
+                     scale = 0.2,
+                     shape = c(-0.1, 0.2),
+                     thresh = c(0,0.5)
+                   )),
+ gppiece_gpdpos = list(dist = "gppiece",
+                   args = list(
+                     scale = 2,
+                     shape = 0.5,
+                     thresh = 0
+                   )))
 
 cdf <- simplify2array(lapply(models, function(x){
   args <- x$args
@@ -222,10 +240,13 @@ sub <- match(sub(x = names(models)[wnested], pattern = ".*_", replacement = ""),
 
 # Check special cases
 for(i in seq_along(wnested)){
-print(expect_equivalent(
+  test <- expect_equivalent(
   as.numeric(cdf[-1,wnested[i]]),
   as.numeric(cdf[-1,sub[i]]),
-             info = paste("CDF", i,  names(models)[wnested[i]])))
+             info = paste("CDF", i,  names(models)[wnested[i]]))
+  if(!test){
+    print(test)
+  }
 }
 
 # Check log survival matches

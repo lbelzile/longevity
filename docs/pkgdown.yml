@@ -1,8 +1,8 @@
-pandoc: 2.17.1.1
-pkgdown: 2.0.2.9000
-pkgdown_sha: 9aae87398abdbe1cd5af5ff6f168d2e142d531c9
+pandoc: 3.0.1
+pkgdown: 2.0.7
+pkgdown_sha: ~
 articles: {}
-last_built: 2022-03-11T03:16Z
+last_built: 2023-03-26T19:38Z
 urls:
   reference: https://lbelzile.github.io/longevity/reference
   article: https://lbelzile.github.io/longevity/articles

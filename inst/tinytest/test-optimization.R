@@ -6,19 +6,21 @@
 #
 library(mev)
 library(evd)
-library(fitdistrplus)
+# library(fitdistrplus)
 set.seed(1234)
-n <- 1e6L
+n <- 1e5L
 lower <- runif(n, max = 10)
 upper <- runif(n, min = 10, max = 20)
 samp1 <- longevity::samp_elife(
-  n = 1e6,
+  n = n,
   scale = 10,
   shape = 0.1,
   lower = lower,
   upper = upper,
   family = "gp",
   type2 = "ltrt")
+
+
 fit1 <- longevity::fit_elife(
   time = samp1,
   ltrunc = lower,
@@ -60,7 +62,10 @@ fit4 <- longevity::fit_elife(
   event = !samp4$rcens,
   type = "right",
   family = "exp")
-fit4$par - sum(samp4$dat)/sum(!samp4$rcens)
+tinytest::expect_equal(
+  as.numeric(fit4$par),
+  sum(samp4$dat)/sum(!samp4$rcens),
+  info = "exponential wiht right censoring")
 
 # Check maximum likelihood without censoring or truncation
 # Check that specifying truncation bounds that are 0/Inf

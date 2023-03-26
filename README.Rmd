@@ -57,26 +57,28 @@ devtools::install_github("lbelzile/longevity")
 
 ## Improvements
 
-- [ ] Add logistic-type models, including distributions, optimization routines, tests
-- [ ] Add empirical distribution function for `npelife` and `npsurv`
-- [ ] Fix `npsurv` and add weighting argument to Cpp routine.
+- [x] Add logistic-type models, including distributions, optimization routines, tests
+- [x] Add empirical distribution function for `npelife` and `npsurv`
+- [x] Fix `npsurv` and add weighting argument to Cpp routine.
 - [ ] Remove/keep Kolmogorov-Smirnov test (depending on whether it makes sense given null distribution)
 - [ ] Add plots of (local) hazards with delta-method based confidence intervals
 - [ ] Change bootstrap procedure for Q-Q plots and other graphical diagnostics
-- [ ] S3 methods
+- [x] S3 methods
 
 ## Testing
 
-- [x] Check `npsurv` for the case of 
+- [x] Check `np_elife` for the case of 
 	(1) right-censoring
 	(2) left-truncation (Bell-Lynden estimator)
 	(3) left-truncation and right-censoring (Tsai, Jewell and Wang)
 	(4) Frydman (1994) correction for interval censored truncated data
-	(5) double truncation (problem in `DTDA`?)
+	(5) double truncation
 - [x] Check functions fail when packages listed in 'Suggests' are absent
-- [x] Check that all ANOVA nesting works as expected (with null distribution)
+- [x] Check all distributions and proper nesting relationships
+- [ ] Check that all ANOVA nesting works as expected (with null distribution)
+- [x] Check distributions
 - [ ] Fix starting values for `gomp` and `gompmake` and make sure model is as good as submodel
-- [ ] Verify fitting procedure in multiple instances, including interval censoring, left and right truncation, etc.
+- [x] Verify fitting procedure in multiple instances, including interval censoring, left and right truncation, etc.
 - [ ] Check all plots type are produced with both base **R** and `ggplot2`
 
 ## Package on CRAN
