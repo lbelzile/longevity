@@ -3,7 +3,7 @@
 #' Computes the log-likelihood for various parametric models suitable for threshold
 #' exceedances. If threshold is non-zero, then only right-censored, observed event time and interval censored
 #' data whose timing exceeds the thresholds are kept.
-#' @param par vector of parameters, in order scale, rate and shape
+#' @param par vector of parameters, in thge following order: scale, rate and shape
 #' @param thresh vector of thresholds
 #' @inheritParams npsurv
 #' @param ltrunc lower truncation limit, default to \code{NULL}
@@ -106,58 +106,41 @@ nll_elife <- function(par,
       stop("Right-truncation must be lower than observation times.")
     }
   }
-  # For gppiece model
-
-  if(family == "gomp"){
-    family <- "extgp"
-    par <- c(par, 0)
+  # if(family == "gomp"){
+  #   family <- "extgp"
+  #   par <- c(par, 0)
+  # }
+  if(family != "gppiece"){
+  parlist <- .npar_elife(family = family, par = par)
+  valid_par <- try(do.call(what = check_elife_dist,
+                           args = parlist), silent = TRUE)
+  if(inherits(valid_par, "try-error")){
+    return(1e20)
   }
-  # Define density and survival function for each of the parametric families
-  if(family == "exp"){
-    stopifnot("Length of parameters for exponential family is one" = length(par) == 1)
-    if(!isTRUE(par > 0)){
-      return(1e20)
-    }
-    ldensf <- function(par, dat){
-      dexp(x = dat, rate = 1/par[1], log = TRUE)
-    }
-    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
-      pexp(q = dat, rate = 1/par[1], lower.tail = lower.tail, log.p = log.p)
-    }
-  } else if(family == "gp"){
+  ldensf <- function(par, dat){
+    stopifnot(is.list(par))
+    par$log <- TRUE
+    par$x <- dat
+    do.call(delife, args = par)
+  }
+  lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
+    stopifnot(is.list(par))
+    par$lower.tail <- lower.tail
+    par$log.p <- log.p
+    par$q <- dat
+    do.call(pelife, args = par)
+  }
+
+  # Check support constraints
+ if(family == "gp"){
     maxdat <- max(ifelse(status == 2L, time2, time))
-    stopifnot("Length of parameters for generalized Pareto family is two." = length(par) == 2)
-    if(par[1] < 0 || par[2] < (-1+1e-8)){
+    if(par[2] < (-1+1e-8)){
       return(1e20)
     }
     if(par[2] < 0 && (-par[1]/par[2] < maxdat)){
       return(1e20)
     }
-    ldensf <- function(par, dat){ dgpd(x = dat, loc = 0, scale = par[1], shape = par[2], log = TRUE)}
-    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
-      pgpd(q = dat, loc = 0, scale = par[1], shape = par[2], lower.tail = lower.tail, log.p = log.p)}
-  } else if(family == "weibull"){
-    stopifnot("Length of parameters for Weibull family is two." = length(par) == 2)
-    if(par[1] <= 0 || par[2] <= 0){
-      return(1e20)
-    }
-    ldensf <- function(par, dat){dweibull(x = dat, scale = par[1], shape = par[2], log = TRUE)}
-    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){pweibull(q = dat, scale = par[1], shape = par[2], lower.tail = lower.tail, log.p = log.p)}
-   } else if(family == "extweibull"){
-     stopifnot("Length of parameters for extended Weibull family is three." = length(par) == 3)
-    if(par[1] <= 0 || par[3] <= 0){
-      return(1e20)
-    }
-    ldensf <- function(par, dat){
-    dextweibull(x = dat, scale = par[1], shape1 = par[2], shape2 = par[3], log = TRUE)}
-    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
-    pextweibull(q = dat, scale = par[1], shape1 = par[2], shape2 = par[3],
-                lower.tail = lower.tail, log.p = log.p)}
   } else if(family == "extgp"){
-    stopifnot("Length of parameters for extended generalized Pareto family is three." = length(par) == 3)
-    # scale par[1]
-    # beta = par[2]; if zero, recover generalized Pareto
-    # xi = par[3]; if zero, recover Gompertz
     maxdat <- max(ifelse(status == 2L, time2, time))
     # both shape parameters can be negative, but the data
     # must lie inside the support of the distribution
@@ -173,93 +156,17 @@ nll_elife <- function(par,
     if(isTRUE(any(bounds < 0))){
       return(1e20)
     }
-    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
-      pextgp(q = dat, scale = par[1], shape1 = par[2], shape2 = par[3], lower.tail = lower.tail, log.p = log.p)
-      # if(abs(par[3]) < 1e-8 && abs(par[2]) < 1e-8){ #exponential
-      #   -dat/par[1]
-      # } else if(abs(par[3]) < 1e-8 && abs(par[2]) > 1e-8){ #Gompertz
-      #   -exp(par[2]*dat/par[1])/par[2] + 1/par[2]
-      # } else if(abs(par[3]) >= 1e-8 && abs(par[2]) < 1e-8){ #generalized Pareto
-      #   (-1/par[3])*log(1+dat*par[3]/par[1])
-      # } else if(abs(par[3]) >= 1e-8 && abs(par[2]) >= 1e-8){ #extended
-      #   (-1/par[3])*log(1+par[3]*(exp(par[2]*dat/par[1])-1)/par[2])
-      # }
-    }
-    ldensf <- function(par, dat){
-      dextgp(x = dat, scale = par[1], shape1 = par[2], shape2 = par[3], log = TRUE)
-    }
-  } else if(family == "gompmake"){
-    stopifnot("Length of parameters for Gompertz Makeham family is three." = length(par) == 3)
-    scale <- par[1]
-    rate <- par[2]
-    shape <- par[3]
-    if(scale <= 0 || rate < 0 || shape <= 0){
+  } else if(family == "extweibull"){
+    maxdat <- max(time)
+    if(par[2] < (-1+1e-8)){
       return(1e20)
     }
-    ldensf <- function(par, dat){
-      dgompmake(x = dat, scale = par[1], shape = par[3], lambda = par[2], log = TRUE)
-    }
-    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
-      pgompmake(q = dat, scale = par[1], shape = par[3], lambda = par[2], lower.tail = lower.tail, log.p = log.p)
-    }
-
-  } else if(family == "perks"){
-    stopifnot("Length of parameters for Gompertz Makeham family is two." = length(par) == 2)
-    rate <- par[1]
-    shape <- par[2]
-    if(rate < 0 || shape <= 0){
+    if(par[2] < 0 && (1+par[2]*(maxdat/par[1])^(par[3]) < 0)){
       return(1e20)
     }
-    ldensf <- function(par, dat){
-      dperks(x = dat, rate = par[1], shape = par[2], log = TRUE)
-    }
-    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
-      pperks(q = dat,  rate = par[1], shape = par[2],
-                  lower.tail = lower.tail, log.p = log.p)
-    }
-  }  else if(family == "perksmake"){
-    stopifnot("Length of parameters for Perks Makeham family is three." = length(par) == 3)
-    rate <- par[1]
-    lambda <- par[2]
-    shape <- par[3]
-    if(rate < 0 || lambda < 0 || shape <= 0){
-      return(1e20)
-    }
-    ldensf <- function(par, dat){
-      dperksmake(x = dat,  rate = par[1], lambda = par[2], shape = par[3], log = TRUE)
-    }
-    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
-      pperksmake(q = dat, rate = par[1], lambda = par[2], shape = par[3],
-             lower.tail = lower.tail, log.p = log.p)
-    }
-  } else if(family == "beard"){
-    stopifnot("Length of parameters for Beard family is three." = length(par) == 3)
-    rate <- par[1]
-    shape <- par[2:3]
-    if(rate < 0 || shape[1] <= 0 || shape[2] < 0){
-      return(1e20)
-    }
-    ldensf <- function(par, dat){
-      dbeard(x = dat, rate = par[1], shape1 = par[2], shape2 = par[3], log = TRUE)
-    }
-    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
-      pbeard(q = dat,  rate = par[1], shape1 = par[2], shape2 = par[3],
-             lower.tail = lower.tail, log.p = log.p)
-    }
-  }  else if(family == "beardmake"){
-    stopifnot("Length of parameters for Beard Makeham family is four." = length(par) == 4)
-    rate <- par[1:2]
-    shape <- par[3:4]
-    if(isTRUE(any(rate < 0)) || shape[1] <= 0 || shape[2] < 0){
-      return(1e20)
-    }
-    ldensf <- function(par, dat){
-      dbeardmake(x = dat, rate = par[1], lambda = par[2], shape1 = par[3], shape2 = par[4], log = TRUE)
-    }
-    lsurvf <- function(par, dat, lower.tail = FALSE, log.p = TRUE){
-      pbeardmake(q = dat, rate = par[1], lambda = par[2], shape1 = par[3], shape2 = par[4],
-             lower.tail = lower.tail, log.p = log.p)
-    }
+  }
+  # Replace parameters by list for call
+  par <- parlist
   } else if(family == "gppiece"){
     stopifnot("Length of parameters for piecewise generalized Pareto \nfamily is the number of threshold values plus one." = length(par) == length(thresh) + 1L)
     thresh <- thresh - thresh[1]
@@ -307,6 +214,41 @@ nll_elife <- function(par,
     return(-ll)
   }
   }
+}
+
+.npar_elife <- function(par, family){
+  family <- match.arg(family, choices =  c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "gppiece",
+                                           "extweibull", "perks", "beard", "perksmake", "beardmake"))
+  if(family == "gppiece" & length(par) < 2){
+    stop("Invalid parameter vector for model \"gppiece\".")
+  }
+  npars <- switch(family,
+                  "exp" = c(1, 0, 0),
+                  "gp" = c(1, 0, 1),
+                  "weibull" = c(1, 0, 1),
+                  "gomp" = c(1, 0, 1),
+                  "gompmake" = rep(1, 3),
+                  "extgp" = c(1, 0, 2),
+                  "gppiece" = c(1, 0, length(par) - 1),
+                  "extweibull" = c(1, 0, 2),
+                  "perks" = c(0, 1, 1),
+                  "beard" = c(0, 1, 2),
+                  "perksmake" = c(0, 2, 1),
+                  "beardmake" = c(0, 2, 2))
+  if(length(par) != sum(npars)){
+    stop(paste0("Invalid parameter length for family \"", family, "\"."))
+  }
+  results <- list(family = family)
+  if(npars[1] > 0){
+    results$scale <- par[seq_len(npars[1])]
+  }
+  if(npars[2] > 0){
+    results$rate <- par[seq_len(npars[2]) + npars[1]]
+  }
+  if(npars[3] > 0){
+    results$shape <- par[seq_len(npars[3]) + sum(npars[1:2])]
+  }
+  return(results)
 }
 
 #' Fit excess lifetime models
@@ -436,7 +378,7 @@ fit_elife <- function(time,
   n <- length(time) #number of exceedances
   dat <- ifelse(status == 2L, time2, time)
   maxdat <- max(dat)
-  stopifnot("Incorrect data input: some entries are missing or finite" = is.finite(maxdat))
+  stopifnot("Incorrect data input: some entries are missing or infinite" = is.finite(maxdat))
   # For gppiece model
   # thresh <- thresh - thresh[1]
   # Perform constrained optimization for the different routines
@@ -499,180 +441,59 @@ fit_elife <- function(time,
       ll <- -opt_mle$value
       conv <- opt_mle$convergence == 0
     }
-  } else {
-    if(family == "gp"){
-      hin <- function(par, maxdat = NULL, thresh = 0, ...){
-        stopifnot("Argument \"maxdat\" is missing, with no default value." = !is.null(maxdat))
-        # scale > 0, xi > -1, xdat < -xi/sigma if xi < 0
-        c(par[1], par[2], ifelse(par[2] < 0, thresh - par[1]/par[2] - maxdat, 1e-5))
-      }
-      ineqLB <- c(0, -1, 0)
-      ineqUB <- c(Inf, 2, Inf)
-      LB <- c(0, -1)
-      UB <- c(Inf, 2)
-      # hardcode upper bound for shape parameter, to prevent optim from giving nonsensical output
-      if(is.null(start)){
-        start <- c(mean(dat, na.rm = TRUE), 0.1)
-      } else{
-        stopifnot("Incorrect parameter length." = length(start) == 2L)
-        ineq <- hin(start, maxdat = maxdat)
-        stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
-      }
-    } else if(family == "weibull"){
-      hin <- function(par, maxdat = NULL, thresh = 0, ...){
-        c(par[1], par[2])
-      }
-      ineqLB <- c(0,0)
-      ineqUB <- rep(Inf, 2)
-      if(is.null(start)){
-        start <- c(mean(dat, na.rm = TRUE), 1)
-      } else{
-        stopifnot("Incorrect parameter length." = length(start) == 2L)
-        ineq <- hin(start)
-        stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
-      }
-    } else if(family == "gompmake"){
-      hin <- function(par, maxdat = NULL, thresh = 0, ...){par[1:3] }
-      ineqLB <- LB <- c(0, 0, 1e-3)
-      ineqUB <- UB <- rep(Inf, 3)
-      if(is.null(start)){
-        start <- c(mean(dat, na.rm = TRUE), 0.5, 0.1)
-      } else{
-        stopifnot("Incorrect parameter length." = length(start) == 3L)
-        ineq <- hin(start)
-        stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
-      }
+  } else{
+  if(family == "gppiece"){
+    m <- length(thresh)
+    hin <- function(par, maxdat = NULL, thresh = 0, ...){
+      stopifnot("Argument \"maxdat\" is missing" = !is.null(maxdat),
+                "Vector of threshold should not be a single value" = length(thresh) > 1L)
 
-      # If shape1=0, then exponential model (but only the sum "1/par[1]+par[3]" is identifiable)
-    } else if(family == "gomp"){
-      hin <- function(par, maxdat = NULL, thresh = 0, ...){ par[1:2] }
-      ineqLB <- LB <- rep(0, 2)
-      ineqUB <- UB <- rep(Inf, 2)
-      if(is.null(start)){
-        start <- c(mean(dat, na.rm = TRUE), 0.1)
-      } else{
-        stopifnot("Incorrect parameter length." = length(start) == 2L)
-        ineq <- hin(start)
-        stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
-      }
-    }  else if(family == "extweibull"){
-      hin <- function(par, maxdat = NULL, thresh = 0, ...){ par[c(1,3)] }
-      ineqLB <- LB <- rep(0, 2)
-      ineqUB <- UB <- rep(Inf, 2)
-      if(is.null(start)){
-        start <- c(mean(dat, na.rm = TRUE), 0.1, 0.5)
-      } else{
-        stopifnot("Incorrect parameter length." = length(start) == 3L)
-        ineq <- hin(start)
-        stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
-      }
-    }  else if(family == "perks"){
-      hin <- function(par, maxdat = NULL, thresh = 0, ...){ par }
-      ineqLB <- LB <- rep(0, 2)
-      ineqUB <- UB <- rep(Inf, 2)
-      if(is.null(start)){
-        start <- c(1/mean(dat, na.rm = TRUE), 1)
-      } else{
-        stopifnot("Incorrect parameter length." = length(start) == 2L)
-        ineq <- hin(start)
-        stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
-      }
-    }  else if(family == "perksmake"){
-      hin <- function(par, maxdat = NULL, thresh = 0, ...){ par }
-      ineqLB <- LB <- rep(0, 3)
-      ineqUB <- UB <- rep(Inf, 3)
-      if(is.null(start)){
-        start <- c(1/mean(dat, na.rm = TRUE), 0.1, 1)
-      } else{
-        stopifnot("Incorrect parameter length." = length(start) == 3L)
-        ineq <- hin(start)
-        stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
-      }
-    }  else if(family == "beard"){
-      hin <- function(par, maxdat = NULL, thresh = 0, ...){ par }
-      ineqLB <- LB <- rep(0, 3)
-      ineqUB <- UB <- rep(Inf, 3)
-      if(is.null(start)){
-        start <- c(1/mean(dat, na.rm = TRUE), 1, 0.5)
-      } else{
-        stopifnot("Incorrect parameter length." = length(start) == 3L)
-        ineq <- hin(start)
-        stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
-      }
-    }  else if(family == "beardmake"){
-      hin <- function(par, maxdat = NULL, thresh = 0, ...){ par }
-      ineqLB <- LB <- rep(0, 4)
-      ineqUB <- UB <- rep(Inf, 4)
-      if(is.null(start)){
-        start <- c(1/mean(dat, na.rm = TRUE), 0.1, 1, 0.5)
-      } else{
-        stopifnot("Incorrect parameter length." = length(start) == 4L)
-        ineq <- hin(start)
-        stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
-      }
-    } else if(family == "extgp"){
-      #parameters are (1) scale > 0, (2) beta >= 0 (3) gamma
-      hin <- function(par, maxdat = NULL, thresh = 0, ...){
-        stopifnot("Argument \"maxdat\" is missing, with no default value." = !is.null(maxdat))
-        c(par,
-          ifelse(par[3] < 0, 1 - par[2]/par[3], 1e-5),
-          ifelse(par[3] < 0 & par[2] > 0, thresh + par[1]/par[2]*log(1-par[2]/par[3]) - maxdat, 1e-5),
-          ifelse(par[3] < 0 & par[2] == 0, thresh + -par[1]/par[3] - maxdat, 1e-5)
-        )
-      }
-      ineqLB <- c(rep(0, 2), -1, rep(0, 3))
-      ineqUB <- c(rep(Inf, 2), 2, rep(Inf, 3))
-      LB <- c(0,0,-1)
-      UB <- c(rep(Inf, 2), 2)
-      if(is.null(start)){
-        start <- c(mean(dat, na.rm = TRUE), 0.1, 0.1)
-      } else{
-        stopifnot("Incorrect parameter length." = length(start) == 3L)
-        ineq <- hin(start, maxdat = maxdat)
-        stopifnot("Invalid starting values" = isTRUE(all(ineq >= ineqLB, ineq <= ineqUB)))
-      }
-      #TODO try also fitting the GP/EXP/Gompertz and see which is best?
-    } else if(family == "gppiece"){
       m <- length(thresh)
-      hin <- function(par, maxdat = NULL, thresh = 0, ...){
-        stopifnot("Argument \"maxdat\" is missing" = !is.null(maxdat),
-                  "Vector of threshold should not be a single value" = length(thresh) > 1L)
-
-        m <- length(thresh)
-        w <- as.numeric(diff(thresh))
-        shape <- par[-1]
-        sigma <- par[1] + c(0, cumsum(shape[-m]*w))
-        c(sigma,
-          shape,
-          ifelse(shape[-m] < 0, thresh[-m] - sigma[-m]/shape[-m] - thresh[-1], 1e-5),
-          ifelse(shape[m] < 0, thresh[m] - sigma[m]/shape[m] - maxdat, 1e-5)
-        )
-      }
-      LB <- c(0, rep(-1, m))
-      UB <- c(Inf, rep(2, m))
-      ineqLB <- c(rep(0, m), rep(-1, m), rep(0, m)) # Constraints for xi...
-      ineqUB <- c(rep(Inf, m), rep(4, m), rep(Inf, m)) # Careful, these are for GPD
-      if(is.null(start)){
-        st <- try(fit_elife(time = time,
-                            status = status,
-                            time2 = time2,
-                            thresh = 0,
-                            ltrunc = ltrunc,
-                            rtrunc = rtrunc,
-                            type = type,
-                            family = "gp",
-                            weights= weights))
-        if(!is.character(st) && st$convergence){
-          start <- c(st$par['scale'], rep(st$par['shape'], m))
-        } else{
-          start <- c(mean(dat, na.rm = TRUE), rep(0.04, m))
-        }
-      } else{
-        stopifnot("Incorrect parameter length." = length(start) == (m + 1L))
-        ineq <- hin(start, maxdat = maxdat, thresh = thresh-thresh[1])
-        stopifnot("Invalid starting values." = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
-      }
+      w <- as.numeric(diff(thresh))
+      shape <- par[-1]
+      sigma <- par[1] + c(0, cumsum(shape[-m]*w))
+      c(sigma,
+        shape,
+        ifelse(shape[-m] < 0, thresh[-m] - sigma[-m]/shape[-m] - thresh[-1], 1e-5),
+        ifelse(shape[m] < 0, thresh[m] - sigma[m]/shape[m] - maxdat, 1e-5)
+      )
     }
+    LB <- c(0, rep(-1, m))
+    UB <- c(Inf, rep(2, m))
+    ineqLB <- c(rep(0, m), rep(-1, m), rep(0, m)) # Constraints for xi...
+    ineqUB <- c(rep(Inf, m), rep(4, m), rep(Inf, m)) # Careful, these are for GPD
+    if(is.null(start)){
+      st <- try(fit_elife(time = time,
+                          status = status,
+                          time2 = time2,
+                          thresh = 0,
+                          ltrunc = ltrunc,
+                          rtrunc = rtrunc,
+                          type = type,
+                          family = "gp",
+                          weights= weights))
+      if(!is.character(st) && st$convergence){
+        start <- c(st$par['scale'], rep(st$par['shape'], m))
+      } else{
+        start <- c(mean(dat, na.rm = TRUE), rep(0.04, m))
+      }
+    } else{
+      stopifnot("Incorrect parameter length." = length(start) == (m + 1L))
+      ineq <- hin(start, maxdat = maxdat, thresh = thresh-thresh[1])
+      stopifnot("Invalid starting values." = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
+    }
+  } else {
+    ineq_fn <- .ineq_optim_elife(dat = dat,
+                      family = family,
+                      maxdat = maxdat,
+                      start = start)
+    LB <- ineq_fn$LB
+    UB <- ineq_fn$UB
+    ineqLB <- ineq_fn$ineqLB
+    ineqUB <- ineq_fn$ineqUB
+    hin <- ineq_fn$hin
+    start <- ineq_fn$start
+  }
     stopifnot("Invalid starting values." =
                 nll_elife(par = start,
                           family = family,
@@ -702,7 +523,8 @@ fit_elife <- function(time,
                              control = list(trace = 0))
     if(opt_mle$convergence != 0 | restart){
       opt_mle <- Rsolnp::gosolnp(LB = LB,
-                                 UB = ifelse(is.finite(UB), UB, 10*maxdat),
+                                 UB = ifelse(is.finite(UB),
+                                             UB, 10*maxdat),
                                  family = family,
                                  ltrunc = ltrunc,
                                  rtrunc = rtrunc,
@@ -737,6 +559,7 @@ fit_elife <- function(time,
     ll <- -opt_mle$values[length(opt_mle$values)]
     conv <- opt_mle$convergence == 0
   }
+  }
   names(mle) <- names(se_mle) <-
     switch(family,
           "exp" = c("scale"),
@@ -752,6 +575,10 @@ fit_elife <- function(time,
           "beard" = c("rate","alpha","beta"),
           "beardmake" = c("rate","lambda","alpha","beta")
   )
+  if(!is.null(vcov) & is.matrix(vcov)){
+    # Name columns of vcov for confint.default routine
+    colnames(vcov) <- rownames(vcov) <- names(mle)
+  }
   if(isTRUE(all(status == 1L, na.rm = TRUE))){
     cens_type <- "none"
   } else if(type == "right" || isTRUE(all(status %in% 0:1))){
@@ -775,7 +602,6 @@ fit_elife <- function(time,
     warning("Algorithm did not converge: try changing the starting values.")
   }
   if(isTRUE(export)){
-
     ret <- structure(list(par = mle,
                           std.error = se_mle,
                           loglik = ll,
@@ -813,7 +639,148 @@ fit_elife <- function(time,
                    thresh = thresh),
               class = "elife_par")
   }
+}
+
+.ineq_optim_elife <- function(dat, family, maxdat = max(dat), start = NULL, thresh){
+  if(family == "gp"){
+    hin <- function(par, maxdat = NULL, thresh = 0, ...){
+      stopifnot("Argument \"maxdat\" is missing, with no default value." = !is.null(maxdat))
+      # scale > 0, xi > -1, xdat < -xi/sigma if xi < 0
+      c(par[1], par[2], ifelse(par[2] < 0, thresh - par[1]/par[2] - maxdat, 1e-5))
+    }
+    ineqLB <- c(0, -1, 0)
+    ineqUB <- c(Inf, 2, Inf)
+    LB <- c(0, -1)
+    UB <- c(Inf, 2)
+    # hardcode upper bound for shape parameter, to prevent optim from giving nonsensical output
+    if(is.null(start)){
+      start <- c(mean(dat, na.rm = TRUE), 0.1)
+    } else{
+      stopifnot("Incorrect parameter length." = length(start) == 2L)
+      ineq <- hin(start, maxdat = maxdat)
+      stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
+    }
+  } else if(family == "weibull"){
+    hin <- function(par, maxdat = NULL, thresh = 0, ...){par }
+    ineqLB <- LB <- c(0,0)
+    ineqUB <- UB <- rep(Inf, 2)
+    if(is.null(start)){
+      start <- c(mean(dat, na.rm = TRUE), 1)
+    } else{
+      stopifnot("Incorrect parameter length." = length(start) == 2L)
+      ineq <- hin(start)
+      stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
+    }
+  } else if(family == "gompmake"){
+    hin <- function(par, maxdat = NULL, thresh = 0, ...){par }
+    ineqLB <- LB <- c(0, 0, 0)
+    ineqUB <- UB <- rep(Inf, 3)
+    if(is.null(start)){
+      start <- c(mean(dat, na.rm = TRUE),0.1, 0.5)
+    } else{
+      stopifnot("Incorrect parameter length." = length(start) == 3L)
+      ineq <- hin(start)
+      stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
+    }
+
+    # If shape1=0, then exponential model (but only the sum "1/par[1]+par[3]" is identifiable)
+  } else if(family == "gomp"){
+    hin <- function(par, maxdat = NULL, thresh = 0, ...){ par[1:2] }
+    ineqLB <- LB <- rep(0, 2)
+    ineqUB <- UB <- rep(Inf, 2)
+    if(is.null(start)){
+      start <- c(mean(dat, na.rm = TRUE), 0.1)
+    } else{
+      stopifnot("Incorrect parameter length." = length(start) == 2L)
+      ineq <- hin(start)
+      stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
+    }
+  }  else if(family == "extweibull"){
+    hin <- function(par, maxdat = NULL, thresh = 0, ...){ par[c(1,3)] }
+    ineqLB <- LB <- rep(0, 2)
+    ineqUB <- UB <- rep(Inf, 2)
+    if(is.null(start)){
+      start <- c(mean(dat, na.rm = TRUE), 0.1, 0.5)
+    } else{
+      stopifnot("Incorrect parameter length." = length(start) == 3L)
+      ineq <- hin(start)
+      stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
+    }
+  }  else if(family == "perks"){
+    hin <- function(par, maxdat = NULL, thresh = 0, ...){ par }
+    ineqLB <- LB <- rep(0, 2)
+    ineqUB <- UB <- rep(Inf, 2)
+    if(is.null(start)){
+      start <- c(1/mean(dat, na.rm = TRUE), 1)
+    } else{
+      stopifnot("Incorrect parameter length." = length(start) == 2L)
+      ineq <- hin(start)
+      stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
+    }
+  }  else if(family == "perksmake"){
+    hin <- function(par, maxdat = NULL, thresh = 0, ...){ par }
+    ineqLB <- LB <- rep(0, 3)
+    ineqUB <- UB <- rep(Inf, 3)
+    if(is.null(start)){
+      start <- c(1/mean(dat, na.rm = TRUE), 0.1, 1)
+    } else{
+      stopifnot("Incorrect parameter length." = length(start) == 3L)
+      ineq <- hin(start)
+      stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
+    }
+  }  else if(family == "beard"){
+    hin <- function(par, maxdat = NULL, thresh = 0, ...){ par }
+    ineqLB <- LB <- rep(0, 3)
+    ineqUB <- UB <- rep(Inf, 3)
+    if(is.null(start)){
+      start <- c(1/mean(dat, na.rm = TRUE), 1, 0.5)
+    } else{
+      stopifnot("Incorrect parameter length." = length(start) == 3L)
+      ineq <- hin(start)
+      stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
+    }
+  }  else if(family == "beardmake"){
+    hin <- function(par, maxdat = NULL, thresh = 0, ...){ par }
+    ineqLB <- LB <- rep(0, 4)
+    ineqUB <- UB <- rep(Inf, 4)
+    if(is.null(start)){
+      start <- c(1/mean(dat, na.rm = TRUE), 0.1, 1, 0.5)
+    } else{
+      stopifnot("Incorrect parameter length." = length(start) == 4L)
+      ineq <- hin(start)
+      stopifnot("Invalid starting values" = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
+    }
+  } else if(family == "extgp"){
+    #parameters are (1) scale > 0, (2) beta >= 0 (3) gamma
+    hin <- function(par, maxdat = NULL, thresh = 0, ...){
+      stopifnot("Argument \"maxdat\" is missing, with no default value." = !is.null(maxdat))
+      c(par,
+        ifelse(par[3] < 0, 1 - par[2]/par[3], 1e-5),
+        ifelse(par[3] < 0 & par[2] > 0, thresh + par[1]/par[2]*log(1-par[2]/par[3]) - maxdat, 1e-5),
+        ifelse(par[3] < 0 & par[2] == 0, thresh + -par[1]/par[3] - maxdat, 1e-5)
+      )
+    }
+    ineqLB <- c(rep(0, 2), -1, rep(0, 3))
+    ineqUB <- c(rep(Inf, 2), 2, rep(Inf, 3))
+    LB <- c(0,0,-1)
+    UB <- c(rep(Inf, 2), 2)
+    if(is.null(start)){
+      start <- c(mean(dat, na.rm = TRUE), 0.1, 0.1)
+    } else{
+      stopifnot("Incorrect parameter length." = length(start) == 3L)
+      ineq <- hin(start, maxdat = maxdat)
+      stopifnot("Invalid starting values" = isTRUE(all(ineq >= ineqLB, ineq <= ineqUB)))
+    }
+    #TODO try also fitting the GP/EXP/Gompertz and see which is best?
+  } else{
+    stop("Family not implemented")
   }
+  return(list(LB = LB,
+              UB = UB,
+              ineqLB = ineqLB,
+              ineqUB = ineqUB,
+              hin = hin,
+              start = start))
 }
 
 
@@ -946,6 +913,7 @@ deviance.elife_par <- function(object, ...) {
 nobs.elife_par <- function(object, ...) {
   return(object$nexc)
 }
+
 
 #' @importFrom stats coef
 #' @export

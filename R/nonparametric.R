@@ -229,7 +229,6 @@ np_elife <- function(time,
   #   status = status,
   #   ltrunc = ltrunc,
   #   rtrunc = rtrunc)
-  # # TODO check this - added 2023-03-10 for interval data and Kaplan-Meier
   # # This treats interval censored times as semi-open, as in (L, R]
   #   time <- ifelse(status %in% c(0L, 3L), time + 1e-13, time)
   #   # time2 <- ifelse(status %in% c(2L, 3L), time2 - 1e-10, time2)
@@ -284,7 +283,6 @@ np_elife <- function(time,
   # n_iter_max <- 1e4L
   # for (i in seq_len(n)) {
   #   # this doesn't need to be updated
-  #   #TODO fix this - error out of bound!
   #   C_mat[i, cens_lb[i]] <- 1
   # }
   # while (n_iter < n_iter_max) {
@@ -343,7 +341,6 @@ np_elife <- function(time,
   # } else{
   #   covmat <- NULL
   # }
-  # # TODO check this based on definition
   # survfun <- .wecdf(x = unex[,2],
   #                   w = p,
   #                   type = "surv")
@@ -452,7 +449,6 @@ np_nll <- function(par,
   llp <- 0
   for (i in seq_along(cens_lb)) {
     if(cens){
-      # TODO make sure this isn't out of bound
     llp <- llp + weights[i]*log(sum(pf[cens_lb[i]:cens_ub[i]]))
     }
     if(trunc){

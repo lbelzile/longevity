@@ -36,6 +36,9 @@ dgppiece <- function(x,
             "There should be only a single scale parameter" = length(scale) == 1L
             )
   m <- length(shape)
+  if(m == 1L){
+    return(dgpd(x = x, loc = thresh, scale = scale, shape = shape, log = log))
+  }
   w <- as.numeric(diff(thresh))
   scale <- scale + c(0, cumsum(shape[-m]*w))
   stopifnot("At least one scale parameter is negative" = isTRUE(all(scale > 0)))
@@ -50,7 +53,8 @@ dgppiece <- function(x,
              (x-thresh[Ind])/scale[Ind],
       (1+1/shape[Ind])*log(pmax(0,1+shape[Ind]*(x-thresh[Ind])/scale[Ind]))
       )
-
+   ldens[is.na(ldens)] <- -Inf
+   ldens[is.na(x)] <- NA
    if(log){
      return(ldens)
    } else{
@@ -75,6 +79,10 @@ pgppiece <- function(q,
             "There should be only a single scale parameter" = length(scale) == 1L
   )
   m <- length(shape)
+  if(m == 1L){
+     return(pgpd(q = q, loc = thresh, scale = scale,
+                 shape = shape, lower.tail = lower.tail, log.p = log.p))
+  }
   w <- as.numeric(diff(thresh))
   scale <- scale + c(0, cumsum(shape[-m]*w))
   stopifnot("At least one scale parameter is negative" = isTRUE(all(scale > 0)))
@@ -86,7 +94,7 @@ pgppiece <- function(q,
   prob_interv <- -diff(c(exp(logp),0))
   Ind <- as.integer(cut(q, c(thresh, Inf), include.lowest = TRUE))
   cum_prob <- 1-exp(logp)
-  F_upper <- c(vapply(1:(m-1), function(i){pgpd(q = w[i], scale = scale[i], shape = shape[i])}, numeric(1)), 1)
+  F_upper <- c(vapply(seq_len(m-1), function(i){pgpd(q = w[i], scale = scale[i], shape = shape[i])}, numeric(1)), 1)
   ret_p <- cum_prob[Ind] +
     prob_interv[Ind]*(1 - ifelse(shape[Ind] == 0,
               exp((thresh[Ind] - q) / scale[Ind]),
@@ -127,9 +135,17 @@ qgppiece <- function(p,
             "Threshold should be sorted in increasing order" = !is.unsorted(thresh),
             "Threshold must be positive" = isTRUE(all(thresh >= 0)),
             "There should be as many shape parameters as there are thresholds." = length(shape) == length(thresh),
-            "There should be only a single scale parameter" = length(scale) == 1L
+            "There should be only a single scale parameter" = length(scale) == 1L,
+            "\"log.p\" must be a logical." = (length(log.p) == 1L) & is.logical(log.p)
   )
   m <- length(shape)
+  if(log.p){
+    p <- exp(p)
+  }
+  if(m == 1L){
+    return(qgpd(p = p, loc = thresh, scale = scale, shape = shape,
+                lower.tail = lower.tail))
+  }
   w <- as.numeric(diff(thresh))
   scale <- scale + c(0, cumsum(shape[-m]*w))
   stopifnot("At least one scale parameter is negative" = isTRUE(all(scale > 0)))
@@ -139,10 +155,9 @@ qgppiece <- function(p,
                 )
             )
   cum_prob_interv <- c(1-exp(logp), 1)
-  F_upper <- c(vapply(1:(m-1), function(i){pgpd(q = w[i], scale = scale[i], shape = shape[i])}, numeric(1)), 1)
-  if(log.p){
-    p <- exp(p)
-  }
+  F_upper <- c(vapply(seq_len(m-1), function(i){
+    pgpd(q = w[i], scale = scale[i], shape = shape[i])}, numeric(1)), 1)
+
   stopifnot("Some probabilities are smaller than zero or larger than one." = isTRUE(all(c(p >= 0, p <= 1))))
   if(!lower.tail){
     p <- 1 - p
@@ -178,6 +193,9 @@ rgppiece <- function(n,
             "There should be only a single scale parameter" = length(scale) == 1L
   )
   m <- length(shape)
+  if(m == 1L){
+    return(rgpd(n = n, loc = thresh, scale = scale, shape = shape))
+  }
   w <- as.numeric(diff(thresh))
   scale <- scale + c(0, cumsum(shape[-m]*w))
   stopifnot("At least one scale parameter is negative" = isTRUE(all(scale > 0)))
@@ -191,7 +209,7 @@ rgppiece <- function(n,
   n_mixt <- rmultinom(n = 1, size = n, prob = prob_interv)
   samp <- vector(mode = "numeric", length = n)
   pos <- 1L
-  for(j in 1:(m-1)){
+  for(j in seq_len(m-1)){
     if(n_mixt[j] > 0){
       samp[pos:(pos+n_mixt[j]-1)] <- thresh[j] +
         qgpd(runif(n_mixt[j])*pgpd(q = w[j], scale = scale[j], shape = shape[j]),
