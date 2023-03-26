@@ -597,7 +597,18 @@ ks_test <- function(time,
                     ltrunc = NULL,
                     rtrunc = NULL,
                     type = c("right", "left", "interval", "interval2"),
-                    family = c("exp", "gp", "weibull", "gomp", "extgp", "gppiece"),
+                    family = c("exp",
+                              "gp",
+                              "gomp",
+                              "gompmake",
+                              "weibull",
+                              "extgp",
+                              "gppiece",
+                              "extweibull",
+                              "perks",
+                              "beard",
+                              "perksmake",
+                              "beardmake"),
                     B = 999L){
 
   # Exclude doubly interval truncated data
@@ -725,6 +736,9 @@ ks_test <- function(time,
                         ltrunc = ltrunc,
                         rtrunc = rtrunc))
    }
+   # TODO replace this with function that takes par and returns a list with arguments
+   # rate, scale and shape
+   # TODO check that all calls to *elife, etc. also have a rate parameter
    if(family == "gompmake"){
      scale_boot <- c(F0_b$par[1], F0_b$par[3])
      shape_boot <- F0_b$par[2]

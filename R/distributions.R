@@ -9,6 +9,7 @@
 #' @return a vector of (log)-probabilities of the same length as \code{q}
 #' @export
 #' @keywords internal
+#' @rdname gpd
 pgpd <- function(q,
                  loc = 0,
                  scale = 1,
@@ -45,6 +46,7 @@ pgpd <- function(q,
 #' @return a vector of (log)-density.
 #' @export
 #' @keywords internal
+#' @rdname gpd
 dgpd <- function (x,
                   loc = 0,
                   scale = 1,
@@ -83,6 +85,7 @@ dgpd <- function (x,
 #' @return vector of quantiles
 #' @export
 #' @keywords internal
+#' @rdname gpd
 qgpd <- function(p,
                  loc = 0,
                  scale = 1,
@@ -119,6 +122,7 @@ qgpd <- function(p,
 #' @return a vector of (log)-probabilities of the same length as \code{q}
 #' @export
 #' @keywords internal
+#' @rdname extweibull
 pextweibull <- function(q,
                         scale = 1,
                         shape1 = 0,
@@ -152,6 +156,7 @@ pextweibull <- function(q,
 #' @return a vector of (log)-density.
 #' @export
 #' @keywords internal
+#' @rdname extweibull
 dextweibull <- function (x,
                          scale = 1,
                          shape1 = 0,
@@ -200,6 +205,7 @@ dextweibull <- function (x,
 #' @return vector of quantiles
 #' @export
 #' @keywords internal
+#' @rdname extweibull
 qextweibull <- function(p,
                         scale = 1,
                         shape1 = 0,
@@ -237,6 +243,7 @@ qextweibull <- function(p,
 #' @export
 #' @return a vector of (log)-probabilities of the same length as \code{q}
 #' @keywords internal
+#' @rdname gomp
 pgomp <- function(q,
                   scale = 1,
                   shape = 0,
@@ -275,6 +282,7 @@ pgomp <- function(q,
 #' @export
 #' @return vector of quantiles
 #' @keywords internal
+#' @rdname gomp
 qgomp <- function(p,
                   scale = 1,
                   shape = 0,
@@ -306,6 +314,7 @@ qgomp <- function(p,
 #' @export
 #' @return a vector of (log)-probabilities of the same length as \code{q}
 #' @keywords internal
+#' @rdname gompmake
 pgompmake <- function(q,
                       scale = 1,
                       shape = 0,
@@ -346,6 +355,7 @@ pgompmake <- function(q,
 #' @export
 #' @return vector of quantiles
 #' @keywords internal
+#' @rdname gompmake
 qgompmake <- function(p,
                       scale = 1,
                       shape = 0,
@@ -401,6 +411,7 @@ qgompmake <- function(p,
 #' @export
 #' @return vector of density
 #' @keywords internal
+#' @rdname gompmake
 dgompmake <- function(x,
                       scale = 1,
                       shape = 0,
@@ -437,6 +448,7 @@ dgompmake <- function(x,
 #' @return a vector of (log)-probabilities of the same length as \code{q}
 #' @export
 #' @keywords internal
+#'
 pextgp <- function(q,
                    scale = 1,
                    shape1 = 0,
@@ -484,6 +496,7 @@ pextgp <- function(q,
 #' @param log logical; if \code{TRUE}, return the log density
 #' @export
 #' @keywords internal
+#' @rdname gomp
 dgomp <- function(x,
                   scale = 1,
                   shape = 0,
@@ -520,6 +533,7 @@ dgomp <- function(x,
 #' @return a vector of (log)-density of the same length as \code{x}
 #' @export
 #' @keywords internal
+#' @rdname extgp
 dextgp <- function(x,
                    scale = 1,
                    shape1 = 0,
@@ -578,6 +592,7 @@ dextgp <- function(x,
 #' @return vector of quantiles
 #' @export
 #' @keywords internal
+#' @rdname extgp
 qextgp <- function(p,
                    scale = 1,
                    shape1 = 0,
@@ -622,6 +637,7 @@ qextgp <- function(p,
 #' @return a vector of (log)-probabilities of the same length as \code{q}
 #' @export
 #' @keywords internal
+#' @rdname perksmake
 pperksmake <- function(q,
                        rate = 1,
                        shape = 1,
@@ -656,6 +672,7 @@ pperksmake <- function(q,
 #' @return a vector of (log)-density.
 #' @export
 #' @keywords internal
+#' @rdname perksmake
 dperksmake <- function (x,
                         rate = 1,
                         shape = 1,
@@ -690,6 +707,7 @@ dperksmake <- function (x,
 #' @export
 #' @importFrom stats uniroot
 #' @keywords internal
+#' @rdname perksmake
 qperksmake <- function(p,
                        rate = 1,
                        shape = 1,
@@ -735,6 +753,7 @@ qperksmake <- function(p,
 #' @return a vector of (log)-probabilities of the same length as \code{q}
 #' @export
 #' @keywords internal
+#' @rdname perks
 pperks <- function(q,
                    rate = 1,
                    shape = 1,
@@ -758,6 +777,7 @@ pperks <- function(q,
 #' @return a vector of (log)-density.
 #' @export
 #' @keywords internal
+#' @rdname perks
 dperks <- function (x,
                     rate = 1,
                     shape = 1,
@@ -777,6 +797,7 @@ dperks <- function (x,
 #' @return vector of quantiles
 #' @export
 #' @keywords internal
+#' @rdname perks
 qperks <- function(p,
                    rate = 1,
                    shape = 1,
@@ -801,6 +822,7 @@ qperks <- function(p,
 #' @return a vector of (log)-probabilities of the same length as \code{q}
 #' @export
 #' @keywords internal
+#' @rdname beard
 pbeard <- function(q,
                    rate = 1,
                    shape1 = 1,
@@ -826,6 +848,7 @@ pbeard <- function(q,
 #' @return a vector of (log)-density.
 #' @export
 #' @keywords internal
+#' @rdname beard
 dbeard <- function (x,
                     rate = 1,
                     shape1 = 1,
@@ -848,6 +871,7 @@ dbeard <- function (x,
 #' @return vector of quantiles
 #' @export
 #' @keywords internal
+#' @rdname beard
 qbeard <- function(p,
                    rate = 1,
                    shape1 = 1,
@@ -875,6 +899,7 @@ qbeard <- function(p,
 #' @return a vector of (log)-probabilities of the same length as \code{q}
 #' @export
 #' @keywords internal
+#' @rdname beardmake
 pbeardmake <- function(q,
                        rate = 1,
                        shape1 = 1,
@@ -936,6 +961,7 @@ pbeardmake <- function(q,
 #' @return a vector of (log)-density.
 #' @export
 #' @keywords internal
+#' @rdname beardmake
 dbeardmake <- function (x,
                         rate = rate,
                         shape1 = 1,
@@ -992,6 +1018,7 @@ dbeardmake <- function (x,
 #' @return vector of quantiles
 #' @export
 #' @keywords internal
+#' @rdname beardmake
 qbeardmake <- function(p,
                        rate = 1,
                        shape1 = 1,
@@ -1069,6 +1096,7 @@ qbeardmake <- function(p,
 #' @param log.p logical; if \code{FALSE} (default), values are returned on the probability scale.
 #' @param family string indicating the parametric model, one of \code{exp}, \code{gp}, \code{gomp}, \code{gompmake}, \code{weibull}, \code{extgp}, \code{extweibull}, \code{perks}, \code{perksmake}, \code{beard} and \code{beardmake}
 #' @name elife
+NULL
 
 #' @rdname elife
 #' @export
@@ -1365,8 +1393,8 @@ relife <- function(n,
     ),
     gompmake = qgompmake(
       p = runif(n),
-      scale = scale[1],
-      lambda = scale[2],
+      scale = scale,
+      lambda = rate,
       shape = shape
     ),
     extgp = qextgp(
@@ -1475,8 +1503,8 @@ delife <- function(x,
     ),
     gompmake = dgompmake(
       x = x,
-      scale = scale[1],
-      lambda = scale[2],
+      scale = scale,
+      lambda = rate,
       shape = shape,
       log = log
     ),
@@ -1579,7 +1607,7 @@ check_elife_dist <- function(rate,
                                                    shape >= 0)
     )
   } else if (family == "gompmake") {
-    stopifnot(
+      stopifnot(
       "Invalid scale parameter." =
         isTRUE(all(
           length(scale) == 1L,

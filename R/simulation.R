@@ -6,8 +6,9 @@
 #'
 #' @param n sample size
 #' @param scale scale parameter(s)
+#' @param rate rate parameter(s)
 #' @param shape shape parameter(s)
-#' @param family string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).
+#' @param family string; choice of parametric family
 #' @param lower vector of lower bounds
 #' @param upper vector of upper bounds
 #' @param type2 string, either \code{none}, \code{ltrt} for left- and right-truncated data or \code{ltrc} for left-truncated right-censored data
@@ -15,6 +16,7 @@
 #' @return either a vector of observations or, if \code{type2=ltrc}, a list with \code{n} observations \code{dat} and a logical vector of the same length with \code{TRUE} for right-censored observations and \code{FALSE} otherwise.
 samp_elife <- function(n,
                        scale,
+                       rate,
                        shape = NULL,
                        lower = 0,
                        upper = Inf,
@@ -24,27 +26,32 @@ samp_elife <- function(n,
                                   "gompmake",
                                   "weibull",
                                   "extgp",
-                                  "gppiece"),
+                                  "gppiece",
+                                  "extweibull",
+                                  "perks",
+                                  "beard",
+                                  "perksmake",
+                                  "beardmake"),
                        type2 = c("none",
                                  "ltrt",
                                  "ltrc",
                                  "ditrunc")){
   family <- match.arg(family)
-  if(family != "exp" & is.null(shape)){
-    stop("Invalid shape parameter.")
-  }
   type2 <- match.arg(type2)
   stopifnot(length(lower) %in% c(1L, n),
             length(upper) %in% c(1L, n),
             isTRUE(all(lower < upper)))
   if(type2 == "none"){
+    check_elife_dist(rate = rate, scale = scale, shape = shape, family = family)
     relife(n = n,
+           rate = rate,
            scale = scale,
            shape = shape,
            family = family)
   } else if(type2 == "ltrt"){
     r_dtrunc_elife(n = n,
                    scale = scale,
+                   rate = rate,
                    shape = shape,
                    lower = lower,
                    upper = upper,
@@ -52,12 +59,14 @@ samp_elife <- function(n,
   } else if(type2 == "ltrc"){
     r_ltrc_elife(n = n,
                  scale = scale,
+                 rate = rate,
                  shape = shape,
                  lower = lower,
                  upper = upper,
                  family = family)
   } else if(type2 == "ditrunc"){
     r_ditrunc_elife(n = n,
+                    rate = rate,
                     scale = scale,
                     shape = shape,
                     lower = lower,
@@ -84,6 +93,7 @@ samp_elife <- function(n,
 #'                family = "gp")
 r_dtrunc_elife <- function(n,
                           scale,
+                          rate,
                           shape,
                           lower,
                           upper,
@@ -92,83 +102,35 @@ r_dtrunc_elife <- function(n,
                                      "gomp",
                                      "gompmake",
                                      "weibull",
-                                     "extgp")
+                                     "extgp",
+                                     "gppiece",
+                                     "extweibull",
+                                     "perks",
+                                     "beard",
+                                     "perksmake",
+                                     "beardmake")
                           ){
   family <- match.arg(family)
+  check_elife_dist(rate = rate, scale = scale, shape = shape, family = family)
   if(length(lower) > 1){
     stopifnot("Sample size should match length of 'lower'" = length(lower) == n)
   }
   if(length(upper) > 1){
     stopifnot("Sample size should match length of 'upper'" = length(upper) == n)
   }
-  if(family == "gompmake"){
-    stopifnot("Scale and shape parameters must be positive" = isTRUE(all(c(scale[1] > 0, scale[2] >= 0, shape[1] >= 0))))
-    if(isTRUE(all.equal(shape[1], 0, ignore.attributes = TRUE))){
-      family == "gp"
-      shape[1] <- 0
-    } else if(isTRUE(all.equal(scale[2], 0, ignore.attributes = TRUE))){
-      family == "gomp"
-      scale <- scale[1]
-    } else{
-      if(isTRUE(pgompmake(max(lower),
-                      scale = scale[1],
-                      lambda = scale[2],
-                      shape = shape[1])) > 1-1e-4){
-        stop("Inversion method fails if truncation bound exceeds 99.99% percentile")
-      }
-      return(qgompmake(pgompmake(q = lower, scale = scale[1], lambda = scale[2], shape = shape[1]) +
-                     runif(n)*(pgompmake(upper,  scale = scale[1], lambda = scale[2], shape = shape[1]) - pgompmake(lower, scale = scale[1], lambda = scale[2], shape = shape[1])),
-                     scale = scale[1], lambda = scale[2], shape = shape[1])
-      )
-    }
+  samp <- qelife(
+    p = pelife(q = lower, scale = scale, shape = shape, rate = rate, family = family) +
+      runif(n) * (
+        pelife(q = upper, scale = scale, shape = shape, rate = rate, family = family) -
+          pelife(q = lower, scale = scale, shape = shape, rate = rate, family = family)),
+    scale = scale,
+    shape = shape,
+    rate = rate,
+    family = family)
+  if(isTRUE(any(!is.finite(samp)))){
+    stop("Inversion method failed: infinite values or NAs generated")
   }
-  if(family == "gomp"){
-    stopifnot("Scale and shape parameters must be positive" = isTRUE(scale > 0 && shape[1] >= 0))
-    if(isTRUE(all.equal(shape[1], 0, ignore.attributes = TRUE))){
-      family == "gp"
-      shape[1] <- 0
-    } else{
-      if(isTRUE(pgomp(max(lower),
-               scale = scale,
-               shape = shape[1])) > 1-1e-4){
-       stop("Inversion method fails if truncation bound exceeds 99.99% percentile")
-      }
-      return(qgomp(pgomp(q = lower, scale = scale, shape = shape[1]) +
-                     runif(n)*(pgomp(q = upper, scale = scale, shape = shape[1]) - pgomp(q = lower, scale = scale, shape = shape[1])),
-                   scale = scale, shape = shape[1])
-              )
-    }
-  }
-  if(family == "exp"){
-    stopifnot("Scale parameter must be positive" = isTRUE(scale > 0))
-    shape <- 0
-    family <- "gp"
-  }
-  if(family == "gp"){
-    stopifnot("Scale and shape parameters must be in range of admissible values" = isTRUE(scale > 0 && shape[1] >= -1)
-              # The following warning is discontinued because the distribution function evaluates to 1 beyond the support
-              # "Upper bound must be lower than the maximum value of the support." = ifelse(shape[1] < 0, max(upper) < -scale/shape[1], TRUE)
-    )
-    return(qgpd(pgpd(lower, scale = scale, shape = shape[1]) +
-         runif(n)*(pgpd(upper, scale = scale, shape = shape[1]) - pgpd(lower, scale = scale, shape = shape[1])),
-       scale = scale, shape = shape[1])
-  )
-  } else if(family == "extgp"){
-    stopifnot("Scale and shape parameters must be in range of admissible values" = isTRUE(scale > 0 && shape[1] >= 0),
-              "Shape parameters must be in the range of admissible values" = 1 - shape[1] / shape[2] > 0,
-              "Upper bound must be lower than the maximum value of the support." = ifelse(shape[2] < 0, max(upper) < scale / shape[1] * log(1 - shape[1] / shape[2]), TRUE)
-    )
-    return(qextgp(pextgp(lower, scale = scale, shape1 = shape[1], shape2 = shape[2]) +
-                  runif(n)*(pextgp(upper, scale = scale, shape1 = shape[1], shape2 = shape[2]) - pextgp(lower, scale = scale, shape1 = shape[1], shape2 = shape[2])),
-                scale = scale, shape1 = shape[1], shape2 = shape[2])
-    )
-  } else if(family == "weibull"){
-    stopifnot("Scale and shape parameters must be in range of admissible values" = isTRUE(scale > 0 && shape[1] > 0))
-    return(qweibull(pweibull(lower, scale = scale, shape = shape[1]) +
-                  runif(n)*(pweibull(upper, scale = scale, shape = shape[1]) - pweibull(lower, scale = scale, shape = shape[1])),
-                scale = scale, shape = shape[1])
-    )
-  }
+  return(samp)
 }
 
 
@@ -188,11 +150,24 @@ r_dtrunc_elife <- function(n,
 #'                upper = runif(n, 6, 10),
 #'                family = "gp")
 r_ditrunc_elife <- function(n,
+                            rate,
                            scale,
                            shape,
                            lower,
                            upper,
-                           family = c("exp","gp","gomp","gompmake","weibull","extgp")
+                           family = c("exp",
+                                      "gp",
+                                      "gomp",
+                                      "gompmake",
+                                      "weibull",
+                                      "extgp",
+                                      "gppiece",
+                                      "extweibull",
+                                      "perks",
+                                      "beard",
+                                      "perksmake",
+                                      "beardmake")
+
 ){
   stopifnot("`lower` should be a matrix." = is.matrix(lower),
             "`upper` should be a matrix." = is.matrix(upper),
@@ -201,63 +176,23 @@ r_ditrunc_elife <- function(n,
             "`lower` and `upper` should have the same number of rows." = nrow(lower) == nrow(upper),
             "`lower` and `upper` should have 1 or n rows." = nrow(upper) == 1 | nrow(upper) == n)
   family <- match.arg(family)
-  if(family == "exp"){
-    quantf <- function(par, dat){
-      qexp(p = dat, rate = 1/par[1])
-    }
-    cdf <- function(par, dat, lower.tail = TRUE, log.p = FALSE){
-      pexp(q = dat, rate = 1/par[1], lower.tail = lower.tail, log.p = log.p)
-    }
-  } else if(family == "gp"){
-    quantf <- function(par, dat){
-      qgpd(p = dat, loc = 0, scale = par[1], shape = par[2])
-      }
-    cdf <- function(par, dat, lower.tail = TRUE, log.p = FALSE){
-      pgpd(q = dat, loc = 0, scale = par[1], shape = par[2], lower.tail = lower.tail, log.p = log.p)
-      }
-  } else if(family == "weibull"){
-    quantf <- function(par, dat){
-      qweibull(p = dat, scale = par[1], shape = par[2])
-      }
-    cdf <- function(par, dat, lower.tail = TRUE, log.p = FALSE){
-      pweibull(q = dat, scale = par[1], shape = par[2], lower.tail = lower.tail, log.p = log.p)
-      }
-  } else if(family == "extgp"){
-    quantf <- function(par, dat){
-      qextgp(p = dat, scale = par[1], shape1 = par[2], shape2 = par[3])
-    }
-    cdf <- function(par, dat, lower.tail = TRUE, log.p = FALSE){
-      pextgp(q = dat, scale = par[1], shape1 = par[2], shape2 = par[3], lower.tail = lower.tail, log.p = log.p)
-    }
-  } else if(family == "gompmake"){
-    quantf <- function(par, dat){
-      qgompmake(p = dat, scale = par[1], shape = par[2], lambda = par[3])
-    }
-    cdf <- function(par, dat, lower.tail = TRUE, log.p = FALSE){
-      pgompmake(q = dat, scale = par[1], shape = par[2], lambda = par[3], lower.tail = lower.tail, log.p = log.p)
-    }
-  }
-  # Not all records are doubly truncated records...
-  # If there are NAs, then second interval has prob zero
-
-  if(family == "gompmake"){
-    par <- c(scale[1], shape, scale[2])
-  } else{
-    par <- c(scale, shape)
-  }
-  probint1 <- cdf(dat = upper[,1], par = par) - cdf(dat = lower[,1], par = par)
+  check_elife_dist(rate = rate, scale = scale, shape = shape, family = family)
+  probint1 <- pelife(q = upper[,1], rate = rate, scale = scale, shape = shape, family = family) -
+    pelife(q = lower[,1], rate = rate, scale = scale, shape = shape, family = family)
   probint2 <- ifelse(is.na(lower[,2]), 0,
-                     cdf(upper[,2], par = par) - cdf(lower[,2], par = par))
+                     pelife(q = upper[,2], rate = rate, scale = scale, shape = shape, family = family) -
+                       pelife(q = lower[,2], rate = rate, scale = scale, shape = shape, family = family)
+  )
   if(isTRUE(any((probint1 + probint2) > 1))){
     stop("Invalid input")
   }
 
   cutoff <- probint1 / (probint1 + probint2)
   unif <- runif(n)
-  quantf(ifelse(unif < cutoff,
-         unif*(probint1 + probint2) + cdf(lower[,1], par = par),
-         unif*(probint1 + probint2) + cdf(lower[,2], par = par) - probint1),
-    par = par)
+  qelife(ifelse(unif < cutoff,
+         unif*(probint1 + probint2) + pelife(q = lower[,1], rate = rate, scale = scale, shape = shape, family = family),
+         unif*(probint1 + probint2) + pelife(q = lower[,2], rate = rate, scale = scale, shape = shape, family = family) - probint1),
+         rate = rate, scale = scale, shape = shape, family = family)
 }
 
 
@@ -282,6 +217,7 @@ r_ditrunc_elife <- function(n,
 #'                family = "gp")
 r_ltrc_elife <- function(n,
                          scale,
+                         rate,
                          shape,
                          lower,
                          upper,
@@ -290,79 +226,26 @@ r_ltrc_elife <- function(n,
                                     "gomp",
                                     "gompmake",
                                     "weibull",
-                                    "extgp")
+                                    "extgp",
+                                    "gppiece",
+                                    "extweibull",
+                                    "perks",
+                                    "beard",
+                                    "perksmake",
+                                    "beardmake")
+
 ){
   family <- match.arg(family)
+  check_elife_dist(rate = rate, scale = scale, shape = shape, family = family)
   if(length(lower) > 1){
     stopifnot("Sample size should match length of 'lower'" = length(lower) == n)
   }
   if(length(upper) > 1){
     stopifnot("Sample size should match length of 'upper'" = length(upper) == n)
   }
-  if(family == "gompmake"){
-    stopifnot("Scale and shape parameters must be positive" = isTRUE(all(c(scale[1] > 0, scale[2] >=0, shape >= 0))))
-    if(isTRUE(all.equal(shape[1], 0, ignore.attributes = TRUE))){
-      family == "gp"
-      shape[1] <- 0
-    } else if(isTRUE(all.equal(scale[2], 0, ignore.attributes = TRUE))){
-      family == "gomp"
-      scale <- scale[1]
-    } else{
-      samp <- qgompmake(pgompmake(lower, scale = scale[1], lambda = scale[2], shape = shape[1]) +
-                      runif(n)*(1 - pgompmake(lower, scale = scale[1], lambda = scale[2], shape = shape[1])),
-                    scale = scale[1], lambda = scale[2], shape = shape[1])
-
-    }
-  }
-  if(family == "gomp"){
-    stopifnot("Scale and shape parameters must be positive" = isTRUE(scale > 0 && shape[1] >= 0))
-    if(isTRUE(all.equal(shape[1], 0, ignore.attributes = TRUE))){
-      family == "gp"
-      shape[1] <- 0
-    } else{
-      # Handle rare event simulation
-      # when inversion method fails
-        samp <- qgomp(
-          pgomp(lower,
-                scale = scale,
-                shape = shape[1]) +
-         runif(n)*pgomp(lower,
-                        scale = scale,
-                        shape = shape[1],
-                        lower.tail = FALSE),
-                   scale = scale, shape = shape[1])
-
-    }
-  }
-  if(family == "exp"){
-    stopifnot("Scale parameter must be positive" = isTRUE(scale > 0))
-    shape <- 0
-    family <- "gp"
-  }
-  if(family == "gp"){
-    stopifnot("Scale and shape parameters must be in range of admissible values" = isTRUE(scale > 0 && shape[1] >= -1)
-              # The following warning is discontinued because the distribution function evaluates to 1 beyond the support
-              # "Upper bound must be lower than the maximum value of the support." = ifelse(shape[1] < 0, max(upper) < -scale/shape[1], TRUE)
-    )
-    samp <- qgpd(pgpd(lower, scale = scale, shape = shape[1]) +
-                  runif(n)*(1 - pgpd(lower, scale = scale, shape = shape[1])),
-                scale = scale, shape = shape[1])
-  }
-  if(family == "extgp"){
-    stopifnot("Scale and shape parameters must be in range of admissible values" = isTRUE(scale > 0 && shape[1] >= 0),
-              "Shape parameters must be in the range of admissible values" = 1 - shape[1] / shape[2] > 0,
-              "Upper bound must be lower than the maximum value of the support." = ifelse(shape[2] < 0, max(upper) < scale / shape[1] * log(1 - shape[1] / shape[2]), TRUE)
-    )
-    samp <- qextgp(pextgp(lower, scale = scale, shape1 = shape[1], shape2 = shape[2]) +
-                    runif(n)*(1 - pextgp(lower, scale = scale, shape1 = shape[1], shape2 = shape[2])),
-                  scale = scale, shape1 = shape[1], shape2 = shape[2])
-  }
-  if(family == "weibull"){
-    stopifnot("Scale and shape parameters must be in range of admissible values" = isTRUE(scale > 0 && shape[1] > 0))
-    samp <- qweibull(pweibull(lower, scale = scale, shape = shape[1]) +
-                      runif(n)*pweibull(lower, scale = scale, shape = shape[1], lower.tail = FALSE),
-                    scale = scale, shape = shape[1])
-  }
+  samp <- qelife(p = pelife(lower, scale = scale, shape = shape, rate = rate, family = family) +
+         runif(n)*pelife(lower, scale = scale, shape = shape, rate = rate, family = family, lower.tail = FALSE),
+         scale = scale, shape = shape, rate = rate, family = family)
   rcens <- ifelse(samp < upper, FALSE, TRUE)
   samp <- pmin(samp, upper)
   if(any(is.infinite(samp))){
@@ -393,7 +276,18 @@ r_ltrc_elife <- function(n,
 samp2_elife <- function(n,
                          scale,
                          shape,
-                         family = c("exp","gp","gomp","gompmake","weibull","extgp"),
+                        family = c("exp",
+                                   "gp",
+                                   "gomp",
+                                   "gompmake",
+                                   "weibull",
+                                   "extgp",
+                                   "gppiece",
+                                   "extweibull",
+                                   "perks",
+                                   "beard",
+                                   "perksmake",
+                                   "beardmake"),
                          xcal,
                          c1,
                          c2){
