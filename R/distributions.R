@@ -1313,7 +1313,7 @@ pelife <- function(q,
     ),
     perksmake = pperksmake(
       q = q,
-      rate = rate,
+      rate = rate[1],
       lambda = rate[2],
       shape = shape,
       lower.tail = lower.tail,
@@ -1658,7 +1658,7 @@ check_elife_dist <- function(rate,
       "\"shape\" must be finite." = isTRUE(all(is.finite(shape))),
       "\"shape\" must be positive." = isTRUE(shape > 0)
     )
-    stopifnot("Invalid rate parameter: must be a nonegative scalar." =
+    stopifnot("Invalid rate parameter: must be a vector of length 2 of non-negative entries." =
                 isTRUE(all(
                   length(rate) == 2L,
                   is.finite(rate),
@@ -1681,7 +1681,7 @@ check_elife_dist <- function(rate,
       "First argument of \"shape\" must be positive." = isTRUE(shape[1] > 0),
       "Second argument of \"shape\" must be non-negative." = isTRUE(shape[2] > 0)
     )
-    stopifnot("Invalid rate parameter: must be a nonegative scalar." =
+    stopifnot("Invalid rate parameter: must be a vector of length 2 of non-negative entries." =
                 isTRUE(all(
                   length(rate) == 2L,
                   isTRUE(all(is.finite(rate))),

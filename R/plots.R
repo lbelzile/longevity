@@ -23,6 +23,7 @@
 #' @param confint logical; if \code{TRUE}, creates uncertainty diagnostic via a parametric bootstrap
 #' @param plot logical; if \code{TRUE}, creates a plot when \code{plot.type="ggplot"}. Useful for returning \code{ggplot} objects without printing the graphs
 #' @param ... additional arguments, currently ignored by the function.
+#' @importFrom rlang .data
 #' @examples
 #' samp <- samp_elife(
 #'  n = 200,
@@ -91,7 +92,7 @@ plot.elife_par <- function(x,
   # Create a weighted empirical CDF
   ecdffun <- np$cdf
   dat <- object$time[object$status == 1L]
-  cens <- length(dat) == length(object$time)
+  cens <- length(dat) != length(object$time)
   if(!is.null(object$ltrunc)){
     if(length(object$ltrunc) == 1L){
       ltrunc <- rep(object$ltrunc, length.out = sum(object$status == 1L))
@@ -182,7 +183,7 @@ plot.elife_par <- function(x,
                     ltrunc = ltrunc,
                     rtrunc = rtrunc)
       # Create a weighted empirical CDF
-      ecdffun2 <- np2$ecdf
+      ecdffun2 <- np2$cdf
     }
   }
   if(plot.type == "base"){
@@ -216,7 +217,7 @@ plot.elife_par <- function(x,
         yp <- dat
         xp <- qmod(p = txpos, scale = scale, shape = shape, family = object$family)
         plot(y = yp - xp,
-             x = (xp+yp)/2,
+             x = (xp + yp) / 2,
              bty = "l",
              pch = 20,
              xlab = "average quantile",
@@ -238,10 +239,11 @@ plot.elife_par <- function(x,
     for(pl in which.plot){
       if(pl == "pp"){
         pl_list[["pp"]] <-
-          ggplot2::ggplot(data = data.frame(y = ypos, x = xpos),
-                 mapping = ggplot2::aes_string(x = "x", y = "y")) +
+          ggplot2::ggplot(data = data.frame(y = ypos, x = xpos)) +
           ggplot2::geom_abline(intercept = 0, slope = 1, col = "gray") +
-          ggplot2::geom_point() +
+          ggplot2::geom_point(mapping = ggplot2::aes(
+            x = .data[["x"]],
+            y = .data[["y"]])) +
           ggplot2::labs(x = "theoretical quantiles",
                y = "empirical quantiles") +
           ggplot2::theme_classic()
@@ -249,7 +251,8 @@ plot.elife_par <- function(x,
         pl_list[["exp"]] <-
           ggplot2::ggplot(data = data.frame(y = -log(1-ypos),
                                    x = -log(1-xpos)),
-                 mapping = ggplot2::aes_string(x = "x", y = "y")) +
+                 mapping = ggplot2::aes(x = .data[["x"]],
+                                        y = .data[["y"]])) +
           ggplot2::geom_abline(intercept = 0, slope = 1, col = "gray") +
           ggplot2::geom_point() +
           ggplot2::labs(x = "theoretical quantiles",
@@ -270,7 +273,8 @@ plot.elife_par <- function(x,
         pl_list[["qq"]] <-
           ggplot2::ggplot(data = data.frame(y = dat,
                                    x = qmod(p = txpos, scale = scale, shape = shape, family = object$family)),
-                 mapping = ggplot2::aes_string(x = "x", y = "y")) +
+                 mapping = ggplot2::aes(x = .data[["x"]],
+                                        y = .data[["y"]])) +
           ggplot2::geom_abline(intercept = 0, slope = 1, col = "gray") +
           ggplot2::geom_point() +
           ggplot2::labs(x = "theoretical quantiles",
@@ -291,21 +295,33 @@ plot.elife_par <- function(x,
         #     geom_point()
         # }
       } else if(pl == "tmd"){
+        xp <- qmod(p = txpos, scale = scale, shape = shape, family = object$family)
+        yp <- dat
+        xmap <- (xp + yp) / 2
+        ymap <- yp - xp
         pl_list[["tmd"]] <-
-          ggplot2::ggplot(data = data.frame(yp = dat,
-                                   xp = qmod(p = txpos, scale = scale, shape = shape, family = object$family)),
-                 mapping = ggplot2::aes_(x = "(xp + yp) / 2", y = "yp - xp")) +
+          ggplot2::ggplot(data = data.frame(x = xmap, y = ymap),
+                 mapping = ggplot2::aes(x = .data[["x"]],
+                                         y = .data[["y"]])) +
           ggplot2::geom_hline(yintercept = 0, col = "gray") +
           ggplot2::geom_point() +
-          ggplot2::labs(x = "average quantile",
+          ggplot2::labs(
+               x = "average quantile",
                y = "quantile difference") +
           ggplot2::theme_classic()
 
       } else if(pl == "erp"){
         pl_list[["erp"]] <-
-          ggplot2::ggplot(data = data.frame(y = ecdffun2(dat),
-                                   x = ecdffun2(qmod(p = txpos, scale = scale, shape = shape, family = object$family))),
-                 mapping = ggplot2::aes_string(x = "x", y = "y")) +
+          ggplot2::ggplot(
+            data = data.frame(
+             y = ecdffun2(dat),
+             x = ecdffun2(qmod(p = txpos,
+                              scale = scale,
+                              shape = shape,
+                              family = object$family))),
+          mapping = ggplot2::aes(
+            x = .data[["x"]],
+            y = .data[["y"]])) +
           ggplot2::geom_abline(intercept = 0, slope = 1, col = "gray") +
           ggplot2::geom_point() +
           ggplot2::labs(x = "theoretical quantiles",

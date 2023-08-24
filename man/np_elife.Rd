@@ -59,17 +59,7 @@ assumed to be non-informative.
 The survival function changes only at the \code{J} distinct
 exceedances \eqn{y_i-u} and truncation points.
 }
-\note{
-This function is a vanilla R implementation of the EM algorithm;
-the function \link{npsurv} uses a backbone Cpp implementation
-and will be faster for most settings (but it doesn't account for thresholds).
-The function can return  the variance covariance matrix of the \code{J-1}
-estimated probabilities, which is computed by inverting the negative
-hessian of the incomplete log likelihood.
-
-The method is currently limited to 2500 unique failure time, since
-the implementation has a heavy memory footprint of the order O(\eqn{J^2})
-
+\details{
 The unknown parameters of the model are \eqn{p_j (j=1, \ldots, J)}
 subject to the constraint that \eqn{\sum_{j=1}^J p_j=1}.
 }
@@ -89,4 +79,10 @@ dat <- samp_elife(n = n,
 npi <- np_elife(time = dat,
                 rtrunc = rtrunc,
                 ltrunc = ltrunc)
+}
+\references{
+Turnbull, B. W. (1976). \emph{The Empirical Distribution Function with Arbitrarily Grouped, Censored and Truncated Data.} Journal of the Royal Statistical Society. Series B (Methodological) 38(\bold{3}), 290–295.
+
+Gentleman, R. and C. J. Geyer (1994). \emph{Maximum likelihood for interval censored data: Consistency and computation}, Biometrika, 81(\bold{3}), 618–623.
+#' @references Frydman, H. (1994). \emph{A Note on Nonparametric Estimation of the Distribution Function from Interval-Censored and Truncated Observations}, Journal of the Royal Statistical Society. Series B (Methodological) \bold{56}(1), 71-74.
 }

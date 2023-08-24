@@ -216,12 +216,11 @@ nll_elife <- function(par,
   }
 }
 
-.npar_elife <- function(par, family){
+.npar_elife <- function(par, family, return_npar = FALSE){
+  stopifnot(is.logical(return_npar))
   family <- match.arg(family, choices =  c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "gppiece",
                                            "extweibull", "perks", "beard", "perksmake", "beardmake"))
-  if(family == "gppiece" & length(par) < 2){
-    stop("Invalid parameter vector for model \"gppiece\".")
-  }
+   # Number of scale, rate and shape parameters
   npars <- switch(family,
                   "exp" = c(1, 0, 0),
                   "gp" = c(1, 0, 1),
@@ -235,6 +234,12 @@ nll_elife <- function(par,
                   "beard" = c(0, 1, 2),
                   "perksmake" = c(0, 2, 1),
                   "beardmake" = c(0, 2, 2))
+  if(isTRUE(return_npar)){
+    return(npars)
+  }
+  if(family == "gppiece" & length(par) < 2){
+    stop("Invalid parameter vector for model \"gppiece\".")
+  }
   if(length(par) != sum(npars)){
     stop(paste0("Invalid parameter length for family \"", family, "\"."))
   }
@@ -251,7 +256,7 @@ nll_elife <- function(par,
   return(results)
 }
 
-#' Fit excess lifetime models
+#' Fit excess lifetime models by maximum likelihood
 #'
 #' This function is a wrapper around constrained optimization
 #' routines for different models with non-informative
@@ -784,70 +789,6 @@ fit_elife <- function(time,
 }
 
 
-# #' Maximum likelihood estimation of parametric models for excess lifetime
-# #'
-# #' This function performs constrained optimization to find the maximum likelihood estimator
-# #' for a range of parametric models suitable for the analysis of longevity data.
-# #' These can be estimated simultaneously for a range of thresholds.
-# #'
-# #' @inheritParams nll_elife
-# #' @param family string, one of \code{exp}, \code{gp}, \code{gomp} or \code{ext} for exponential, generalized Pareto, Gompertz or extended family, respectively.
-# #' @param thresh a vector of thresholds
-# #' @param weights vector of weights, defaults to one for each observation.
-# #' @return a list containing
-# #' @export
-# fitrange_elife <- function(time,
-#                             time2 = NULL,
-#                             event = NULL,
-#                             ltrunc = NULL,
-#                             rtrunc = NULL,
-#                             thresh,
-#                             type = c("right","left","interval","interval2"),
-#                             family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp"),
-#                             weights = NULL) {
-# # Return a list of tables with parameter estimates as
-# # a function of the different thresholds
-# stopifnot("Threshold should be a vector of length greater than one." = length(thresh) > 1,
-#             "Thresholds should be positive" = isTRUE(all(thresh>0)))
-# results <- list()
-# results$par <- results$std.error <-
-#   matrix(NA,
-#         nrow = length(thresh),
-#         ncol = switch(family,
-#                       "exp" = 1L,
-#                       "gp" = 2L,
-#                       "gomp" = 2L,
-#                       "gompmake" = 3L,
-#                       "extgp" = 3L,
-#                       "weibull" = 2L)
-#           )
-# results$convergence <- rep(FALSE, length(thresh))
-# results$nexc <- rep(0, length(thresh))
-# results$thresh <- thresh
-# results$family <- family
-# results$type <- results$type
-# for(i in 1:length(thresh)){
-#   results_i <- fit_elife(time = time,
-#                          time2 = time2,
-#                          event = event,
-#                          thresh = thresh[i],
-#                          ltrunc = ltrunc,
-#                          rtrunc = rtrunc,
-#                          type = type,
-#                          family = family,
-#                          weights = weights
-#                           )
-#   results$nexc[i] <- results_i$nexc
-#   results$par[i,] <- results_i$mle
-#   #TODO write tests for cases where standard errors do not exist
-#   results$std.error[i,] <- results_i$se
-#   results$convergence[i] <- results_i$convergence
-#   results$loglik[i] <- results_i$loglik
-#   }
-#   return(results)
-# }
-
-
 #' @export
 print.elife_par <-
   function(x,
@@ -889,6 +830,12 @@ print.elife_par <-
     cat("  Convergence:", x$convergence, "\n")
     invisible(x)
   }
+
+
+#' @export
+summary.elife_par <- function(object, ...){
+  print(object, ...)
+}
 
 #' @importFrom stats logLik
 #' @export

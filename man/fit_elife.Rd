@@ -2,7 +2,7 @@
 % Please edit documentation in R/parametric.R
 \name{fit_elife}
 \alias{fit_elife}
-\title{Fit excess lifetime models}
+\title{Fit excess lifetime models by maximum likelihood}
 \usage{
 fit_elife(
   time,

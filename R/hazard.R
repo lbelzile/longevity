@@ -61,7 +61,7 @@ hazard_elife <- function(x,
                         thresh = 0,
                         ltrunc = NULL,
                         rtrunc = NULL,
-                        type = c("right","left","interval","interval2"),
+                        type = c("right", "left", "interval", "interval2"),
                         family = c("exp","gp","gomp","gompmake","weibull","extgp"),
                         weights = rep(1, length(time)),
                         level = 0.95,
@@ -368,7 +368,8 @@ plot.elife_hazard <-
     if(plot.type == "ggplot"){
        g1 <- ggplot2::ggplot(data = data.frame(x = x$hazards,
                                               y = x$pll),
-                            mapping = ggplot2::aes_string(x = "x", y = "y")) +
+                            mapping = ggplot2::aes(x = .data[["x"]],
+                                                   y = .data[["y"]])) +
         ggplot2::geom_hline(yintercept = -qchisq(x$level, 1)/2,
                             alpha = 0.5,
                             color = "grey",
@@ -378,7 +379,7 @@ plot.elife_hazard <-
                       y = "profile log-likelihood") +
         ggplot2::geom_rug(inherit.aes = FALSE,
                           data = data.frame(x = c(x$confint, x$par)),
-                          mapping = ggplot2::aes_string(x = "x"),
+                          mapping = ggplot2::aes(x = .data[["x"]]),
                           sides = "b") +
         ggplot2::theme_classic()
       if(plot){

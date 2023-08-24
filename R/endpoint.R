@@ -93,13 +93,15 @@ confint.elife_profile <-
 #' @export
 print.elife_profile <- function(x, ...){
   cat("Parameter:", x$param, "\n")
-  cat("Maximum likelihood estimator: ", round(x$psi.max,3),"/n")
+  cat("Maximum likelihood estimator: ", round(x$psi.max,3),"\n")
 }
 
+#' @param plot logical; if \code{TRUE}, creates a plot when \code{plot.type="ggplot"}. Useful for returning \code{ggplot} objects without printing the graphs
 #' @export
 plot.elife_profile <-
   function(x,
            plot.type = c("base", "ggplot"),
+           plot = TRUE,
            ...){
 plot.type <- match.arg(plot.type)
 plot.type <- match.arg(plot.type)
@@ -126,7 +128,7 @@ abline(h = -qchisq(c(0.95,0.99), df = 1)/2,
   g <- ggplot2::ggplot(data =
                     data.frame(y = x$pll[ind] - x$maxpll,
                                x = x$psi[ind]),
-                  mapping = ggplot2::aes_string(x = "x", y = "y")) +
+                  mapping = ggplot2::aes(x = .data[["x"]], y = .data[["y"]])) +
     ggplot2::geom_hline(
       yintercept = -qchisq(c(0.95,0.99), df = 1)/2,
       col = "gray") +
@@ -134,7 +136,9 @@ abline(h = -qchisq(c(0.95,0.99), df = 1)/2,
     ggplot2::labs(x = x$param,
                   y = "profile log likelihood") +
     ggplot2::theme_classic()
-  print(g)
+  if(isTRUE(plot)){
+   print(g)
+  }
   return(invisible(g))
 }
 }

@@ -12,7 +12,8 @@ ks_test(
   ltrunc = NULL,
   rtrunc = NULL,
   type = c("right", "left", "interval", "interval2"),
-  family = c("exp", "gp", "weibull", "gomp", "extgp", "gppiece"),
+  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "gppiece",
+    "extweibull", "perks", "beard", "perksmake", "beardmake"),
   B = 999L
 )
 }

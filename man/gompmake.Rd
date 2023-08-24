@@ -2,6 +2,8 @@
 % Please edit documentation in R/distributions.R
 \name{pgompmake}
 \alias{pgompmake}
+\alias{qgompmake}
+\alias{dgompmake}
 \title{Distribution function of the Gompertz-Makeham distribution}
 \usage{
 pgompmake(
@@ -12,6 +14,10 @@ pgompmake(
   lower.tail = TRUE,
   log.p = FALSE
 )
+
+qgompmake(p, scale = 1, shape = 0, lambda = 0, lower.tail = TRUE)
+
+dgompmake(x, scale = 1, shape = 0, lambda = 0, log = FALSE)
 }
 \arguments{
 \item{q}{vector of quantiles.}
@@ -25,11 +31,28 @@ pgompmake(
 \item{lower.tail}{logical; if \code{TRUE} (default), the lower tail probability \eqn{\Pr(X \leq x)} is returned.}
 
 \item{log.p}{logical; if \code{FALSE} (default), values are returned on the probability scale.}
+
+\item{p}{vector of probabilities.}
+
+\item{x}{vector of quantiles.}
+
+\item{log}{logical; if \code{FALSE} (default), return the density, else the log likelihood of the individual observations.}
 }
 \value{
 a vector of (log)-probabilities of the same length as \code{q}
+
+vector of quantiles
+
+vector of density
 }
 \description{
 Distribution function of the Gompertz-Makeham distribution
+
+Quantile function of the Gompertz-Makeham distribution
+
+Density function of the Gompertz-Makeham distribution
+}
+\note{
+The quantile function is defined in terms of Lambert's W function. Particular parameter combinations (small values of \code{lambda} lead to numerical overflow; the function throws a warning when this happens.
 }
 \keyword{internal}

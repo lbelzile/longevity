@@ -11,7 +11,8 @@ nll_ditrunc_elife(
   rtrunc1 = NULL,
   ltrunc2 = NULL,
   rtrunc2 = NULL,
-  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "gppiece"),
+  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "gppiece",
+    "extweibull", "perks", "beard", "perksmake", "beardmake"),
   thresh = 0,
   weights = rep(1, length(time)),
   ...

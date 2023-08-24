@@ -6,15 +6,19 @@
 \usage{
 r_ditrunc_elife(
   n,
+  rate,
   scale,
   shape,
   lower,
   upper,
-  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp")
+  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "gppiece",
+    "extweibull", "perks", "beard", "perksmake", "beardmake")
 )
 }
 \arguments{
 \item{n}{sample size}
+
+\item{rate}{rate parameter(s)}
 
 \item{scale}{scale parameter(s)}
 
@@ -24,7 +28,7 @@ r_ditrunc_elife(
 
 \item{upper}{vector of upper bounds}
 
-\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).}
+\item{family}{string; choice of parametric family}
 }
 \value{
 a vector of \code{n} observations

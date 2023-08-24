@@ -18,7 +18,7 @@ samp <- longevity::samp_elife(
   lower = lower,
   upper = upper,
   family = "gomp")
-tinytest::expect_true(
+expect_true(
   isTRUE(all(samp$dat - lower > 0)))
 # Fit the model with all families
 fit_exp <-
@@ -57,6 +57,35 @@ fit_weibull <-
             ltrunc = lower,
             event = samp$rcens == 1L,
             family = "weibull")
+            fit_weibull <-
+fit_weibull_alt <-
+  fit_elife(time = samp$dat,
+            ltrunc = lower,
+            family = "weibull")
+fit_beard <- fit_elife(
+  time = samp$dat,
+  type = "right",
+  ltrunc = lower,
+  event = samp$rcens == 1L,
+  family = "beard")
+fit_beardmake <- fit_elife(
+  time = samp$dat,
+  type = "right",
+  ltrunc = lower,
+  event = samp$rcens == 1L,
+  family = "beardmake")
+fit_perks <- fit_elife(
+  time = samp$dat,
+  type = "right",
+  ltrunc = lower,
+  event = samp$rcens == 1L,
+  family = "perks")
+fit_perksmake <- fit_elife(
+  time = samp$dat,
+  type = "right",
+  ltrunc = lower,
+  event = samp$rcens == 1L,
+  family = "perksmake")
 devs <-
 c(deviance(fit_exp),
   deviance(fit_gp),
@@ -67,50 +96,55 @@ c(deviance(fit_exp),
 length(devs) == length(unique(devs))
 
 # Regular testing
-tinytest::expect_equal(
+expect_equal(
   anova(fit_exp, fit_gp)[2,5],
   pchisq(deviance(fit_exp) - deviance(fit_gp),
          df = 1, lower.tail = FALSE))
-tinytest::expect_equal(
+expect_equal(
   anova(fit_exp, fit_weibull)[2,5],
   pchisq(deviance(fit_exp) -
            deviance(fit_weibull),
        df = 1, lower.tail = FALSE))
-tinytest::expect_equal(
+expect_equal(
   anova(fit_gomp, fit_extgp)[2,5],
   pchisq(deviance(fit_gomp) - deviance(fit_extgp),
          df = 1, lower.tail = FALSE))
-
-
+expect_equal(
+  anova(fit_perksmake, fit_beardmake)[2,5],
+  pchisq(deviance(fit_perksmake) - deviance(fit_beardmake),
+         df = 1, lower.tail = FALSE))
+expect_equal(
+  anova(fit_perks, fit_beard)[2,5],
+  pchisq(deviance(fit_perks) - deviance(fit_beard),
+         df = 1, lower.tail = FALSE))
 # Nonregular, one parameter
-tinytest::expect_equal(
+expect_equal(
   anova(fit_exp, fit_gomp)[2,5],
   0.5*pchisq(deviance(fit_exp) - deviance(fit_gomp),
          df = 1, lower.tail = FALSE)
   )
-tinytest::expect_equal(
+expect_equal(
   anova(fit_gp, fit_extgp)[2,5],
   0.5*pchisq(deviance(fit_gp) - deviance(fit_extgp),
              df = 1, lower.tail = FALSE)
 )
-# Non-regular comparison
-tinytest::expect_error(
-  anova(fit_exp, fit_gompmake))
-
+# Non-identifiable parameters in nested models
+expect_error(anova(fit_exp, fit_gompmake))
+expect_error(anova(fit_exp, fit_perksmake))
+expect_error(anova(fit_exp, fit_beardmake))
 
 # Invalid comparisons - non-nested models
-tinytest::expect_error(
-  anova(fit_weibull, fit_gp))
-tinytest::expect_error(
-  anova(fit_weibull, fit_extgp))
-tinytest::expect_error(
-  anova(fit_weibull, fit_gompmake))
-tinytest::expect_error(
-  anova(fit_weibull, fit_gomp))
-tinytest::expect_error(
-  anova(fit_gomp, fit_gp))
-tinytest::expect_error(
-  anova(fit_gompmake, fit_gp))
-tinytest::expect_error(
-  anova(fit_gompmake, fit_extgp))
+expect_error(anova(fit_weibull, fit_gp))
+expect_error(anova(fit_weibull, fit_extgp))
+expect_error(anova(fit_weibull, fit_gompmake))
+expect_error(anova(fit_weibull, fit_gomp))
+expect_error(anova(fit_gomp, fit_gp))
+expect_error(anova(fit_gompmake, fit_gp))
+expect_error(anova(fit_gompmake, fit_extgp))
+
+# Different survival configuration
+expect_error(anova(fit_exp, fit_weibull_alt))
+
+# Same distributions
+expect_error(anova(fit_weibull, fit_weibull_alt))
 

@@ -2,9 +2,15 @@
 % Please edit documentation in R/distributions.R
 \name{pbeard}
 \alias{pbeard}
+\alias{dbeard}
+\alias{qbeard}
 \title{Distribution function of the Beard distribution}
 \usage{
 pbeard(q, rate = 1, shape1 = 1, shape2 = 1, lower.tail = TRUE, log.p = FALSE)
+
+dbeard(x, rate = 1, shape1 = 1, shape2 = 1, log = FALSE)
+
+qbeard(p, rate = 1, shape1 = 1, shape2 = 1, lower.tail = TRUE)
 }
 \arguments{
 \item{q}{vector of quantiles.}
@@ -18,11 +24,25 @@ pbeard(q, rate = 1, shape1 = 1, shape2 = 1, lower.tail = TRUE, log.p = FALSE)
 \item{lower.tail}{logical; if \code{TRUE} (default), the lower tail probability \eqn{\Pr(X \leq x)} is returned.}
 
 \item{log.p}{logical; if \code{FALSE} (default), values are returned on the probability scale.}
+
+\item{x}{vector of quantiles.}
+
+\item{log}{logical; if \code{FALSE} (default), return the density, else the log likelihood of the individual observations.}
+
+\item{p}{vector of probabilities.}
 }
 \value{
 a vector of (log)-probabilities of the same length as \code{q}
+
+a vector of (log)-density.
+
+vector of quantiles
 }
 \description{
 Distribution function of the Beard distribution
+
+Density function of the Beard distribution
+
+Quantile function of the Beard distribution
 }
 \keyword{internal}

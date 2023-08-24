@@ -32,6 +32,7 @@ pelife(
 relife(
   n,
   scale = 1,
+  rate,
   shape,
   family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp", "extweibull", "perks",
     "perksmake", "beard", "beardmake")

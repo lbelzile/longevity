@@ -7,10 +7,12 @@
 r_ltrc_elife(
   n,
   scale,
+  rate,
   shape,
   lower,
   upper,
-  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp")
+  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "gppiece",
+    "extweibull", "perks", "beard", "perksmake", "beardmake")
 )
 }
 \arguments{

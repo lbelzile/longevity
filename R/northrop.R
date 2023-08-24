@@ -100,13 +100,13 @@ pgppiece <- function(q,
               exp((thresh[Ind] - q) / scale[Ind]),
               pmax(0, (1 + shape[Ind] * (q - thresh[Ind]) / scale[Ind]))^(-1/shape[Ind])
     )) / F_upper[Ind]
-  if(shape[m] < 0){
-    # check that any point beyond the support gets cumulative value of 1
-    outbound <- which(q[Ind == m] > thresh[m] - scale[m]/shape[m])
-    if(length(outbound) > 0){
-      ret_p[outbound] <- 1
-    }
-  }
+  # if(shape[m] < 0){
+  #   # check that any point beyond the support gets cumulative value of 1
+  #   outbound <- which(q[Ind == m] > thresh[m] - scale[m]/shape[m])
+  #   if(length(outbound) > 0){
+  #     ret_p[outbound] <- cum_prob
+  #   }
+  # }
   outzero <- which(q <= min(thresh))
   if(length(outzero) > 0){
     ret_p[outzero] <- 0

@@ -45,7 +45,6 @@ devtools::install_github("lbelzile/longevity")
 - [x] quantile-quantile plots
 - [x] likelihood ratio tests for nested models
 - [x] likelihood ratio tests for a categorical explanatory
-- [ ] likelihood ratio tests for changepoints
 - [x] score and likelihood ratio tests for piecewise generalized Pareto
   distribution, extending Northrop and Coleman (2014), with $p$-value
   paths
@@ -54,6 +53,7 @@ devtools::install_github("lbelzile/longevity")
   algorithm of Turnbull (1976) - C++ implementation.
 - [x] profile likelihood for generalized Pareto (endpoint)
 - [x] Adapt `npsurv` for interval censoring
+- [x] S3 methods
 
 ## Improvements
 
@@ -65,9 +65,9 @@ devtools::install_github("lbelzile/longevity")
   sense given null distribution)
 - [ ] Add plots of (local) hazards with delta-method based confidence
   intervals
+- [ ] likelihood ratio tests for changepoints
 - [ ] Change bootstrap procedure for Q-Q plots and other graphical
   diagnostics
-- [x] S3 methods
 
 ## Testing
 
@@ -79,7 +79,7 @@ devtools::install_github("lbelzile/longevity")
   5)  double truncation
 - [x] Check functions fail when packages listed in ‘Suggests’ are absent
 - [x] Check all distributions and proper nesting relationships
-- [ ] Check that all ANOVA nesting works as expected (with null
+- [x] Check that all ANOVA nesting works as expected (with null
   distribution)
 - [x] Check distributions
 - [ ] Fix starting values for `gomp` and `gompmake` and make sure model

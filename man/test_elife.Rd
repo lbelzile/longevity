@@ -27,7 +27,7 @@ test_elife(
 For interval censored data, the status indicator is 0=right censored, 1=event at time, 2=left censored, 3=interval censored.
 Although unusual, the event indicator can be omitted, in which case all subjects are assumed to have experienced an event.}
 
-\item{covariate}{vector of factors, logical or integer whose distinct values are}
+\item{covariate}{vector of factors, logical or integer whose distinct values define groups}
 
 \item{thresh}{vector of thresholds}
 

@@ -38,9 +38,6 @@ samp_elife <- function(n,
                                  "ditrunc")){
   family <- match.arg(family)
   type2 <- match.arg(type2)
-  stopifnot(length(lower) %in% c(1L, n),
-            length(upper) %in% c(1L, n),
-            isTRUE(all(lower < upper)))
   if(type2 == "none"){
     check_elife_dist(rate = rate, scale = scale, shape = shape, family = family)
     relife(n = n,
@@ -49,6 +46,9 @@ samp_elife <- function(n,
            shape = shape,
            family = family)
   } else if(type2 == "ltrt"){
+    stopifnot(length(lower) %in% c(1L, n),
+              length(upper) %in% c(1L, n),
+              isTRUE(all(lower < upper)))
     r_dtrunc_elife(n = n,
                    scale = scale,
                    rate = rate,
@@ -57,6 +57,9 @@ samp_elife <- function(n,
                    upper = upper,
                    family = family)
   } else if(type2 == "ltrc"){
+    stopifnot(length(lower) %in% c(1L, n),
+              length(upper) %in% c(1L, n),
+              isTRUE(all(lower < upper)))
     r_ltrc_elife(n = n,
                  scale = scale,
                  rate = rate,

@@ -3,14 +3,12 @@
 # # as for "mev" package for GP and for special
 # # cases of the exponential distribution where
 # # the solution is available in closed-form
-#
-library(mev)
-library(evd)
-# library(fitdistrplus)
+
 set.seed(1234)
 n <- 1e5L
 lower <- runif(n, max = 10)
 upper <- runif(n, min = 10, max = 20)
+# Generated interval truncated data
 samp1 <- longevity::samp_elife(
   n = n,
   scale = 10,
@@ -20,14 +18,15 @@ samp1 <- longevity::samp_elife(
   family = "gp",
   type2 = "ltrt")
 
-
 fit1 <- longevity::fit_elife(
   time = samp1,
   ltrunc = lower,
   rtrunc = upper,
   family = "gp")
 
-samp2 <- evd::rgpd(1e3, loc = 2, scale = 2, shape = -0.1)
+# Check that specifying truncation bounds that are 0/Inf
+# does not impact the MLE returned
+samp2 <- 2 + longevity::relife(n = 1e3, scale = 2, shape = -0.1, family = "gp")
 fit_2a <- longevity::fit_elife(
   time = samp2,
   ltrunc = rep(0, length(samp2)),
@@ -38,18 +37,24 @@ fit_2b <- longevity::fit_elife(
   time = samp2,
   thresh = 2,
   family = "gp")
+tinytest::expect_equivalent(fit_2a$par, fit_2b$par, tolerance = 1e-4)
+if(requireNamespace("mev", quietly = TRUE)){
+# Compare with MLE algorithm of Grimshaw
 fit_2c <- mev::fit.gpd(
   xdat = samp2,
   threshold = 2)
+tinytest::expect_equivalent(fit_2a$par, fit_2c$par, tolerance = 1e-4)
+}
 
-fit_2a$par - fit_2c$par
-fit_2a$par - fit_2b$par
-
+# Check exponential data with known MLE
 samp3 <- rexp(n = 100, rate = 0.5)
 fit_3a <- longevity::fit_elife(
   time = samp3,
   family = "exp")
-fit_3a$par - mean(samp3)
+tinytest::expect_equivalent(
+  current = fit_3a$par,
+   target = mean(samp3),
+   info = "exponential")
 
 samp4 <- longevity::samp_elife(
   n = 100,
@@ -65,11 +70,5 @@ fit4 <- longevity::fit_elife(
 tinytest::expect_equal(
   as.numeric(fit4$par),
   sum(samp4$dat)/sum(!samp4$rcens),
-  info = "exponential wiht right censoring")
-
-# Check maximum likelihood without censoring or truncation
-# Check that specifying truncation bounds that are 0/Inf
-# does not impact the MLE
-# Check that censored data with no censoring gives
-# the same point estimates
+  info = "exponential with right censoring")
 

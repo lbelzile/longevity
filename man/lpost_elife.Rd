@@ -20,7 +20,7 @@ lpost_elife(
 )
 }
 \arguments{
-\item{par}{vector of parameters, in order scale, rate and shape}
+\item{par}{vector of parameters, in thge following order: scale, rate and shape}
 
 \item{time}{excess time of the event of follow-up time, depending on the value of event}
 

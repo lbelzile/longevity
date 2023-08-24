@@ -233,7 +233,7 @@ tinytest::expect_equal(test$prob,
 
 # Icens only deals with finite bounds
 
-if(requireNamespace("icfit", quietly = TRUE)){
+if(requireNamespace("interval", quietly = TRUE)){
 res1_icfit <- interval::icfit(L = c(1,1,4), R = c(3,2,Inf))$pf
 res1_longev <- npsurv(time = c(1,1,4),
                   time2 = c(3,2,Inf),
@@ -254,8 +254,13 @@ right <- c(16, rep(Inf, 4), 24, Inf, 15, rep(Inf, 5), 18, 14, 17, 15, Inf, Inf, 
 test <- npsurv(time = left,
                time2 = right,
                type = "interval2")
-test2 <- interval::icfit(L = left, R = right, icfitControl = interval::icfitControl(epsilon = 1e-15))
-tinytest::expect_equivalent(test$prob, test2$pf, tolerance = 1e-6)
+# test2 <- interval::icfit(L = left, R = right, icfitControl = interval::icfitControl(maxit = 1e4, epsilon = 1e-15))
+# tinytest::expect_equivalent(test$prob, test2$pf, tolerance = 1e-5)
+
+if(requireNamespace("interval", quietly = TRUE)){
+  test3 <- Icens::EM(cbind(left, right), maxiter = 1e4, tol = 1e-15)
+  tinytest::expect_equivalent(test$prob, test3$pf[test3$pf > 0], tolerance = 1e-7)
+}
 }
 # [7] Example from Gentleman and Geyer (1994)
 # Interval censoring

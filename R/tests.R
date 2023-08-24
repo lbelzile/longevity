@@ -7,7 +7,7 @@
 #'
 #' @export
 #' @inheritParams nll_elife
-#' @param covariate vector of factors, logical or integer whose distinct values are
+#' @param covariate vector of factors, logical or integer whose distinct values define groups
 #' @return a list with elements
 #' \itemize{
 #' \item{\code{stat}: }{likelihood ratio statistic}
@@ -88,7 +88,12 @@ test_elife <- function(time,
   time2 <- survout$time2
   status <- survout$status
   # Transform to factor
-  covariate <- as.factor(covariate)
+  if(any(is.na(covariate))){
+    stop("Covariate vector should not include missing values.")
+  }
+  # Cast to factor, remove unused levels
+  covariate <- factor(covariate, exclude = NULL)
+  # Count occurences
   nobs_cov <- table(covariate)
   m <- length(nobs_cov)
   stopifnot("There should be more than one group in `covariate`." = m > 1,
@@ -182,12 +187,12 @@ anova.elife_par <- function(object,
       stop("Invalid input: use only with objects of class 'elife_par'.")
     }
   }
+  p <- length(models)
+  npar <- nobs <- integer(p)
+  dev <- thresh <- numeric(p)
+  conv <- rep(FALSE, 2L)
+  censt <- trunct <- family <- character(p)
 
-  npar <- rep(0, length(models))
-  dev <- rep(0, length(models))
-  thresh <- nobs <- rep(0, length(models))
-  family <- rep("", length(models))
-  conv <- rep(FALSE, 2)
   for (i in seq_len(narg)) {
     elifemod <- get(models[i], envir = parent.frame())
     dev[i] <- deviance(elifemod)
@@ -196,6 +201,8 @@ anova.elife_par <- function(object,
     nobs[i] <- elifemod$nexc
     conv[i] <- elifemod$convergence
     family[i] <- elifemod$family
+    censt[i] <- elifemod$cens_type
+    trunct[i] <- elifemod$trunc_type
   }
   if(npar[1] < npar[2]){
     dev <- dev[2:1]
@@ -213,6 +220,9 @@ anova.elife_par <- function(object,
   }
   if(family[1] == family[2]){
     stop("Models should be of different families.")
+  }
+  if(!isTRUE(all(length(unique(censt)) == 1L, length(unique(trunct)) == 1L))){
+    stop("Models have different truncation or censoring schemes.")
   }
   # Cases considered
   nmods <- rbind(
@@ -468,8 +478,8 @@ plot.elife_northropcoleman <- function(x,
       plot.type = "base"
     } else{
       g1 <- ggplot2::ggplot(data = x,
-                      mapping = ggplot2::aes_string(x = "thresh",
-                                             y = "pval")) +
+                      mapping = ggplot2::aes(x = .data[["thresh"]],
+                                             y = .data[["pval"]])) +
         ggplot2::geom_line() +
         ggplot2::geom_point() +
         ggplot2::labs(x = xlab,
@@ -588,7 +598,6 @@ nc_score_test <- function(time,
 #' \item{\code{stat}: }{the value of the test statistic}
 #' \item{\code{pval}: }{p-value obtained via simulation}
 #' }
-#' @export
 #' @keywords internal
 ks_test <- function(time,
                     time2 = NULL,

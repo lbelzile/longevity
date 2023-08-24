@@ -2,6 +2,8 @@
 % Please edit documentation in R/distributions.R
 \name{pperksmake}
 \alias{pperksmake}
+\alias{dperksmake}
+\alias{qperksmake}
 \title{Distribution function of the Perks-Makeham distribution}
 \usage{
 pperksmake(
@@ -12,6 +14,10 @@ pperksmake(
   lower.tail = TRUE,
   log.p = FALSE
 )
+
+dperksmake(x, rate = 1, shape = 1, lambda = 0, log = FALSE)
+
+qperksmake(p, rate = 1, shape = 1, lambda = 0, lower.tail = TRUE)
 }
 \arguments{
 \item{q}{vector of quantiles.}
@@ -25,11 +31,25 @@ pperksmake(
 \item{lower.tail}{logical; if \code{TRUE} (default), the lower tail probability \eqn{\Pr(X \leq x)} is returned.}
 
 \item{log.p}{logical; if \code{FALSE} (default), values are returned on the probability scale.}
+
+\item{x}{vector of quantiles.}
+
+\item{log}{logical; if \code{FALSE} (default), return the density, else the log likelihood of the individual observations.}
+
+\item{p}{vector of probabilities.}
 }
 \value{
 a vector of (log)-probabilities of the same length as \code{q}
+
+a vector of (log)-density.
+
+vector of quantiles
 }
 \description{
 Distribution function of the Perks-Makeham distribution
+
+Density function of the Perks-Makeham distribution
+
+Quantile function of the Perks-Makeham distribution
 }
 \keyword{internal}

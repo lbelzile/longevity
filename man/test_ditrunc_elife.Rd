@@ -12,7 +12,8 @@ test_ditrunc_elife(
   rtrunc1 = NULL,
   ltrunc2 = NULL,
   rtrunc2 = NULL,
-  family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp"),
+  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "extweibull", "perks",
+    "beard", "perksmake", "beardmake"),
   weights = rep(1, length(time))
 )
 }

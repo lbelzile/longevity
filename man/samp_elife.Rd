@@ -7,10 +7,12 @@
 samp_elife(
   n,
   scale,
+  rate,
   shape = NULL,
   lower = 0,
   upper = Inf,
-  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "gppiece"),
+  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "gppiece",
+    "extweibull", "perks", "beard", "perksmake", "beardmake"),
   type2 = c("none", "ltrt", "ltrc", "ditrunc")
 )
 }
@@ -19,13 +21,15 @@ samp_elife(
 
 \item{scale}{scale parameter(s)}
 
+\item{rate}{rate parameter(s)}
+
 \item{shape}{shape parameter(s)}
 
 \item{lower}{vector of lower bounds}
 
 \item{upper}{vector of upper bounds}
 
-\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).}
+\item{family}{string; choice of parametric family}
 
 \item{type2}{string, either \code{none}, \code{ltrt} for left- and right-truncated data or \code{ltrc} for left-truncated right-censored data}
 }

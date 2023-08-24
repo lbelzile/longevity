@@ -286,17 +286,16 @@ Rcpp::List turnbullem(
     for(arma::uword i = 0; i < n; ++i){
       // Censoring step - only
       if(censLow(i) < J){
-        // This clause is not triggered only if
+        // This clause is not triggered unless there are censored observations
         if(cens){
           sum_p = arma::sum(pCur(arma::span(censLow(i), censUpp(i))));
           for(arma::uword j = censLow(i); j <= censUpp(i); ++j){
             uiCum(j) += weights(i) * pCur(j)/sum_p;
-            grad(j) += weights(i) / sum_p; //NEW
+            grad(j) += weights(i) / sum_p; //KKT conditions discussed in 2.2 of Gentleman and Geyer
           }
         } else {
            uiCum(censLow(i)) +=  weights(i);
-           grad(censLow(i)) +=  weights(i);
-            //NEW Contribution to the gradient?
+           grad(censLow(i)) +=  weights(i); // since alpha_{ij}=1 for all, denominator is 1
         }
       }
       if(trunc & (truncLow(i) < J)){

@@ -63,16 +63,6 @@ turnbull_intervals <- function(
 #' The survival function changes only at the \code{J} distinct
 #' exceedances \eqn{y_i-u} and truncation points.
 #'
-#' @note This function is a vanilla R implementation of the EM algorithm;
-#' the function \link{npsurv} uses a backbone Cpp implementation
-#' and will be faster for most settings (but it doesn't account for thresholds).
-#' The function can return  the variance covariance matrix of the \code{J-1}
-#' estimated probabilities, which is computed by inverting the negative
-#' hessian of the incomplete log likelihood.
-#'
-#' The method is currently limited to 2500 unique failure time, since
-#' the implementation has a heavy memory footprint of the order O(\eqn{J^2})
-#'
 #' The unknown parameters of the model are \eqn{p_j (j=1, \ldots, J)}
 #' subject to the constraint that \eqn{\sum_{j=1}^J p_j=1}.
 #' @inheritParams npsurv
@@ -90,6 +80,9 @@ turnbull_intervals <- function(
 #' }
 #' @useDynLib longevity, .registration=TRUE
 #' @importFrom Rcpp evalCpp
+#' @references Turnbull, B. W. (1976). \emph{The Empirical Distribution Function with Arbitrarily Grouped, Censored and Truncated Data.} Journal of the Royal Statistical Society. Series B (Methodological) 38(\bold{3}), 290–295.
+#' @references Gentleman, R. and C. J. Geyer (1994). \emph{Maximum likelihood for interval censored data: Consistency and computation}, Biometrika, 81(\bold{3}), 618–623.
+#' #' @references Frydman, H. (1994). \emph{A Note on Nonparametric Estimation of the Distribution Function from Interval-Censored and Truncated Observations}, Journal of the Royal Statistical Society. Series B (Methodological) \bold{56}(1), 71-74.
 #' @export
 #' @examples
 #' set.seed(2021)
@@ -220,6 +213,7 @@ np_elife <- function(time,
         rtrunc = rtrunc,
         weights = weights,
         status = status,
+        thresh = thresh,
         ...)
       )
   } else if(method == "emR"){
@@ -371,7 +365,6 @@ np_elife <- function(time,
     if(is.null(rtrunc)){
       rtrunc  <- numeric(0)
     }
-    browser()
     # Create equivalence classes
     unex <- turnbull_intervals(
       time = time,
@@ -416,14 +409,25 @@ np_elife <- function(time,
     prob <- c(coptim$pars, 1-sum(coptim$pars))
     invisible(structure(
       list(
-        cdf = .wecdf(x = unex[,2], w = prob),
+        cdf = .wecdf(x = thresh + unex[,2], w = prob),
         xval = unex,
         prob = prob,
         convergence = coptim$convergence == 0,
         niter = coptim$outer.iter),
-      class = "npcdf"
+      class = c("elife_npar", "npcdf")
     ))
   }
+}
+#' @export
+plot.elife_npar <- function(x, ...){
+  if(is.null(x$cdf)){
+    stop("Object should have a \"cdf\" slot.")
+  }
+  args <- list(...)
+  main <- ifelse(is.null(args$main), "", args$main)
+  xlab <- ifelse(is.null(args$xlab), "x", args$xlab)
+  ylab <- ifelse(is.null(args$ylab), "distribution function", args$ylab)
+ plot(x$cdf, main = main, xlab = xlab, ylab = ylab, bty = "l")
 }
 
 #' Marginal log likelihood function of the nonparametric multinomial with censoring and truncation
@@ -608,6 +612,7 @@ npsurv <- function(time,
 
   stopifnot("`time` must be a numeric vector." = is.numeric(time))
   args <- list(...)
+  thresh <- ifelse(is.null(args$thresh), 0, args$thresh)
   if(!is.null(args$status)){
     status <- args$status
   } else{
@@ -699,13 +704,13 @@ npsurv <- function(time,
   }
   probs <- as.numeric(survfit_res$p)
   invisible(structure(
-    list(cdf = .wecdf(x = unex[,2], w = probs),
+    list(cdf = .wecdf(x = thresh + unex[,2], w = probs),
        xval = unex[probs > 0, ],
        prob = probs[probs > 0],
        # grad = as.numeric(survfit_res$grad),
        niter = survfit_res$neval,
        # abstol = survfit_res$abstol,
        convergence = survfit_res$conv),
-    class = "npcdf"
+    class = c("elife_npar", "npcdf")
   ))
 }

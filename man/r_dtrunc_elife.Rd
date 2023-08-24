@@ -7,10 +7,12 @@
 r_dtrunc_elife(
   n,
   scale,
+  rate,
   shape,
   lower,
   upper,
-  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp")
+  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "gppiece",
+    "extweibull", "perks", "beard", "perksmake", "beardmake")
 )
 }
 \arguments{
@@ -18,13 +20,15 @@ r_dtrunc_elife(
 
 \item{scale}{scale parameter(s)}
 
+\item{rate}{rate parameter(s)}
+
 \item{shape}{shape parameter(s)}
 
 \item{lower}{vector of lower bounds}
 
 \item{upper}{vector of upper bounds}
 
-\item{family}{string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).}
+\item{family}{string; choice of parametric family}
 }
 \value{
 a vector of \code{n} observations

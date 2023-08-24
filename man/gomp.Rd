@@ -2,25 +2,43 @@
 % Please edit documentation in R/distributions.R
 \name{pgomp}
 \alias{pgomp}
+\alias{qgomp}
+\alias{dgomp}
 \title{Distribution function of the Gompertz distribution}
 \usage{
 pgomp(q, scale = 1, shape = 0, lower.tail = TRUE, log.p = FALSE)
+
+qgomp(p, scale = 1, shape = 0, lower.tail = TRUE)
+
+dgomp(x, scale = 1, shape = 0, log = FALSE)
 }
 \arguments{
 \item{q}{vector of quantiles.}
 
-\item{scale}{scale parameter, strictly positive.}
+\item{scale}{positive scale parameter}
 
-\item{shape}{shape parameter.}
+\item{shape}{non-negative shape parameter}
 
 \item{lower.tail}{logical; if \code{TRUE} (default), the lower tail probability \eqn{\Pr(X \leq x)} is returned.}
 
 \item{log.p}{logical; if \code{FALSE} (default), values are returned on the probability scale.}
+
+\item{p}{vector of probabilities.}
+
+\item{x}{vector of quantiles}
+
+\item{log}{logical; if \code{TRUE}, return the log density}
 }
 \value{
 a vector of (log)-probabilities of the same length as \code{q}
+
+vector of quantiles
 }
 \description{
 Distribution function of the Gompertz distribution
+
+Quantile function of the Gompertz distribution
+
+Density function of the Gompertz distribution
 }
 \keyword{internal}

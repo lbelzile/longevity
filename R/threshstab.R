@@ -181,8 +181,10 @@ plot.elife_tstab <- function(x,
       stopifnot(all.equal(colnames(x), c("estimate","lower","upper")))
       g <- ggplot2::ggplot(data = as.data.frame(cbind(thresh = thresh,
                                              x)),
-                           ggplot2::aes_string(x = "thresh", y = "estimate")) +
-        ggplot2::geom_pointrange(ggplot2::aes_string(ymin="lower", ymax="upper"),
+                           ggplot2::aes(x = .data[["thresh"]],
+                                        y = .data[["estimate"]])) +
+        ggplot2::geom_pointrange(ggplot2::aes(ymin = .data[["lower"]],
+                                              ymax = .data[["upper"]]),
                                  size = 0.5, shape = 20) +
         ggplot2::labs(x = "threshold", y = ylab, main = "threshold stability plot") +
         ggplot2::theme_classic() #+
