@@ -6,9 +6,11 @@
 #' @return a vector with the value of the hazard function at \code{x}
 #' @keywords internal
 #' @export
-hazard_fn_elife <- function(x,
-                         par,
-                         family = c("exp","gp","gomp","gompmake","weibull","extgp")){
+hazard_fn_elife <- function(
+    x,
+    par,
+    family = c("exp","gp","gomp","gompmake","weibull","extgp")){
+  .Deprecated(new = "helife", msg = "\"hazard_fn_elife\" has been superseded in favour of \"helife\", which supports more parametric models.")
   family <- match.arg(family)
   stopifnot("`x` must be numeric" = is.numeric(x),
             "`x` must be positive" = isTRUE(all(x > 0)),
@@ -45,6 +47,7 @@ switch(family,
 #' @inheritParams nll_elife
 #' @return an invisible object of class \code{elife_hazard} containing information about the profile likelihood
 #' @export
+#' @keywords internal
 #' @examples
 #' n <- 2500
 #' time <- samp_elife(n = n, scale = 2,
@@ -62,14 +65,21 @@ hazard_elife <- function(x,
                         ltrunc = NULL,
                         rtrunc = NULL,
                         type = c("right", "left", "interval", "interval2"),
-                        family = c("exp","gp","gomp","gompmake","weibull","extgp"),
+                        family = c("exp","gp","gomp","weibull","extgp"),
                         weights = rep(1, length(time)),
                         level = 0.95,
                         psi = NULL,
-                        plot = FALSE){
+                        plot = FALSE,
+                        arguments = NULL, ...){
+  if(!is.null(arguments)){
+    call <- match.call(expand.dots = FALSE)
+    arguments <- check_arguments(func = hazard_elife, call = call, arguments = arguments)
+    return(do.call(hazard_elife, args = arguments))
+  }
   stopifnot("The level of the confidence interval must be in [0,1]" = level > 0 && level < 1,
             "Level should be a numeric of length one" = length(level) == 1L,
-            "The value of `x` should be numeric." = is.numeric(x)
+            "The value of `x` should be numeric." = is.numeric(x),
+            "\"x\" must be a scalar." = length(x) == 1L
             )
   type <- match.arg(type)
   family <- match.arg(family)
@@ -340,7 +350,7 @@ hazard_elife <- function(x,
   retv <- structure(
     list(hazards = psi[keep],
          pll = shifted_npll[keep],
-         confint = pconfint,
+         confint = pmax(0, pconfint),
          par = as.numeric(mle_haz),
          level = level),
     class = "elife_hazard"
@@ -351,74 +361,55 @@ hazard_elife <- function(x,
   return(invisible(retv))
 }
 
-#' @export
-plot.elife_hazard <-
-  function(x,
-           plot.type = c("base","ggplot"),
-           plot = TRUE,
-           ...){
-    plot.type <- match.arg(plot.type)
-    if(plot.type == "ggplot"){
-    if(requireNamespace("ggplot2", quietly = TRUE)){
-    } else{
-      warning("`ggplot2` package is not installed. Switching to base R plots.")
-      plot.type <- "base"
-    }
-  }
-    if(plot.type == "ggplot"){
-       g1 <- ggplot2::ggplot(data = data.frame(x = x$hazards,
-                                              y = x$pll),
-                            mapping = ggplot2::aes(x = .data[["x"]],
-                                                   y = .data[["y"]])) +
-        ggplot2::geom_hline(yintercept = -qchisq(x$level, 1)/2,
-                            alpha = 0.5,
-                            color = "grey",
-                            linetype = "dashed") +
-        ggplot2::geom_line() +
-        ggplot2::labs(x = "hazard",
-                      y = "profile log-likelihood") +
-        ggplot2::geom_rug(inherit.aes = FALSE,
-                          data = data.frame(x = c(x$confint, x$par)),
-                          mapping = ggplot2::aes(x = .data[["x"]]),
-                          sides = "b") +
-        ggplot2::theme_classic()
-      if(plot){
-       print(g1)
-      }
-      return(invisible(g1))
-    } else if(plot.type == "base"){
-     # else base plot
-  args <- list(...)
-  args$x <- args$y <- args$xlab <- args$bty <- args$type <- args$ylab <- args$ylim <- args$panel.first <- NULL
-  plot(x = x$hazards,
-       y = x$pll,
-       type = "l",
-       bty = "l",
-       xlab = "hazard",
-       ylab = "profile log-likelihood",
-       ylim = c(-5,0),
-       panel.first = {
-  abline(h = -qchisq(x$level, 1)/2, col = "gray")}, ...)
-  rug(c(x$confint, x$par), ticksize = 0.05)
-}
-}
-
-# @export
-# confint.elife_hazard <- function(x, ...){
-#   x$confint
+# #' @keywords internal
+# #' @export
+# plot.elife_hazard <-
+#   function(x,
+#            plot.type = c("base","ggplot"),
+#            plot = TRUE,
+#            ...){
+#     plot.type <- match.arg(plot.type)
+#     if(plot.type == "ggplot"){
+#     if(requireNamespace("ggplot2", quietly = TRUE)){
+#     } else{
+#       warning("`ggplot2` package is not installed. Switching to base R plots.")
+#       plot.type <- "base"
+#     }
+#   }
+#     if(plot.type == "ggplot"){
+#        g1 <- ggplot2::ggplot(data = data.frame(x = x$hazards,
+#                                               y = x$pll),
+#                             mapping = ggplot2::aes(x = .data[["x"]],
+#                                                    y = .data[["y"]])) +
+#         ggplot2::geom_hline(yintercept = -qchisq(x$level, 1)/2,
+#                             alpha = 0.5,
+#                             color = "grey",
+#                             linetype = "dashed") +
+#         ggplot2::geom_line() +
+#         ggplot2::labs(x = "hazard",
+#                       y = "profile log-likelihood") +
+#         ggplot2::geom_rug(inherit.aes = FALSE,
+#                           data = data.frame(x = c(x$confint, x$par)),
+#                           mapping = ggplot2::aes(x = .data[["x"]]),
+#                           sides = "b") +
+#         ggplot2::theme_classic()
+#       if(plot){
+#        print(g1)
+#       }
+#       return(invisible(g1))
+#     } else if(plot.type == "base"){
+#      # else base plot
+#   args <- list(...)
+#   args$x <- args$y <- args$xlab <- args$bty <- args$type <- args$ylab <- args$ylim <- args$panel.first <- NULL
+#   plot(x = x$hazards,
+#        y = x$pll,
+#        type = "l",
+#        bty = "l",
+#        xlab = "hazard",
+#        ylab = "profile log-likelihood",
+#        ylim = c(-5,0),
+#        panel.first = {
+#   abline(h = -qchisq(x$level, 1)/2, col = "gray")}, ...)
+#   rug(c(x$confint, x$par), ticksize = 0.05)
 # }
-#
-# hazard_plot_elife <- function(dat, thresh){
-#     # TODO This function should take as argument the result
-#     # of @elife_hazard and loop over thresh
-#     # + return a
 # }
-#
-# local_hazard_plot_elife <- function(dat, thresh){
-#   # TODO This function should take as argument
-#   #
-#   # of @elife_hazard and loop over thresh
-#   # + return a
-# }
-#
-

@@ -14,7 +14,9 @@ test_ditrunc_elife(
   rtrunc2 = NULL,
   family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "extweibull", "perks",
     "beard", "perksmake", "beardmake"),
-  weights = rep(1, length(time))
+  weights = rep(1, length(time)),
+  arguments = NULL,
+  ...
 )
 }
 \arguments{
@@ -27,6 +29,10 @@ test_ditrunc_elife(
 \item{family}{string; choice of parametric family}
 
 \item{weights}{weights for observations}
+
+\item{arguments}{a named list specifying default arguments of the function that are common to all \code{elife} calls}
+
+\item{...}{additional arguments for optimization, currently ignored.}
 }
 \value{
 a list with elements

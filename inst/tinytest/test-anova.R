@@ -50,6 +50,7 @@ fit_extgp <-
             type = "right",
             ltrunc = lower,
             event = samp$rcens == 1L,
+            restart = TRUE,
             family = "extgp")
 fit_weibull <-
   fit_elife(time = samp$dat,
@@ -57,7 +58,6 @@ fit_weibull <-
             ltrunc = lower,
             event = samp$rcens == 1L,
             family = "weibull")
-            fit_weibull <-
 fit_weibull_alt <-
   fit_elife(time = samp$dat,
             ltrunc = lower,

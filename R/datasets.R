@@ -67,6 +67,20 @@
 #' }
 "englandwales"
 
+
+#' England and Wales simulated supercentenarian data
+#'
+#' This data frame contains information about 179 fake records mimicking
+#' Welsh and English who died age 110 and above
+#'
+#' @format A data frame with 179 rows and 3 variables:
+#' \describe{
+#' \item{time}{survival time above 110 (in years)}
+#' \item{ltrunc}{minimum age above 110 (in years), or zero};
+#' \item{rtrunc}{maximum age (in years) an individual could have reached by the end of the time frame}
+#' }
+"ewsim"
+
 #' Japanese survival data
 #'
 #' This data frame contains information about the counts

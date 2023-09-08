@@ -14,7 +14,9 @@ ks_test(
   type = c("right", "left", "interval", "interval2"),
   family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "gppiece",
     "extweibull", "perks", "beard", "perksmake", "beardmake"),
-  B = 999L
+  B = 999L,
+  arguments = NULL,
+  ...
 )
 }
 \arguments{
@@ -37,6 +39,10 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 \item{family}{string; choice of parametric family}
 
 \item{B}{number of bootstrap simulations}
+
+\item{arguments}{a named list specifying default arguments of the function that are common to all \code{elife} calls}
+
+\item{...}{additional parameters, currently ignored}
 }
 \value{
 a list with elements

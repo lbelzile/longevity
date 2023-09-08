@@ -3,6 +3,7 @@
 \name{pextweibull}
 \alias{pextweibull}
 \alias{dextweibull}
+\alias{hextweibull}
 \alias{qextweibull}
 \title{Distribution function of the extended Weibull distribution}
 \usage{
@@ -16,6 +17,8 @@ pextweibull(
 )
 
 dextweibull(x, scale = 1, shape1 = 0, shape2 = 1, log = FALSE)
+
+hextweibull(x, scale = 1, shape1 = 0, shape2 = 1, log = FALSE)
 
 qextweibull(p, scale = 1, shape1 = 0, shape2 = 1, lower.tail = TRUE)
 }
@@ -34,7 +37,7 @@ qextweibull(p, scale = 1, shape1 = 0, shape2 = 1, lower.tail = TRUE)
 
 \item{x}{vector of quantiles.}
 
-\item{log}{logical; if \code{FALSE} (default), return the density, else the log likelihood of the individual observations.}
+\item{log}{logical; if \code{FALSE} (default), return the hazard, else the log hazard.}
 
 \item{p}{vector of probabilities.}
 }
@@ -43,12 +46,18 @@ a vector of (log)-probabilities of the same length as \code{q}
 
 a vector of (log)-density.
 
+a vector of (log)-hazard
+
 vector of quantiles
+
+a vector of quantiles
 }
 \description{
 Distribution function of the extended Weibull distribution
 
 Density function of the extended Weibull distribution
+
+Hazard function of the extended Weibull distribution
 
 Quantile function of the extended Weibull distribution
 }

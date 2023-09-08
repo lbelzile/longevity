@@ -3,12 +3,15 @@
 \name{pbeard}
 \alias{pbeard}
 \alias{dbeard}
+\alias{hbeard}
 \alias{qbeard}
 \title{Distribution function of the Beard distribution}
 \usage{
 pbeard(q, rate = 1, shape1 = 1, shape2 = 1, lower.tail = TRUE, log.p = FALSE)
 
 dbeard(x, rate = 1, shape1 = 1, shape2 = 1, log = FALSE)
+
+hbeard(x, rate = 1, shape1 = 1, shape2 = 1, log = FALSE)
 
 qbeard(p, rate = 1, shape1 = 1, shape2 = 1, lower.tail = TRUE)
 }
@@ -27,7 +30,7 @@ qbeard(p, rate = 1, shape1 = 1, shape2 = 1, lower.tail = TRUE)
 
 \item{x}{vector of quantiles.}
 
-\item{log}{logical; if \code{FALSE} (default), return the density, else the log likelihood of the individual observations.}
+\item{log}{logical; if \code{FALSE} (default), return the hazard}
 
 \item{p}{vector of probabilities.}
 }
@@ -36,12 +39,16 @@ a vector of (log)-probabilities of the same length as \code{q}
 
 a vector of (log)-density.
 
-vector of quantiles
+a vector of (log)-hazard.
+
+a vector of quantiles
 }
 \description{
 Distribution function of the Beard distribution
 
 Density function of the Beard distribution
+
+Hazard function of the Beard distribution
 
 Quantile function of the Beard distribution
 }

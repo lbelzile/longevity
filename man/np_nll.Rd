@@ -19,6 +19,9 @@ np_nll(par, cens_lb, cens_ub, trunc_lb, trunc_ub, cens, trunc, weights)
 
 \item{transform}{logical; are parameters on logit scale? Default to \code{TRUE}}
 }
+\value{
+a scalar, the negative log likelihood value
+}
 \description{
 Marginal log likelihood function of the nonparametric multinomial with censoring and truncation
 }

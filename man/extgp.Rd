@@ -2,10 +2,13 @@
 % Please edit documentation in R/distributions.R
 \name{dextgp}
 \alias{dextgp}
+\alias{hextgp}
 \alias{qextgp}
 \title{Density function of the extended generalized Pareto distribution}
 \usage{
 dextgp(x, scale = 1, shape1 = 0, shape2 = 0, log = FALSE)
+
+hextgp(x, scale = 1, shape1 = 0, shape2 = 0, log = FALSE)
 
 qextgp(p, scale = 1, shape1 = 0, shape2 = 0, lower.tail = TRUE)
 }
@@ -18,7 +21,7 @@ qextgp(p, scale = 1, shape1 = 0, shape2 = 0, lower.tail = TRUE)
 
 \item{shape2}{shape parameter \eqn{\gamma}; model reduces to Gompertz when \code{shape2=0}.}
 
-\item{log}{logical; if \code{TRUE}, return the log-density}
+\item{log}{logical; if \code{TRUE}, return the log hazard}
 
 \item{p}{vector of probabilities.}
 
@@ -27,10 +30,14 @@ qextgp(p, scale = 1, shape1 = 0, shape2 = 0, lower.tail = TRUE)
 \value{
 a vector of (log)-density of the same length as \code{x}
 
-vector of quantiles
+a vector of (log)-hazard of the same length as \code{x}
+
+a vector of quantiles
 }
 \description{
 Density function of the extended generalized Pareto distribution
+
+Hazard function of the extended generalized Pareto distribution
 
 Quantile function of the extended generalized Pareto distribution
 }

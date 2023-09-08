@@ -15,6 +15,7 @@ np_elife(
   tol = 1e-12,
   weights = NULL,
   method = c("em", "sqp"),
+  arguments = NULL,
   ...
 )
 }
@@ -40,6 +41,8 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 \item{weights}{double, vector of weights for the observations}
 
 \item{method}{string, one of \code{"em"} for expectation-maximization (EM) algorithm or \code{"sqp"} for sequential quadratic programming with augmented Lagrange multiplie method.}
+
+\item{arguments}{a named list specifying default arguments of the function that are common to all \code{elife} calls}
 
 \item{...}{additional arguments, currently ignored}
 }
@@ -84,5 +87,6 @@ npi <- np_elife(time = dat,
 Turnbull, B. W. (1976). \emph{The Empirical Distribution Function with Arbitrarily Grouped, Censored and Truncated Data.} Journal of the Royal Statistical Society. Series B (Methodological) 38(\bold{3}), 290–295.
 
 Gentleman, R. and C. J. Geyer (1994). \emph{Maximum likelihood for interval censored data: Consistency and computation}, Biometrika, 81(\bold{3}), 618–623.
-#' @references Frydman, H. (1994). \emph{A Note on Nonparametric Estimation of the Distribution Function from Interval-Censored and Truncated Observations}, Journal of the Royal Statistical Society. Series B (Methodological) \bold{56}(1), 71-74.
+
+Frydman, H. (1994). \emph{A Note on Nonparametric Estimation of the Distribution Function from Interval-Censored and Truncated Observations}, Journal of the Royal Statistical Society. Series B (Methodological) \bold{56}(1), 71-74.
 }

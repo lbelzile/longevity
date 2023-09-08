@@ -7,6 +7,8 @@
 #' @param psi mandatory vector of endpoints at which to compute the profile
 #' @param confint logical; if \code{TRUE}, return a \code{level} confidence interval instead of a list with the profile log-likelihood components
 #' @param level numeric; the level for the confidence intervals
+#' @param arguments a named list specifying default arguments of the function that are common to all \code{elife} calls
+#' @param ... additional parameters, currently ignored
 #' @return a list with the maximum likelihood estimate of the endpoint and the profile log-likelihood
 prof_gp_endpt <- function(time,
                           time2 = NULL,
@@ -18,8 +20,17 @@ prof_gp_endpt <- function(time,
                           weights = rep(1, length(time)),
                           psi = NULL,
                           confint = FALSE,
-                          level = 0.95){
-  stopifnot("Endpoints must be positive" = all(psi > thresh))
+                          level = 0.95,
+                          arguments = NULL, ...){
+
+  if(!is.null(arguments)){
+    call <- match.call(expand.dots = FALSE)
+    arguments <- check_arguments(func = prof_gp_endpt, call = call, arguments = arguments)
+    return(do.call(prof_gp_endpt, args = arguments))
+  }
+  stopifnot("Argument \"psi\" must be provided (currently NULL)" = !is.null(psi),
+            "Threshold must be positive" = isTRUE(all(thresh >= 0)) & length(thresh) == 1,
+            "Endpoints must be positive and larger than the threshold" = isTRUE(all(psi > thresh)))
   psi <- psi - thresh[1]
   type <- match.arg(type)
   # Compute the maximum log-likelihood
@@ -74,6 +85,9 @@ prof_gp_endpt <- function(time,
                nexc = mle$nexc,
                param = "endpoint"),
           class = "elife_profile")
+  if(is.infinite(mle_endpt)){
+    warning("Maximum likelihood estimate is infinite.")
+  }
     return(prof)
 }
 
@@ -82,7 +96,7 @@ confint.elife_profile <-
   function(object,
            parm,
            level = 0.95, ...){
- confint <- try(conf_interv(object, level = level))
+ confint <- suppressWarnings(try(conf_interv(object, level = level)))
  if(inherits(confint, "try-error")){
    stop("Could not compute confidence interval")
  } else{
@@ -96,7 +110,12 @@ print.elife_profile <- function(x, ...){
   cat("Maximum likelihood estimator: ", round(x$psi.max,3),"\n")
 }
 
+#' Plot profile of endpoint
+#'
+#' @param x an object of class \code{elife_profile} containing information about the profile likelihood, maximum likelihood and grid of values for the endpoint
+#' @param plot.type string indicating whether to use base R for plots or \code{ggplot2}
 #' @param plot logical; if \code{TRUE}, creates a plot when \code{plot.type="ggplot"}. Useful for returning \code{ggplot} objects without printing the graphs
+#' @param ... additional arguments to pass to \code{plot}, currently ignored
 #' @export
 plot.elife_profile <-
   function(x,

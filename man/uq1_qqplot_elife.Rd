@@ -30,6 +30,9 @@ uq1_qqplot_elife(
 
 \item{family}{string; choice of parametric family}
 }
+\value{
+a matrix with plotting positions for confidence intervals of quantile-quantile plots
+}
 \description{
 Uncertainty quantification for quantile-quantile plots
 }

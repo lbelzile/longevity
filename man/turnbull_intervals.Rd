@@ -15,6 +15,9 @@ turnbull_intervals(time, time2 = NULL, status, ltrunc = NULL, rtrunc = NULL)
 
 \item{rtrunc}{upper truncation limit, default to \code{NULL}}
 }
+\value{
+a matrix with two columns containing the \code{left} and \code{right} bounds Of Turnbull sets
+}
 \description{
 Given censoring and truncation set,
 compute the regions of the real line that

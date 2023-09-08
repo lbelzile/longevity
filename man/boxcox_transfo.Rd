@@ -4,7 +4,15 @@
 \alias{boxcox_transfo}
 \title{Box-Cox transformation function}
 \usage{
-boxcox_transfo(par, lambda = rep(1, length(par)))
+boxcox_transfo(x, lambda = rep(1, length(x)))
+}
+\arguments{
+\item{x}{vector of arguments}
+
+\item{lambda}{vector of Box-Cox parameters}
+}
+\value{
+a vector of the same length as \code{x}
 }
 \description{
 Given a vector of parameters, apply the Box-Cox transformation.

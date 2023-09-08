@@ -32,8 +32,15 @@ tstab <- function(time,
                   plot = TRUE,
                   plot.type = c("base","ggplot"),
                   which.plot = c("scale","shape"),
-                  weights = NULL
+                  weights = NULL,
+                  arguments = NULL,
+                  ...
                   ){
+  if(!is.null(arguments)){
+    call <- match.call(expand.dots = FALSE)
+    arguments <- check_arguments(func = tstab, call = call, arguments = arguments)
+    return(do.call(tstab, args = arguments))
+  }
   family <- match.arg(family)
   method <- match.arg(method)
   type <- match.arg(type)
@@ -220,13 +227,19 @@ plot.elife_tstab <- function(x,
     return(invisible(graphs))
   } else{ # Default to base plot
     base_tstab_plot <- function(x, thresh, ylab = "scale"){
-      plot(x = thresh, x[,1],
-           type= "p",
-           pch = 19,
-           bty = "l",
-           ylab = ylab,
-           xlab = "threshold",
-           ylim = range(x), ...)
+      rangex <- range(x)
+      args <- list(
+        type = "p",
+        pch = 19,
+        bty = "l",
+        ylab = ylab,
+        xlab = "threshold",
+        ylim = rangex)
+      ellipsis <- list(...)
+      args[names(ellipsis)] <- ellipsis
+      args$x <- thresh
+      args$y <- x[,1]
+      do.call("plot.default", args = args)
       for(i in seq_along(thresh)){
         arrows(x0 = thresh[i],
                y0 = x[i,2],
@@ -274,7 +287,13 @@ prof_gp_shape <-
            level = 0.95,
            psi = NULL,
            weights = NULL,
-           confint = TRUE){
+           confint = TRUE,
+           arguments = NULL, ...){
+    if(!is.null(arguments)){
+      call <- match.call(expand.dots = FALSE)
+      arguments <- check_arguments(func = prof_gp_shape, call = call, arguments = arguments)
+      return(do.call(prof_gp_shape, args = arguments))
+    }
     if(is.null(weights)){
       weights <- rep(1, length(time))
     }
@@ -344,7 +363,7 @@ prof_gp_shape <-
 #' @param level level of the confidence interval
 #' @keywords internal
 #' @export
-#' @return confidence interval
+#' @return a confidence interval or a list with profile values
 prof_gp_scalet <-
   function(mle = NULL,
            time,
@@ -357,7 +376,14 @@ prof_gp_scalet <-
            level = 0.95,
            psi = NULL,
            weights = NULL,
-           confint = TRUE){
+           confint = TRUE,
+           arguments = NULL, ...){
+    if(!is.null(arguments)){
+      call <- match.call(expand.dots = FALSE)
+      arguments <- check_arguments(func = prof_gp_scalet, call = call, arguments = arguments)
+      return(do.call(prof_gp_scalet, args = arguments))
+    }
+
     if(is.null(weights)){
       weights <- rep(1, length(time))
     }
@@ -435,18 +461,26 @@ prof_gp_scalet <-
 #' @export
 #' @return a vector of length three with the maximum likelihood of the scale and profile-based confidence interval
 #' @keywords internal
-prof_exp_scale <- function(mle = NULL,
-                                   time,
-                                   time2 = NULL,
-                                   event = NULL,
-                                   thresh = 0,
-                                   ltrunc = NULL,
-                                   rtrunc = NULL,
-                                   type = c("right","left","interval","interval2"),
-                                   level = 0.95,
-                                   psi = NULL,
-                                   weights = NULL,
-                                   confint = TRUE){
+prof_exp_scale <- function(
+     mle = NULL,
+     time,
+     time2 = NULL,
+     event = NULL,
+     thresh = 0,
+     ltrunc = NULL,
+     rtrunc = NULL,
+     type = c("right","left","interval","interval2"),
+     level = 0.95,
+     psi = NULL,
+     weights = NULL,
+     confint = TRUE,
+     arguments = NULL,
+     ...){
+  if(!is.null(arguments)){
+    call <- match.call(expand.dots = FALSE)
+    arguments <- check_arguments(func = prof_exp_scale, call = call, arguments = arguments)
+    return(do.call(prof_exp_scale, args = arguments))
+  }
   type <- match.arg(type)
   stopifnot("Provide a single value for the level" = length(level) == 1L,
             "Level should be a probability" = level < 1 && level > 0,

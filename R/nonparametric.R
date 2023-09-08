@@ -12,6 +12,7 @@
 #' @references Turnbull, B. W. (1976). \emph{The Empirical Distribution Function with Arbitrarily Grouped, Censored and Truncated Data.} Journal of the Royal Statistical Society, Series B \bold{38}, 290-295.
 #' @export
 #' @keywords internal
+#' @return a matrix with two columns containing the \code{left} and \code{right} bounds Of Turnbull sets
 #' @inheritParams npsurv
 turnbull_intervals <- function(
     time,
@@ -82,7 +83,7 @@ turnbull_intervals <- function(
 #' @importFrom Rcpp evalCpp
 #' @references Turnbull, B. W. (1976). \emph{The Empirical Distribution Function with Arbitrarily Grouped, Censored and Truncated Data.} Journal of the Royal Statistical Society. Series B (Methodological) 38(\bold{3}), 290–295.
 #' @references Gentleman, R. and C. J. Geyer (1994). \emph{Maximum likelihood for interval censored data: Consistency and computation}, Biometrika, 81(\bold{3}), 618–623.
-#' #' @references Frydman, H. (1994). \emph{A Note on Nonparametric Estimation of the Distribution Function from Interval-Censored and Truncated Observations}, Journal of the Royal Statistical Society. Series B (Methodological) \bold{56}(1), 71-74.
+#' @references Frydman, H. (1994). \emph{A Note on Nonparametric Estimation of the Distribution Function from Interval-Censored and Truncated Observations}, Journal of the Royal Statistical Society. Series B (Methodological) \bold{56}(1), 71-74.
 #' @export
 #' @examples
 #' set.seed(2021)
@@ -113,7 +114,13 @@ np_elife <- function(time,
                      tol = 1e-12,
                      weights = NULL,
                      method = c("em", "sqp"),
+                     arguments = NULL,
                      ...) {
+  if(!is.null(arguments)){
+    call <- match.call(expand.dots = FALSE)
+    arguments <- check_arguments(func = np_elife, call = call, arguments = arguments)
+    return(do.call(np_elife, args = arguments))
+  }
   method <- match.arg(method)
   stopifnot(
     "Argument `thresh` should be positive." = min(thresh) >= 0,
@@ -214,7 +221,7 @@ np_elife <- function(time,
         weights = weights,
         status = status,
         thresh = thresh,
-        ...)
+        arguments = NULL)
       )
   } else if(method == "emR"){
   # unex <- turnbull_intervals(
@@ -418,6 +425,27 @@ np_elife <- function(time,
     ))
   }
 }
+
+#' @export
+print.elife_npar <- function(x, ...){
+  # Compute restricted mean
+  height <- 1-x$cdf(x$xval[,1]-1e-10)
+  width <- diff(c(0, x$xval[,1]))
+  rmean <- sum(height * width)
+  quants <- stats::quantile(x$cdf, c(0.75, 0.5, 0.25))
+  cat("Nonparametric maximum likelihood estimator\n\n")
+
+  cat("Routine", ifelse(x$convergence, "converged", "did not converge"), "\n")
+  cat("Number of equivalence classes:", nrow(x$xval),"\n")
+  cat("Restricted mean at upper bound", x$xval[nrow(x$xval),2], ":", rmean,"\n")
+  cat("Quartiles of the survival function:", quants)
+}
+
+#' @export
+summary.elife_npar <- function(object, ...){
+  summary(object$cdf)
+}
+
 #' @export
 plot.elife_npar <- function(x, ...){
   if(is.null(x$cdf)){
@@ -437,6 +465,7 @@ plot.elife_npar <- function(x, ...){
 #' @param trunc_lb vector of largest index for the lower truncation
 #' @param trunc_ub vector of smallest index for the upper truncation
 #' @param transform logical; are parameters on logit scale? Default to \code{TRUE}
+#' @return a scalar, the negative log likelihood value
 #' @keywords internal
 np_nll <- function(par,
                    cens_lb,
@@ -587,6 +616,7 @@ np_nll <- function(par,
 #' @param ltrunc lower truncation limit, default to \code{NULL}
 #' @param rtrunc upper truncation limit, default to \code{NULL}
 #' @param weights vector of weights, default to \code{NULL} for equiweighted
+#' @param arguments a named list specifying default arguments of the function that are common to all \code{elife} calls
 #' @param ... additional arguments passed to the functions
 #' @seealso \code{\link[survival]{Surv}}
 #' @return a list with components
@@ -608,8 +638,13 @@ npsurv <- function(time,
                    ltrunc = NULL,
                    rtrunc = NULL,
                    weights = NULL,
+                   arguments = NULL,
                    ...){
-
+  if(!is.null(arguments)){
+    call <- match.call(expand.dots = FALSE)
+    arguments <- check_arguments(func = npsurv, call = call, arguments = arguments)
+    return(do.call(npsurv, args = arguments))
+  }
   stopifnot("`time` must be a numeric vector." = is.numeric(time))
   args <- list(...)
   thresh <- ifelse(is.null(args$thresh), 0, args$thresh)

@@ -15,11 +15,15 @@
 #' \item{\code{pval}: }{the p-value obtained from the asymptotic chi-square approximation.}
 #' }
 #' @examples
-#' with(uk110,
-#' test_elife(time = ndays,
-#' thresh = 40178L, covariate = gender,
-#' ltrunc = ltrunc, rtrunc = rtrunc,
-#' family = "exp", type = "ltrt"))
+#' test <- with(subset(dutch, ndays > 39082),
+#'  test_elife(
+#'  time = ndays,
+#'  thresh = 39082L,
+#'  covariate = gender,
+#'  ltrunc = ltrunc,
+#'  rtrunc = rtrunc,
+#'  family = "exp"))
+#'  test
 test_elife <- function(time,
                        time2 = NULL,
                        event = NULL,
@@ -42,12 +46,20 @@ test_elife <- function(time,
                                   "perksmake",
                                   "beard",
                                   "beardmake"),
-                       weights = rep(1, length(time))) {
+                       weights = rep(1, length(time)),
+                       arguments = NULL,
+                       ...) {
+  if(!is.null(arguments)){
+    call <- match.call(expand.dots = FALSE)
+    arguments <- check_arguments(func = "test_elife", call = call, arguments = arguments)
+    return(do.call(test_elife, args = arguments))
+  }
+
   family <- match.arg(family)
   type <- match.arg(type)
   stopifnot("Covariate must be provided" = !missing(covariate),
             "Object `covariate` should be of the same length as `time`" = length(covariate) == length(time),
-            "Provide a single threshold" = !missing(thresh) && length(thresh) == 1L)
+            "Provide a single threshold" = length(thresh) == 1L)
   npar <- switch(family,
                "exp" = 1L,
                "gp" = 2L,
@@ -305,278 +317,6 @@ anova.elife_par <- function(object,
   return(table)
 # }
 }
-#' Score test of Northrop and Coleman
-#'
-#' This function computes the score test
-#' with the piecewise generalized Pareto distribution
-#' under the null hypothesis that the generalized Pareto
-#' with a single shape parameter is an adequate simplification.
-#' The score test statistic is calculated using the observed information
-#' matrix; both hessian and score vector are obtained through numerical differentiation.
-#'
-#' The score test is much faster and perhaps less fragile than the likelihood ratio test:
-#' fitting the piece-wise generalized Pareto model is difficult due to the large number of
-#' parameters and multimodal likelihood surface.
-#'
-#' The reference distribution is chi-square
-#' @inheritParams fit_elife
-#' @export
-#' @param thresh a vector of thresholds
-#' @param test string, either \code{"score"} for the score test or \code{"lrt"} for the likelihood ratio test.
-#' @return a data frame with the following variables:
-#' \itemize{
-#' \item{\code{thresh}: }{threshold for the generalized Pareto}
-#' \item{\code{nexc}: }{number of exceedances}
-#' \item{\code{score}: }{score statistic}
-#' \item{\code{df}: }{degrees of freedom}
-#' \item{\code{pval}: }{the p-value obtained from the asymptotic chi-square approximation.}
-#' }
-nc_test <- function(time,
-                          time2 = NULL,
-                          event = NULL,
-                          thresh = 0,
-                          ltrunc = NULL,
-                          rtrunc = NULL,
-                          type = c("right", "left", "interval", "interval2"),
-                          weights = rep(1, length(time)),
-                          test = c("score","lrt")){
-  # Exclude doubly interval truncated data
-  if(isTRUE(all(is.matrix(ltrunc),
-                is.matrix(rtrunc),
-                ncol(ltrunc) == ncol(rtrunc),
-                ncol(rtrunc) == 2L))){
-    stop("Doubly interval truncated data not supported")
-  }
-  test <- match.arg(test)
-  stopifnot("Threshold is missing" = !missing(thresh))
-  nt <- length(thresh) - 1L
-  thresh <- sort(unique(thresh))
-  stopifnot("Threshold should be at least length two" = nt >= 1L)
-  res <- data.frame(thresh = numeric(nt),
-                    nexc = integer(nt),
-                    stat = numeric(nt),
-                    df = integer(nt),
-                    pval = numeric(nt))
-  for(i in seq_len(nt)){
-    fit0 <- fit_elife(time = time,
-                      time2 = time2,
-                      event = event,
-                      thresh = thresh[i],
-                      ltrunc = ltrunc,
-                      rtrunc = rtrunc,
-                      type = type,
-                      family = "gp",
-                      weights = weights,
-                      export = FALSE)
-    if(test == "score"){
-      if (!requireNamespace("numDeriv", quietly = TRUE)) {
-        stop(
-          "Package \"numDeriv\" must be installed to use this function.",
-          call. = FALSE
-        )
-      }
-    score0 <- try(numDeriv::grad(func = function(x){
-                     nll_elife(par = x,
-                               time = time,
-                               time2 = time2,
-                               event = event,
-                               thresh = thresh[i:length(thresh)],
-                               type = type,
-                               ltrunc = ltrunc,
-                               rtrunc = rtrunc,
-                               family = "gppiece",
-                               weights = weights
-                     )},
-                     x = c(fit0$par['scale'],
-                           rep(fit0$par['shape'], nt - i + 2L))
-                   ))
-    hess0 <- try(numDeriv::hessian(func = function(x){
-                    nll_elife(par = x,
-                              time = time,
-                              time2 = time2,
-                              event = event,
-                              thresh = thresh[i:length(thresh)],
-                              type = type,
-                              ltrunc = ltrunc,
-                              rtrunc = rtrunc,
-                              family = "gppiece",
-                              weights = weights
-                    )},
-                    x = c(fit0$par['scale'],
-                          rep(fit0$par['shape'], nt - i + 2L))
-                  ))
-    score_stat <- try(as.numeric(score0 %*% solve(hess0) %*% score0))
-    if(!inherits(score_stat, "try-error")){
-      res$stat[i] <- score_stat
-      res$df[i] <- as.integer(nt - i + 1L)
-      res$pval[i] <- pchisq(q = score_stat, df = nt - i + 1L, lower.tail = FALSE)
-    }
-    } else{
-      fit1 <- try(fit_elife(time = time,
-                        time2 = time2,
-                        event = event,
-                        thresh = thresh[i:length(thresh)],
-                        ltrunc = ltrunc,
-                        rtrunc = rtrunc,
-                        type = type,
-                        family = "gppiece",
-                        weights = weights,
-                        export = FALSE))
-      if(!inherits(fit1, "try-error") & isTRUE(fit1$convergence)){
-        anova_tab <- anova(fit0, fit1)
-        res$stat[i] <- anova_tab[2,3]
-        res$df[i] <- as.integer(anova_tab[2,4])
-        res$pval[i] <- anova_tab[2,5]
-      }
-    }
-    res$nexc[i] <- fit0$nexc
-  }
-  res$thresh <- thresh[-length(thresh)]
-  class(res) <- c("elife_northropcoleman", "data.frame")
-  attr(res, "test") <- test
-  return(res)
-}
-
-#' P-value plot
-#'
-#' The Northrop-Coleman tests for penultimate models are
-#' comparing the piece-wise generalized Pareto distribution
-#' to the generalized Pareto above the lower threshold.
-#'
-#' @export
-#' @param x an object of class \code{elife_northropcoleman}
-#' @param plot.type string indicating the type of plot
-#' @param plot logical; should the routine print the graph if \code{plot.type} equals \code{"ggplot"}? Default to \code{TRUE}.
-#' @param ... additional arguments for base \code{plot}
-plot.elife_northropcoleman <- function(x,
-                           plot.type = c("base", "ggplot"),
-                           plot = TRUE,
-                           ...){
-  plot.type <- match.arg(plot.type)
-  stopifnot("Invalid object type" = inherits(x, what = "elife_northropcoleman"),
-            "Not enough thresholds to warrant a plot" = nrow(x) >= 2L,
-            "Not enough fit to produce a plot" = sum(is.finite(x$pval)) >= 2)
-  args <- list(...)
-  xlab <- args$xlab
-  if(is.null(xlab) | !is.character(xlab)){
-    xlab <- "threshold"
-  }
-  ylab <- args$ylab
-  if(is.null(ylab) | !is.character(ylab)){
-    ylab <- "p-value"
-  }
-  type <- args$type
-  if(is.null(type) | !is.character(type)){
-    type <- "b"
-  }
-  testname <- switch(attributes(x)$test,
-                     "score" = "score test",
-                     "lrt" = "likelihood ratio test")
-  if(plot.type == "ggplot"){
-    if(!requireNamespace("ggplot2", quietly = TRUE)){
-      warning("You must install `ggplot2`: switching to base R plot.")
-      plot.type = "base"
-    } else{
-      g1 <- ggplot2::ggplot(data = x,
-                      mapping = ggplot2::aes(x = .data[["thresh"]],
-                                             y = .data[["pval"]])) +
-        ggplot2::geom_line() +
-        ggplot2::geom_point() +
-        ggplot2::labs(x = xlab,
-             y = ylab,
-             caption = testname) +
-        ggplot2::scale_y_continuous(breaks = c(0,0.25,0.5,0.75,1),
-                                    limits = c(0,1),
-                                    expand = c(0,0.1)) +
-        ggplot2::theme_classic()
-      if(plot){
-        get("print.ggplot", envir = loadNamespace("ggplot2"))(g1)
-      }
-      return(invisible(g1))
-    }
-
-  }
-  if(plot.type == "base"){
-  plot(x = x$thresh,
-       y = x$pval,
-       bty = "l",
-       xlab = xlab,
-       ylab = ylab,
-       type = type,
-       ylim = c(0,1),
-       yaxs = "i")
-    mtext(testname, side = 3, adj = 1)
-  }
-}
-
-
-#' @export
-print.elife_northropcoleman <- function(x, ..., digits = NULL, quote = FALSE, right = TRUE,
-                                        row.names = TRUE, max = NULL, eps = 1e-3){
-  n <- length(row.names(x))
-  if (length(x) == 0L) {
-    cat(sprintf(ngettext(n, "data frame with 0 columns and %d row",
-                         "data frame with 0 columns and %d rows"), n), "\n",
-        sep = "")
-  }  else if (n == 0L) {
-    print.default(names(x), quote = FALSE)
-    cat(gettext("<0 rows> (or 0-length row.names)\n"))
-  }  else {
-    if (is.null(max)){
-      max <- getOption("max.print", 99999L)
-    }
-    if (!is.finite(max)){
-      stop("invalid 'max' / getOption(\"max.print\"): ",
-           max)
-    }
-    omit <- (n0 <- max%/%length(x)) < n
-    m <- as.matrix(format.data.frame(
-      if (omit){
-      x[seq_len(n0), , drop = FALSE]
-      } else { x
-      }, digits = digits, na.encode = FALSE))
-    m[, ncol(m)] <- format.pval(x$pval, digits = 3, eps = eps, na.form = "")
-    if (!isTRUE(row.names))
-      dimnames(m)[[1L]] <- if (isFALSE(row.names)){
-        rep.int("", if (omit){
-          n0
-          } else {n})
-      } else {
-        row.names
-      }
-    print(m, ..., quote = quote, right = right, max = max)
-    if (omit)
-      cat(" [ reached 'max' / getOption(\"max.print\") -- omitted",
-          n - n0, "rows ]\n")
-  }
-  invisible(x)
-}
-
-#' @inherit nc_test
-#' @export
-#' @keywords internal
-nc_score_test <- function(time,
-                          time2 = NULL,
-                          event = NULL,
-                          thresh = 0,
-                          ltrunc = NULL,
-                          rtrunc = NULL,
-                          type = c("right", "left", "interval", "interval2"),
-                          weights = rep(1, length(time))){
-  .Deprecated("nc_test", package = "longevity",
-              msg = "`nc_score_test` is deprecated. \nUse `nc_test` with argument `test=\"score\"` instead.")
-
-  # This is provided for backward compatibility for the time being
-  nc_test(time = time,
-          time2 = time2,
-          event = event,
-          thresh = thresh,
-          ltrunc = ltrunc,
-          rtrunc = rtrunc,
-          type = type,
-          weights = weights,
-          test = "score")
-}
 
 
 #' Goodness-of-fit diagnostics
@@ -618,8 +358,14 @@ ks_test <- function(time,
                               "beard",
                               "perksmake",
                               "beardmake"),
-                    B = 999L){
-
+                    B = 999L,
+                    arguments = NULL,
+                    ...){
+  if(!is.null(arguments)){
+    call <- match.call(expand.dots = FALSE)
+    arguments <- check_arguments(func = "ks_test", call = call, arguments = arguments)
+    return(do.call(ks_test, args = arguments))
+  }
   # Exclude doubly interval truncated data
   if(isTRUE(all(is.matrix(ltrunc),
                 is.matrix(rtrunc),

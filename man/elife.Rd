@@ -6,6 +6,7 @@
 \alias{pelife}
 \alias{relife}
 \alias{delife}
+\alias{helife}
 \title{Excess lifetime distributions}
 \usage{
 qelife(
@@ -47,6 +48,16 @@ delife(
     "perksmake", "beard", "beardmake"),
   log = FALSE
 )
+
+helife(
+  x,
+  scale = 1,
+  rate,
+  shape,
+  family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp", "extweibull", "perks",
+    "perksmake", "beard", "beardmake"),
+  log = FALSE
+)
 }
 \arguments{
 \item{p}{vector of probabilities}
@@ -63,10 +74,15 @@ delife(
 
 \item{q}{vector of quantiles.}
 
-\item{log.p}{logical; if \code{FALSE} (default), values are returned on the probability scale.}
+\item{n}{sample size}
+
+\item{log, log.p}{logical; if \code{TRUE}, values are returned on the logarithmic scale (default to \code{FALSE}).}
+}
+\value{
+depending on the function type, a vector of probabilities (\code{pelife}), quantiles (\code{qelife}), density (\code{delife}), or hazard (\code{helife}). The function \code{relife} returns a random sample of size \code{n} from the distribution.
 }
 \description{
-Quantile and distribution function of excess lifetime distribution
+Quantile, distribution, density and hazard functions of excess lifetime distribution
 for threshold exceedances.
 }
 \keyword{internal}

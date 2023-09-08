@@ -126,13 +126,19 @@ lprior_mdi_elife <- function(par,
 #' Given a vector of parameters, apply the Box-Cox transformation.
 #'
 #' @export
-#'@keywords internal
-boxcox_transfo <- function(par, lambda = rep(1, length(par))){
-  stopifnot(length(par) == length(lambda),
-            is.numeric(par),
+#' @keywords internal
+#' @param x vector of arguments
+#' @param lambda vector of Box-Cox parameters
+#' @return a vector of the same length as \code{x}
+#' @importFrom "graphics" "par"
+#' @importFrom "stats" "quantile"
+boxcox_transfo <- function(x, lambda = rep(1, length(x))){
+  stopifnot(length(x) == length(lambda),
+            is.numeric(x),
             is.numeric(lambda))
-  ifelse(lambda == 0, log(par), (par^lambda-1)/lambda)
+  ifelse(lambda == 0, log(x), (x^lambda-1)/lambda)
 }
+
 # Posterior density for selected model using
 # rust and the maximal data information prior
 
@@ -141,6 +147,7 @@ boxcox_transfo <- function(par, lambda = rep(1, length(par))){
 #' Log of the posterior distribution for excess lifetime
 #' distribution with maximal data information priors.
 #' @export
+#' @return a vector proportional to the log posterior (the sum of the log likelihood and log prior)
 #' @inheritParams nll_elife
 lpost_elife <- function(par,
                         time,
@@ -153,7 +160,12 @@ lpost_elife <- function(par,
                         thresh = 0,
                         weights = rep(1, length(time)),
                         status = NULL,
-                        ...){
+                        arguments = NULL, ...){
+  if(!is.null(arguments)){
+    call <- match.call(expand.dots = FALSE)
+    arguments <- check_arguments(func = lpost_elife, call = call, arguments = arguments)
+    return(do.call(lpost_elife, args = arguments))
+  }
   type <- match.arg(type)
   family <- match.arg(family)
   obound <- switch(family,

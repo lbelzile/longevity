@@ -78,11 +78,61 @@ dgpd <- function (x,
   return(d)
 }
 
+#' Hazard function of the exponential distribution
+#'
+#' @param x vector of quantiles
+#' @param rate rate vector of rates
+#' @param log logical; if \code{FALSE} (default), return the log hazard
+#' @return a vector of (log)-hazard.
+#' @export
+#' @keywords internal
+#' @rdname exponential
+hexp <- function(x, rate = 1, log = FALSE){
+  stopifnot(isTRUE(all(rate > 0)))
+  ifelse(x <= 0 | is.na(x), NA, rate)
+}
+
+#' Hazard function of the generalized Pareto distribution
+#'
+#' @inheritParams pgpd
+#' @param x vector of quantiles.
+#' @param log logical; if \code{FALSE} (default), return the log hazard
+#' @return a vector of (log)-hazard.
+#' @export
+#' @keywords internal
+#' @rdname gpd
+hgpd <- function (x,
+                  loc = 0,
+                  scale = 1,
+                  shape = 0,
+                  log = FALSE) {
+  stopifnot(
+    "\"loc\" must be a vector of length 1." = length(loc) == 1L,
+    "\"loc\" must be finite" = isTRUE(is.finite(loc))
+  )
+  check_elife_dist(scale = scale,
+                   shape = shape,
+                   family = "gp")
+  if (isTRUE(all.equal(shape, 0, check.attributes = FALSE))) {
+    return(hexp(
+      x = x - loc,
+      rate = 1 / scale
+    ))
+  }
+  haz <-   ifelse(x >= 0 & ((shape * x/scale) >= -1) & !is.na(x),
+                 -log(pmax(0, scale + x*shape)),
+                 NA)
+  if(log){
+    return(haz)
+  } else{
+    return(exp(haz))
+  }
+}
 #' Quantile function of the generalized Pareto distribution
 #'
 #' @param p vector of probabilities.
 #' @inheritParams pgpd
-#' @return vector of quantiles
+#' @return a vector of quantiles
 #' @export
 #' @keywords internal
 #' @rdname gpd
@@ -198,6 +248,76 @@ dextweibull <- function (x,
   return(d)
 }
 
+#' Hazard function of the extended Weibull distribution
+#'
+#' @inheritParams pextweibull
+#' @param x vector of quantiles.
+#' @param log logical; if \code{FALSE} (default), return the hazard, else the log hazard.
+#' @return a vector of (log)-hazard
+#' @export
+#' @keywords internal
+#' @rdname extweibull
+hextweibull <- function (x,
+                         scale = 1,
+                         shape1 = 0,
+                         shape2 = 1,
+                         log = FALSE) {
+  check_elife_dist(scale = scale,
+                   shape = c(shape1, shape2),
+                   family = "extweibull")
+  if (isTRUE(all.equal(c(shape1, shape2), c(0, 1), check.attributes = FALSE))) {
+    return(hexp(
+      x = x,
+      rate = 1 / scale,
+      log = log
+    ))
+  } else if (isTRUE(all.equal(shape1, 0, check.attributes = FALSE))) {
+    return(hweibull(
+      x = x,
+      shape = shape2,
+      scale = scale,
+      log = log
+    ))
+  } else if (isTRUE(all.equal(shape2, 1, check.attributes = FALSE))) {
+    return(hgpd(
+      x = x,
+      loc = 0,
+      scale = scale,
+      shape = shape1,
+      log = log
+    ))
+  }
+  haz <- suppressWarnings(ifelse(x >= 0 & ((1 + shape1 * (x/scale)^shape2) >= 0) & !is.na(x),
+                 log(shape2) - shape2*log(scale) + (shape2-1)*log(x) + log1p(shape1 * (x / scale)^shape2),
+                 NA))
+  if (!log) {
+    haz <- exp(haz)
+  }
+  return(haz)
+}
+
+#' Hazard function of the Weibull distribution
+#'
+#' @param x vector of quantiles
+#' @param shape shape parameter
+#' @param scale scale parameter, default to 1
+#' @param log logical; if \code{TRUE}, returns the log hazard
+#' @keywords internal
+#' @return a vector of (log)-hazard
+#' @export
+hweibull <- function(x, shape, scale = 1, log = FALSE){
+  check_elife_dist(scale = scale,
+                   shape = shape,
+                   family = "weibull")
+  haz <- rep(NA, length(x))
+  index <- which(x >=0 & !is.na(x))
+  haz[index] <- -shape * log(scale) + log(shape) + (shape - 1) * log(x[index])
+  if (!log) {
+    haz <- exp(haz)
+  }
+  return(haz)
+}
+
 #' Quantile function of the extended Weibull distribution
 #'
 #' @param p vector of probabilities.
@@ -205,6 +325,7 @@ dextweibull <- function (x,
 #' @return vector of quantiles
 #' @export
 #' @keywords internal
+#' @return a vector of quantiles
 #' @rdname extweibull
 qextweibull <- function(p,
                         scale = 1,
@@ -280,7 +401,7 @@ pgomp <- function(q,
 #' @param p vector of probabilities.
 #' @inheritParams pgpd
 #' @export
-#' @return vector of quantiles
+#' @return a vector of quantiles
 #' @keywords internal
 #' @rdname gomp
 qgomp <- function(p,
@@ -353,7 +474,7 @@ pgompmake <- function(q,
 #' @inheritParams pgpd
 #' @param lambda exponential rate
 #' @export
-#' @return vector of quantiles
+#' @return a vector of quantiles
 #' @keywords internal
 #' @rdname gompmake
 qgompmake <- function(p,
@@ -409,7 +530,7 @@ qgompmake <- function(p,
 #' @inheritParams pgpd
 #' @param lambda exponential rate
 #' @export
-#' @return vector of density
+#' @return a vector of density
 #' @keywords internal
 #' @rdname gompmake
 dgompmake <- function(x,
@@ -496,6 +617,7 @@ pextgp <- function(q,
 #' @param log logical; if \code{TRUE}, return the log density
 #' @export
 #' @keywords internal
+#' @return a vector of (log)-density.
 #' @rdname gomp
 dgomp <- function(x,
                   scale = 1,
@@ -524,6 +646,74 @@ dgomp <- function(x,
     exp(ldens)
   }
 }
+
+#' Hazard function of the Gompertz distribution
+#'
+#' @inheritParams pgomp
+#' @param log logical; if \code{TRUE}, return the log hazard
+#' @export
+#' @keywords internal
+#' @rdname gomp
+#' @return a vector of (log)-hazard.
+hgomp <- function(x,
+                  scale = 1,
+                  shape = 0,
+                  log = FALSE) {
+  check_elife_dist(scale = scale,
+                   shape = shape,
+                   family = "gomp")
+  if (shape < 1e-8) {
+    return(hexp(
+      x = x,
+      rate = 1 / scale,
+      log = log
+    ))
+  }
+  haz <- ifelse(x < 0 | is.na(x),
+             NA,
+             -log(scale) + (shape * x / scale))
+  if (!log) {
+    haz <- exp(haz)
+  }
+  return(haz)
+}
+
+#' Hazard function of the Gompertz-Makeham distribution
+#'
+#' @inheritParams pgompmake
+#' @param log logical; if \code{TRUE}, return the log hazard
+#' @export
+#' @keywords internal
+#' @return a vector of (log)-hazard.
+#' @rdname gompmake
+hgompmake <- function(x,
+                  scale = 1,
+                  shape = 0,
+                  lambda = 0,
+                  log = FALSE) {
+  check_elife_dist(rate = lambda,
+                   scale = scale,
+                   shape = shape,
+                   family = "gompmake")
+  if(lambda == 0){
+    return(hgomp(x = x, scale = scale, shape = shape, log = log))
+  }
+  if (shape < 1e-8) {
+    return(hexp(
+      x = x,
+      rate = lambda + 1 / scale,
+      log = log
+    ))
+  }
+  haz <- ifelse(x < 0 | is.na(x),
+                NA,
+                lambda + exp(shape * x / scale) / scale)
+  if (log) {
+    haz <- log(haz)
+  }
+  return(haz)
+}
+
 #' Density function of the extended generalized Pareto distribution
 #'
 #' @inheritParams pgpd
@@ -584,12 +774,70 @@ dextgp <- function(x,
   }
 }
 
+#' Hazard function of the extended generalized Pareto distribution
+#'
+#' @inheritParams pgpd
+#' @param shape1 positive shape parameter \eqn{\beta}; model defaults to generalized Pareto when it equals zero.
+#' @param shape2 shape parameter \eqn{\gamma}; model reduces to Gompertz when \code{shape2=0}.
+#' @param log logical; if \code{TRUE}, return the log hazard
+#' @return a vector of (log)-hazard of the same length as \code{x}
+#' @export
+#' @keywords internal
+#' @rdname extgp
+hextgp <- function(x,
+                   scale = 1,
+                   shape1 = 0,
+                   shape2 = 0,
+                   log = FALSE) {
+  check_elife_dist(scale = scale,
+                   shape = c(shape1, shape2),
+                   family = "extgp")
+  if (abs(shape2) < 1e-8 && abs(shape1) < 1e-8) {
+    return(hexp(
+      x = x,
+      rate = 1 / scale,
+      log = log
+    ))
+  } else if (abs(shape2) < 1e-8 && abs(shape1) > 1e-8) {
+    #Gompertz
+    return(hgomp(
+      x = x,
+      scale = scale,
+      shape = shape1,
+      log = log
+    ))
+  } else if (abs(shape2) >= 1e-8 &&
+             abs(shape1) < 1e-8) {
+    #generalized Pareto
+    return(hgpd(
+      x = x,
+      loc = 0,
+      scale = scale,
+      shape = shape2,
+      log = log
+    ))
+  } else{
+    # extended generalized Pareto
+    haz <- suppressWarnings(
+      ifelse(x < 0 | is.na(x) & (shape1 + shape2 * (exp(shape1 * x / scale) - 1)) < 0,
+                  NA,
+                  log(shape1) - log(scale) + shape1 * x / scale - log(shape1 + shape2 * (exp(shape1 * x / scale) - 1)))
+                  )
+  if (!log) {
+    haz <- exp(haz)
+  }
+  return(haz)
+  }
+}
+
+
+
 #' Quantile function of the extended generalized Pareto distribution
 #'
 #' @param p vector of probabilities.
 #' @inheritParams pgpd
 #' @inheritParams pextgp
-#' @return vector of quantiles
+#' @return a vector of quantiles
 #' @export
 #' @keywords internal
 #' @rdname extgp
@@ -699,6 +947,60 @@ dperksmake <- function (x,
   return(d)
 }
 
+
+#' Hazard function of the Perks-Makeham distribution
+#'
+#' @inheritParams pperksmake
+#' @param x vector of quantiles.
+#' @param log logical; if \code{FALSE} (default), return the hazard
+#' @return a vector of (log)-hazard.
+#' @export
+#' @keywords internal
+#' @rdname perksmake
+hperksmake <- function (x,
+                        rate = 1,
+                        shape = 1,
+                        lambda = 0,
+                        log = FALSE) {
+  check_elife_dist(rate = c(rate, lambda),
+                   shape = shape,
+                   family = "perksmake")
+  if (isTRUE(all.equal(rate, 0, check.attributes = FALSE))) {
+    return(hexp(
+      x = x,
+      rate = lambda + shape / (shape + 1),
+      log = log
+    ))
+  }
+  haz <- ifelse(x < 0 | is.na(x),
+                NA,
+                lambda + shape * exp(rate*x) / (1 + shape * exp(rate*x)))
+  if (log) {
+    haz <- log(haz)
+  }
+  return(haz)
+}
+
+
+#' Hazard function of the Perks distribution
+#'
+#' @inheritParams pperks
+#' @param x vector of quantiles.
+#' @param log logical; if \code{FALSE} (default), return the hazard
+#' @return a vector of (log)-hazard.
+#' @export
+#' @keywords internal
+#' @rdname perks
+hperks <- function (x,
+                    rate = 1,
+                    shape = 1,
+                    log = FALSE) {
+  check_elife_dist(rate = c(rate, 0),
+                   shape = shape,
+                   family = "perksmake")
+  return(hperksmake(x = x, rate = rate, shape = shape, log = log, lambda = 0))
+}
+
 #' Quantile function of the Perks-Makeham distribution
 #'
 #' @param p vector of probabilities.
@@ -706,6 +1008,7 @@ dperksmake <- function (x,
 #' @return vector of quantiles
 #' @export
 #' @importFrom stats uniroot
+#' @return a vector of quantiles
 #' @keywords internal
 #' @rdname perksmake
 qperksmake <- function(p,
@@ -794,7 +1097,7 @@ dperks <- function (x,
 #'
 #' @param p vector of probabilities.
 #' @inheritParams pperks
-#' @return vector of quantiles
+#' @return a vector of quantiles
 #' @export
 #' @keywords internal
 #' @rdname perks
@@ -864,11 +1167,35 @@ dbeard <- function (x,
   )
 }
 
+#' Hazard function of the Beard distribution
+#'
+#' @inheritParams pbeard
+#' @param x vector of quantiles.
+#' @param log logical; if \code{FALSE} (default), return the hazard
+#' @return a vector of (log)-hazard.
+#' @export
+#' @keywords internal
+#' @rdname beard
+hbeard <- function (x,
+                    rate = 1,
+                    shape1 = 1,
+                    shape2 = 1,
+                    log = FALSE) {
+  hbeardmake(
+    x = x,
+    rate = rate,
+    shape1 = shape1,
+    shape2 = shape2,
+    lambda = 0,
+    log = log
+  )
+}
+
 #' Quantile function of the Beard distribution
 #'
 #' @param p vector of probabilities.
 #' @inheritParams pbeard
-#' @return vector of quantiles
+#' @return a vector of quantiles
 #' @export
 #' @keywords internal
 #' @rdname beard
@@ -1011,11 +1338,66 @@ dbeardmake <- function (x,
   return(d)
 }
 
+#' Hazard function of the Beard-Makeham distribution
+#'
+#' @inheritParams pbeardmake
+#' @param x vector of quantiles.
+#' @param log logical; if \code{FALSE} (default), return the hazard
+#' @return a vector of (log)-hazard.
+#' @export
+#' @keywords internal
+#' @rdname beardmake
+hbeardmake <- function (x,
+                        rate = rate,
+                        shape1 = 1,
+                        shape2 = 1,
+                        lambda = 0,
+                        log = FALSE) {
+  if (isTRUE(all.equal(shape2, 1, check.attributes = FALSE))) {
+    # If subcase, return this instead
+    return(hperksmake(
+      x = x,
+      rate = rate,
+      shape = shape1,
+      lambda = lambda,
+      log = log
+    ))
+  } else if (isTRUE(all.equal(shape2, 0, check.attributes = FALSE))) {
+    # If subcase, return this instead
+    return(hgompmake(
+      x = x,
+      scale = 1 / shape1,
+      shape = rate / shape1,
+      lambda = lambda,
+      log = log
+    ))
+  }
+  check_elife_dist(
+    rate = c(rate, lambda),
+    shape = c(shape1, shape2),
+    family = "beardmake"
+  )
+  if (isTRUE(all.equal(rate, 0, check.attributes = FALSE))) {
+    return(hexp(
+      x = x,
+      rate = lambda + shape1 / (1 + shape1 * shape2),
+      log = log
+    ))
+  }
+  haz <- ifelse(x < 0 | is.na(x),
+                NA,
+                lambda + shape1 * exp(rate*x) / (1 + shape1 * shape2 * exp(rate*x)))
+  if (log) {
+    haz <- log(haz)
+  }
+  return(haz)
+}
+
 #' Quantile function of the Beard-Makeham distribution
 #'
 #' @param p vector of probabilities.
 #' @inheritParams pbeardmake
-#' @return vector of quantiles
+#' @return a vector of quantiles
 #' @export
 #' @keywords internal
 #' @rdname beardmake
@@ -1085,17 +1467,19 @@ qbeardmake <- function(p,
 
 #' Excess lifetime distributions
 #'
-#' Quantile and distribution function of excess lifetime distribution
+#' Quantile, distribution, density and hazard functions of excess lifetime distribution
 #' for threshold exceedances.
 #' @param q vector of quantiles.
 #' @param p vector of probabilities
+#' @param n sample size
 #' @param rate rate parameter(s); for models with Makeham component, the last entry should be part of the rate vector
 #' @param scale scale parameter
 #' @param shape vector of shape parameter(s).
 #' @param lower.tail logical; if \code{TRUE} (default), the lower tail probability \eqn{\Pr(X \leq x)} is returned.
-#' @param log.p logical; if \code{FALSE} (default), values are returned on the probability scale.
+#' @param log,log.p logical; if \code{TRUE}, values are returned on the logarithmic scale (default to \code{FALSE}).
 #' @param family string indicating the parametric model, one of \code{exp}, \code{gp}, \code{gomp}, \code{gompmake}, \code{weibull}, \code{extgp}, \code{extweibull}, \code{perks}, \code{perksmake}, \code{beard} and \code{beardmake}
 #' @name elife
+#' @returns depending on the function type, a vector of probabilities (\code{pelife}), quantiles (\code{qelife}), density (\code{delife}), or hazard (\code{helife}). The function \code{relife} returns a random sample of size \code{n} from the distribution.
 NULL
 
 #' @rdname elife
@@ -1213,7 +1597,6 @@ qelife <- function(p,
 
 #' @rdname elife
 #' @export
-#' @keywords internal
 pelife <- function(q,
                    rate,
                    scale,
@@ -1341,7 +1724,6 @@ pelife <- function(q,
 
 #' @rdname elife
 #' @export
-#' @keywords internal
 relife <- function(n,
                    scale = 1,
                    rate,
@@ -1439,7 +1821,6 @@ relife <- function(n,
 
 #' @rdname elife
 #' @export
-#' @keywords internal
 delife <- function(x,
                    scale = 1,
                    rate,
@@ -1543,6 +1924,122 @@ delife <- function(x,
       log = log
     ),
     beardmake =  dbeardmake(
+      x = x,
+      lambda = rate[2],
+      shape1 = shape[1],
+      shape2 = shape[2],
+      rate = rate[1],
+      log = log
+    ),
+  )
+}
+
+
+#' @rdname elife
+#' @export
+helife <- function(x,
+                   scale = 1,
+                   rate,
+                   shape,
+                   family = c(
+                     "exp",
+                     "gp",
+                     "weibull",
+                     "gomp",
+                     "gompmake",
+                     "extgp",
+                     "extweibull",
+                     "perks",
+                     "perksmake",
+                     "beard",
+                     "beardmake"
+                   ),
+                   log = FALSE) {
+  family <- match.arg(family)
+  if (missing(shape) & family != "exp") {
+    stop("Missing \"shape\" parameter.")
+  }
+  if(family == "exp"){
+    if(missing(rate) & missing(scale)){
+      stop("No scale parameter is provided")
+    } else if(!missing(rate) & missing(scale)){
+      scale <- 1/rate
+    }
+  }
+  if(family %in%  c("exp","weibull")){
+    check_elife_dist(rate = rate,
+                     scale = scale,
+                     shape = shape,
+                     family = family)
+  }
+  switch(
+    family,
+    exp = hexp(
+      x = x,
+      rate = 1 / scale,
+      log = log
+    ),
+    gp = hgpd(
+      x = x,
+      loc = 0,
+      scale = scale,
+      shape = shape,
+      log = log
+    ),
+    weibull = hweibull(
+      x = x,
+      shape = shape,
+      scale = scale,
+      log = log
+    ),
+    gomp = hgomp(
+      x = x,
+      scale = scale,
+      shape = shape,
+      log = log
+    ),
+    gompmake = hgompmake(
+      x = x,
+      scale = scale,
+      lambda = rate,
+      shape = shape,
+      log = log
+    ),
+    extgp = hextgp(
+      x = x,
+      scale = scale,
+      shape1 = shape[1],
+      shape2 = shape[2],
+      log = log
+    ),
+    extweibull = hextweibull(
+      x = x,
+      scale = scale,
+      shape1 = shape[1],
+      shape2 = shape[2],
+      log = log
+    ),
+    perks = hperks(
+      x = x,
+      shape = shape,
+      rate = rate,
+      log = log
+    ),
+    perksmake = hperksmake(
+      x = x,
+      lambda = rate[2],
+      shape = shape,
+      rate = rate[1],
+      log = log
+    ),
+    beard = hbeard(
+      x = x,
+      shape1 = shape[1],
+      shape2 = shape[2],
+      rate = rate,
+      log = log
+    ),
+    beardmake =  hbeardmake(
       x = x,
       lambda = rate[2],
       shape1 = shape[1],

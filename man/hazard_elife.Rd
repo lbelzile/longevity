@@ -14,11 +14,13 @@ hazard_elife(
   ltrunc = NULL,
   rtrunc = NULL,
   type = c("right", "left", "interval", "interval2"),
-  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp"),
+  family = c("exp", "gp", "gomp", "weibull", "extgp"),
   weights = rep(1, length(time)),
   level = 0.95,
   psi = NULL,
-  plot = FALSE
+  plot = FALSE,
+  arguments = NULL,
+  ...
 )
 }
 \arguments{
@@ -51,6 +53,10 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 \item{psi}{optional vector of hazard at which to compute the profile log likelihood}
 
 \item{plot}{logical; if true, display the profile log-likelihood. Default to \code{FALSE}.}
+
+\item{arguments}{a named list specifying default arguments of the function that are common to all \code{elife} calls}
+
+\item{...}{additional arguments for optimization, currently ignored.}
 }
 \value{
 an invisible object of class \code{elife_hazard} containing information about the profile likelihood
@@ -69,3 +75,4 @@ upper = rtrunc <- (5 + runif(n)), type2 = "ltrt")
 hazard_elife(x = 2, time = time,
  ltrunc = ltrunc, rtrunc = rtrunc, family = "exp")
 }
+\keyword{internal}

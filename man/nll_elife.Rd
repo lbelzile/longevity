@@ -17,6 +17,7 @@ nll_elife(
   thresh = 0,
   weights = rep(1, length(time)),
   status = NULL,
+  arguments = NULL,
   ...
 )
 }
@@ -45,10 +46,12 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 
 \item{status}{integer vector giving status of an observation. If \code{NULL} (default), this argument is computed internally based on \code{type}.}
 
+\item{arguments}{a named list specifying default arguments of the function that are common to all \code{elife} calls}
+
 \item{...}{additional arguments for optimization, currently ignored.}
 }
 \value{
-log-likelihood value
+log-likelihood values
 }
 \description{
 Computes the log-likelihood for various parametric models suitable for threshold

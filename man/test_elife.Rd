@@ -15,7 +15,9 @@ test_elife(
   type = c("right", "left", "interval", "interval2"),
   family = c("exp", "gp", "weibull", "gomp", "gompmake", "extgp", "extweibull", "perks",
     "perksmake", "beard", "beardmake"),
-  weights = rep(1, length(time))
+  weights = rep(1, length(time)),
+  arguments = NULL,
+  ...
 )
 }
 \arguments{
@@ -40,6 +42,10 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 \item{family}{string; choice of parametric family}
 
 \item{weights}{weights for observations}
+
+\item{arguments}{a named list specifying default arguments of the function that are common to all \code{elife} calls}
+
+\item{...}{additional arguments for optimization, currently ignored.}
 }
 \value{
 a list with elements
@@ -56,9 +62,13 @@ to test whether there are significant differences between
 groups.
 }
 \examples{
-with(uk110,
-test_elife(time = ndays,
-thresh = 40178L, covariate = gender,
-ltrunc = ltrunc, rtrunc = rtrunc,
-family = "exp", type = "ltrt"))
+test <- with(subset(dutch, ndays > 39082),
+ test_elife(
+ time = ndays,
+ thresh = 39082L,
+ covariate = gender,
+ ltrunc = ltrunc,
+ rtrunc = rtrunc,
+ family = "exp"))
+ test
 }

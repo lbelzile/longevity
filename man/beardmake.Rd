@@ -3,6 +3,7 @@
 \name{pbeardmake}
 \alias{pbeardmake}
 \alias{dbeardmake}
+\alias{hbeardmake}
 \alias{qbeardmake}
 \title{Distribution function of the Beard-Makeham distribution}
 \usage{
@@ -17,6 +18,8 @@ pbeardmake(
 )
 
 dbeardmake(x, rate = rate, shape1 = 1, shape2 = 1, lambda = 0, log = FALSE)
+
+hbeardmake(x, rate = rate, shape1 = 1, shape2 = 1, lambda = 0, log = FALSE)
 
 qbeardmake(p, rate = 1, shape1 = 1, shape2 = 1, lambda = 0, lower.tail = TRUE)
 }
@@ -37,7 +40,7 @@ qbeardmake(p, rate = 1, shape1 = 1, shape2 = 1, lambda = 0, lower.tail = TRUE)
 
 \item{x}{vector of quantiles.}
 
-\item{log}{logical; if \code{FALSE} (default), return the density, else the log likelihood of the individual observations.}
+\item{log}{logical; if \code{FALSE} (default), return the hazard}
 
 \item{p}{vector of probabilities.}
 }
@@ -46,12 +49,16 @@ a vector of (log)-probabilities of the same length as \code{q}
 
 a vector of (log)-density.
 
-vector of quantiles
+a vector of (log)-hazard.
+
+a vector of quantiles
 }
 \description{
 Distribution function of the Beard-Makeham distribution
 
 Density function of the Beard-Makeham distribution
+
+Hazard function of the Beard-Makeham distribution
 
 Quantile function of the Beard-Makeham distribution
 }

@@ -16,7 +16,9 @@ prof_gp_scalet(
   level = 0.95,
   psi = NULL,
   weights = NULL,
-  confint = TRUE
+  confint = TRUE,
+  arguments = NULL,
+  ...
 )
 }
 \arguments{
@@ -43,9 +45,13 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 \item{weights}{weights for observations}
 
 \item{confint}{logical; if \code{TRUE} (default), return confidence intervals rather than list}
+
+\item{arguments}{a named list specifying default arguments of the function that are common to all \code{elife} calls}
+
+\item{...}{additional arguments for optimization, currently ignored.}
 }
 \value{
-confidence interval
+a confidence interval or a list with profile values
 }
 \description{
 This internal function is used to produce threshold stability plots.

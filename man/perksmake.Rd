@@ -3,6 +3,7 @@
 \name{pperksmake}
 \alias{pperksmake}
 \alias{dperksmake}
+\alias{hperksmake}
 \alias{qperksmake}
 \title{Distribution function of the Perks-Makeham distribution}
 \usage{
@@ -16,6 +17,8 @@ pperksmake(
 )
 
 dperksmake(x, rate = 1, shape = 1, lambda = 0, log = FALSE)
+
+hperksmake(x, rate = 1, shape = 1, lambda = 0, log = FALSE)
 
 qperksmake(p, rate = 1, shape = 1, lambda = 0, lower.tail = TRUE)
 }
@@ -34,7 +37,7 @@ qperksmake(p, rate = 1, shape = 1, lambda = 0, lower.tail = TRUE)
 
 \item{x}{vector of quantiles.}
 
-\item{log}{logical; if \code{FALSE} (default), return the density, else the log likelihood of the individual observations.}
+\item{log}{logical; if \code{FALSE} (default), return the hazard}
 
 \item{p}{vector of probabilities.}
 }
@@ -43,12 +46,18 @@ a vector of (log)-probabilities of the same length as \code{q}
 
 a vector of (log)-density.
 
+a vector of (log)-hazard.
+
 vector of quantiles
+
+a vector of quantiles
 }
 \description{
 Distribution function of the Perks-Makeham distribution
 
 Density function of the Perks-Makeham distribution
+
+Hazard function of the Perks-Makeham distribution
 
 Quantile function of the Perks-Makeham distribution
 }

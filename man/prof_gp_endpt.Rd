@@ -15,7 +15,9 @@ prof_gp_endpt(
   weights = rep(1, length(time)),
   psi = NULL,
   confint = FALSE,
-  level = 0.95
+  level = 0.95,
+  arguments = NULL,
+  ...
 )
 }
 \arguments{
@@ -42,6 +44,10 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 \item{confint}{logical; if \code{TRUE}, return a \code{level} confidence interval instead of a list with the profile log-likelihood components}
 
 \item{level}{numeric; the level for the confidence intervals}
+
+\item{arguments}{a named list specifying default arguments of the function that are common to all \code{elife} calls}
+
+\item{...}{additional parameters, currently ignored}
 }
 \value{
 a list with the maximum likelihood estimate of the endpoint and the profile log-likelihood

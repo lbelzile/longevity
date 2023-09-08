@@ -45,6 +45,7 @@ to the data scale viz. \deqn{F_0^{-1}\{F_0(a_i) + v_i[F_0(b_i) - F_0(a_i)]\}}
 When data are truncated and observations are mapped back to the untruncated scale (with, e.g., \code{exp}), the plotting positions need not be in the same order as the order statistics of the data.
 }
 \examples{
+set.seed(1234)
 samp <- samp_elife(
  n = 200,
  scale = 2,
@@ -61,13 +62,14 @@ fitted <- fit_elife(
  export = TRUE)
 plot(fitted, plot.type = "ggplot")
 # Left- and right-truncated data
+n <- 40L
 samp <- samp_elife(
- n = 200,
+ n = n,
  scale = 2,
  shape = 0.3,
  family = "gp",
- lower = ltrunc <- runif(200),
- upper = rtrunc <- ltrunc + runif(200, 0, 10),
+ lower = ltrunc <- runif(n),
+ upper = rtrunc <- ltrunc + runif(n, 0, 15),
  type2 = "ltrt")
 fitted <- fit_elife(
  time = samp,
@@ -76,5 +78,5 @@ fitted <- fit_elife(
  rtrunc = rtrunc,
  family = "gp",
  export = TRUE)
-plot(fitted)
+plot(fitted,  which.plot = "tmd")
 }

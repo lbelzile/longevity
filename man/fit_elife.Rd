@@ -18,7 +18,9 @@ fit_elife(
   weights = NULL,
   export = FALSE,
   start = NULL,
-  restart = FALSE
+  restart = FALSE,
+  arguments = NULL,
+  ...
 )
 }
 \arguments{
@@ -50,6 +52,10 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 false convergence diagnostic if it cannot.}
 
 \item{restart}{logical; should multiple starting values be attempted? Default to \code{FALSE}.}
+
+\item{arguments}{a named list specifying default arguments of the function that are common to all \code{elife} calls}
+
+\item{...}{additional parameters, currently ignored}
 }
 \value{
 an object of class \code{elife_par}

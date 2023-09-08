@@ -54,6 +54,7 @@ devtools::install_github("lbelzile/longevity")
 - [x] profile likelihood for generalized Pareto (endpoint)
 - [x] Adapt `npsurv` for interval censoring
 - [x] S3 methods
+- [x] hazard functions for all parametric models, using `helife`
 
 ## Improvements
 
@@ -61,11 +62,8 @@ devtools::install_github("lbelzile/longevity")
   routines, tests
 - [x] Add empirical distribution function for `npelife` and `npsurv`
 - [x] Fix `npsurv` and add weighting argument to Cpp routine.
-- [ ] Remove/keep Kolmogorov-Smirnov test (depending on whether it makes
+- [x] Remove Kolmogorov-Smirnov test (depending on whether it makes
   sense given null distribution)
-- [ ] Add plots of (local) hazards with delta-method based confidence
-  intervals
-- [ ] likelihood ratio tests for changepoints
 - [ ] Change bootstrap procedure for Q-Q plots and other graphical
   diagnostics
 
@@ -86,14 +84,15 @@ devtools::install_github("lbelzile/longevity")
   is as good as submodel
 - [x] Verify fitting procedure in multiple instances, including interval
   censoring, left and right truncation, etc.
-- [ ] Check all plots type are produced with both base **R** and
-  `ggplot2`
+- [x] Check all plots type are produced with both base **R** and
+  `ggplot2`, and ellipsis works as expected
 
 ## Package on CRAN
 
-- [ ] Add tests and examples for each function
-- [ ] Add vignettes
+- [x] Add tests
+- [ ] Add examples for each function
+- [x] Add vignettes
 - [x] Use `pkgdown` to create a webpage
-- [ ] Root out data sets that cannot go on CRAN (with accompanying
+- [x] Root out data sets that cannot go on CRAN (with accompanying
   examples)
 - [ ] Submit to the CRAN

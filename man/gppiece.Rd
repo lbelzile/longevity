@@ -25,9 +25,16 @@ rgppiece(n, scale, shape, thresh)
 
 \item{thresh}{vector of \code{m} thresholds}
 
-\item{log, log.p}{logical; if \code{TRUE}, probabilities \eqn{p} are given as \eqn{\log(p)}.}
+\item{log, log.p}{logical; if \code{TRUE}, the values are returned on the log scale}
 
 \item{lower.tail}{logical; if TRUE (default), probabilities are \eqn{\Pr[X \leq x]} otherwise, \eqn{\Pr[X > x]}.}
+
+\item{p}{vector of probabilities}
+
+\item{n}{sample size}
+}
+\value{
+a vector of quantiles (\code{qgppiece}), probabilities (\code{pgppiece}), density (\code{dgppiece}) or random number generated from the model (\code{rgppiece})
 }
 \description{
 Density, distribution, quantile functions and random number generation from the

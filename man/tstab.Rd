@@ -18,7 +18,9 @@ tstab(
   plot = TRUE,
   plot.type = c("base", "ggplot"),
   which.plot = c("scale", "shape"),
-  weights = NULL
+  weights = NULL,
+  arguments = NULL,
+  ...
 )
 }
 \arguments{
@@ -51,6 +53,10 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 \item{which.plot}{string; which parameters to plot;}
 
 \item{weights}{weights for observations}
+
+\item{arguments}{a named list specifying default arguments of the function that are common to all \code{elife} calls}
+
+\item{...}{additional arguments for optimization, currently ignored.}
 }
 \value{
 an invisible list with pointwise estimates and confidence intervals for the scale and shape parameters

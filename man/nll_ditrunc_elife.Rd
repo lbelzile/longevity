@@ -15,6 +15,7 @@ nll_ditrunc_elife(
     "extweibull", "perks", "beard", "perksmake", "beardmake"),
   thresh = 0,
   weights = rep(1, length(time)),
+  arguments = NULL,
   ...
 )
 }
@@ -36,6 +37,8 @@ nll_ditrunc_elife(
 \item{thresh}{vector of thresholds}
 
 \item{weights}{weights for observations}
+
+\item{arguments}{a named list specifying default arguments of the function that are common to all \code{elife} calls}
 
 \item{...}{additional arguments for optimization, currently ignored.}
 }

@@ -12,6 +12,7 @@ npsurv(
   ltrunc = NULL,
   rtrunc = NULL,
   weights = NULL,
+  arguments = NULL,
   ...
 )
 }
@@ -31,6 +32,8 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 \item{rtrunc}{upper truncation limit, default to \code{NULL}}
 
 \item{weights}{vector of weights, default to \code{NULL} for equiweighted}
+
+\item{arguments}{a named list specifying default arguments of the function that are common to all \code{elife} calls}
 
 \item{...}{additional arguments passed to the functions}
 }

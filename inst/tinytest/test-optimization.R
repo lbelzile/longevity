@@ -3,6 +3,7 @@
 # # as for "mev" package for GP and for special
 # # cases of the exponential distribution where
 # # the solution is available in closed-form
+library(tinytest)
 
 set.seed(1234)
 n <- 1e5L
@@ -37,13 +38,13 @@ fit_2b <- longevity::fit_elife(
   time = samp2,
   thresh = 2,
   family = "gp")
-tinytest::expect_equivalent(fit_2a$par, fit_2b$par, tolerance = 1e-4)
+expect_equivalent(fit_2a$par, fit_2b$par, tolerance = 1e-4)
 if(requireNamespace("mev", quietly = TRUE)){
 # Compare with MLE algorithm of Grimshaw
 fit_2c <- mev::fit.gpd(
   xdat = samp2,
   threshold = 2)
-tinytest::expect_equivalent(fit_2a$par, fit_2c$par, tolerance = 1e-4)
+expect_equivalent(fit_2a$par, fit_2c$par, tolerance = 1e-4)
 }
 
 # Check exponential data with known MLE
@@ -51,7 +52,7 @@ samp3 <- rexp(n = 100, rate = 0.5)
 fit_3a <- longevity::fit_elife(
   time = samp3,
   family = "exp")
-tinytest::expect_equivalent(
+expect_equivalent(
   current = fit_3a$par,
    target = mean(samp3),
    info = "exponential")
@@ -67,7 +68,7 @@ fit4 <- longevity::fit_elife(
   event = !samp4$rcens,
   type = "right",
   family = "exp")
-tinytest::expect_equal(
+expect_equal(
   as.numeric(fit4$par),
   sum(samp4$dat)/sum(!samp4$rcens),
   info = "exponential with right censoring")

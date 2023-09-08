@@ -4,6 +4,7 @@
 \alias{pgompmake}
 \alias{qgompmake}
 \alias{dgompmake}
+\alias{hgompmake}
 \title{Distribution function of the Gompertz-Makeham distribution}
 \usage{
 pgompmake(
@@ -18,6 +19,8 @@ pgompmake(
 qgompmake(p, scale = 1, shape = 0, lambda = 0, lower.tail = TRUE)
 
 dgompmake(x, scale = 1, shape = 0, lambda = 0, log = FALSE)
+
+hgompmake(x, scale = 1, shape = 0, lambda = 0, log = FALSE)
 }
 \arguments{
 \item{q}{vector of quantiles.}
@@ -36,14 +39,16 @@ dgompmake(x, scale = 1, shape = 0, lambda = 0, log = FALSE)
 
 \item{x}{vector of quantiles.}
 
-\item{log}{logical; if \code{FALSE} (default), return the density, else the log likelihood of the individual observations.}
+\item{log}{logical; if \code{TRUE}, return the log hazard}
 }
 \value{
 a vector of (log)-probabilities of the same length as \code{q}
 
-vector of quantiles
+a vector of quantiles
 
-vector of density
+a vector of density
+
+a vector of (log)-hazard.
 }
 \description{
 Distribution function of the Gompertz-Makeham distribution
@@ -51,6 +56,8 @@ Distribution function of the Gompertz-Makeham distribution
 Quantile function of the Gompertz-Makeham distribution
 
 Density function of the Gompertz-Makeham distribution
+
+Hazard function of the Gompertz-Makeham distribution
 }
 \note{
 The quantile function is defined in terms of Lambert's W function. Particular parameter combinations (small values of \code{lambda} lead to numerical overflow; the function throws a warning when this happens.

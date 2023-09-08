@@ -3,12 +3,15 @@
 \name{pgpd}
 \alias{pgpd}
 \alias{dgpd}
+\alias{hgpd}
 \alias{qgpd}
 \title{Distribution function of the generalized Pareto distribution}
 \usage{
 pgpd(q, loc = 0, scale = 1, shape = 0, lower.tail = TRUE, log.p = FALSE)
 
 dgpd(x, loc = 0, scale = 1, shape = 0, log = FALSE)
+
+hgpd(x, loc = 0, scale = 1, shape = 0, log = FALSE)
 
 qgpd(p, loc = 0, scale = 1, shape = 0, lower.tail = TRUE)
 }
@@ -27,7 +30,7 @@ qgpd(p, loc = 0, scale = 1, shape = 0, lower.tail = TRUE)
 
 \item{x}{vector of quantiles.}
 
-\item{log}{logical; if \code{FALSE} (default), return the density, else the log likelihood of the individual observations.}
+\item{log}{logical; if \code{FALSE} (default), return the log hazard}
 
 \item{p}{vector of probabilities.}
 }
@@ -36,12 +39,16 @@ a vector of (log)-probabilities of the same length as \code{q}
 
 a vector of (log)-density.
 
-vector of quantiles
+a vector of (log)-hazard.
+
+a vector of quantiles
 }
 \description{
 Distribution function of the generalized Pareto distribution
 
 Density function of the generalized Pareto distribution
+
+Hazard function of the generalized Pareto distribution
 
 Quantile function of the generalized Pareto distribution
 }

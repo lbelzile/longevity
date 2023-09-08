@@ -1,19 +1,20 @@
 # Checking the nonparametric maximum
 # likelihood estimator of Turnbull
 # against the implementation.
-library(survival)
-library(longevity)
+# library(longevity)
+# library(tinytest)
+
 # [1] Toy example with interval censoring and right censoring
 #
 # Two observations: A1: [1,3], A2: 4
 # Probability of 0.5
-test_simple1 <- np_elife(
+test_simple1 <- longevity::np_elife(
   time = c(1,4),
   time2 = c(3,4),
   event = c(3,1),
   type = "interval",
   alg = "sqp")
-test_simple2 <- npsurv(
+test_simple2 <- longevity::npsurv(
   time = c(1,4),
   time2 = c(3,4),
   event = c(3,1),
@@ -22,25 +23,25 @@ test_simple2 <- npsurv(
 
 # interval::icfit(c(1,4), c(3,4))$pf
 
-tinytest::expect_equal(c(0.5,0.5), test_simple2$prob)
-tinytest::expect_equal(c(0.5,0.5), test_simple1$prob)
+expect_equal(c(0.5,0.5), test_simple2$prob)
+expect_equal(c(0.5,0.5), test_simple1$prob)
 # Second example with right-censoring and a tie
 # risk set at t=1 is 3, 1 failure
 # risk set at t=2 is 1, 1 failure
-test_simple3a <- npsurv(
+test_simple3a <- longevity::npsurv(
   time = c(1, 1, 2),
   event = c(0, 1, 1),
   type = "right")
-test_simple3b <- np_elife(
+test_simple3b <- longevity::np_elife(
   time = c(1, 1, 2),
   event = c(0, 1, 1),
   type = "right",
   alg = "sqp")
 
 # interval::icfit(Surv(time = c(1,1,2), event = c(0,1, 1))~1)$pf
-tinytest::expect_equal(c(1/3, 2/3),
+expect_equal(c(1/3, 2/3),
                        test_simple3a$prob)
-tinytest::expect_equal(c(1/3, 2/3),
+expect_equal(c(1/3, 2/3),
                        test_simple3b$prob)
 
 # interval::icfit(L = c(1,1,2), R = c(1,Inf,2))
@@ -60,10 +61,10 @@ ratio <- sapply(utimes, function(qj){
 density_bl <- -diff(c(1, cumprod(ratio)))
 ## This is unexpectedly long
 npmle_ltrunc_long <-
-  npsurv(time = y,
+  longevity::npsurv(time = y,
          ltrunc = u,
          tol = 1e-12)
-tinytest::expect_equal(npmle_ltrunc_long$prob,
+expect_equal(npmle_ltrunc_long$prob,
                        density_bl)
 
 # [3] Left-truncated right-censored data
@@ -92,14 +93,14 @@ wgt <- sapply(tun, function(ti) {
 })
 # Test the function from the 'longevity' package
 npmle_ltruncrcens_long <-
-  npsurv(
+  longevity::npsurv(
     time = time,
     event = rightcens,
     type = "right",
     ltrunc = ltrunc
   )
 npmle_ltruncrcens_long2 <-
-  np_elife(
+  longevity::np_elife(
     time = time,
     event = rightcens,
     type = "right",
@@ -118,15 +119,15 @@ if(length(zeroprobinterv) != 0L){
   prob_em <- prob_em[-zeroprobinterv]
 }
 # Expect only unique failure times
-tinytest::expect_true(
+expect_true(
      isTRUE(all(xval[,1] == xval[,2])))
 # Same right and left censoring
-tinytest::expect_equal(xval[,2],
+expect_equal(xval[,2],
                        tun)
 # Same probabilities
-tinytest::expect_equal(prob_em,
+expect_equal(prob_em,
                        probs)
-
+if(requireNamespace("survival", quietly = TRUE)){
 
 # [4] right censored data (Kaplan-Meier)
 n <- rpois(n = 1, lambda = 100)
@@ -134,10 +135,10 @@ time <- rpois(n, lambda = 100)
 # Create censoring
 status <- ifelse(runif(n) < 0.5, 0, 1)
 utime <- time[status == 0] # observed failure times
-cstat <- .check_surv(time,
+cstat <- longevity:::.check_surv(time,
                      event = status,
                      type = 'right')
-unex <- turnbull_intervals(
+unex <- longevity::turnbull_intervals(
   time = cstat$time,
   time2 = cstat$time2,
   status = cstat$status)
@@ -151,7 +152,7 @@ cLimits <- .censTruncLimits(
   cens = TRUE)
 # Fit model
 test_rcens_long <-
-  npsurv(time = time,
+  longevity::npsurv(time = time,
          event = status,
          type = 'right')
 
@@ -162,71 +163,71 @@ probsKM <- -diff(c(1, km$surv))
 # Last observation is censored
 lastCensored <- max(time) == max(utime)
 if(!lastCensored){
-  tinytest::expect_equal(test_rcens_long$xval[,1],
+  expect_equal(test_rcens_long$xval[,1],
                          test_rcens_long$xval[,2])
-  tinytest::expect_equal(km$time[probsKM > 0],
+  expect_equal(km$time[probsKM > 0],
                          test_rcens_long$xval[,1])
-  tinytest::expect_equal(test_rcens_long$prob,
+  expect_equal(test_rcens_long$prob,
                          probsKM[probsKM>0])
 }  else{
   # largest observation is right-censored
   nm <- nrow(test_rcens_long$xval)
-  tinytest::expect_equal(test_rcens_long$xval[-nm, 1],
+  expect_equal(test_rcens_long$xval[-nm, 1],
                          test_rcens_long$xval[-nm, 2])
-  tinytest::expect_equal(km$time[probsKM > 0],
+  expect_equal(km$time[probsKM > 0],
                          test_rcens_long$xval[-nm,1])
-  tinytest::expect_equal(test_rcens_long$prob[-nm],
+  expect_equal(test_rcens_long$prob[-nm],
                          probsKM[probsKM>0])
 }
 
 # Flip sign
 status[time == max(time)] <- 1-status[time == max(time)]
 test_rcens_long <-
-  npsurv(time = time,
+  longevity::npsurv(time = time,
          event = status,
          type = 'right')
 # Compare to Kaplan-Meier
 km <- survival::survfit(survival::Surv(time, status) ~ 1)
 probsKM <- -diff(c(1, km$surv))
 if(lastCensored){
-  tinytest::expect_equal(test_rcens_long$xval[,1],
+  expect_equal(test_rcens_long$xval[,1],
                          test_rcens_long$xval[,2])
-  tinytest::expect_equal(km$time[probsKM > 0],
+  expect_equal(km$time[probsKM > 0],
                          test_rcens_long$xval[,1])
-  tinytest::expect_equal(test_rcens_long$prob,
+  expect_equal(test_rcens_long$prob,
                          probsKM[probsKM>0])
 } else {
   # largest observation is right-censored
   nm <- nrow(test_rcens_long$xval)
-  tinytest::expect_equal(test_rcens_long$xval[-nm, 1],
+  expect_equal(test_rcens_long$xval[-nm, 1],
                          test_rcens_long$xval[-nm, 2])
-  tinytest::expect_equal(km$time[probsKM > 0],
+  expect_equal(km$time[probsKM > 0],
                          test_rcens_long$xval[-nm,1])
-  tinytest::expect_equal(test_rcens_long$prob,
+  expect_equal(test_rcens_long$prob,
                          c(probsKM[probsKM>0], 1-sum(probsKM)))
 }
-
+}
 # [5] Example of Frydman (1994)
 time <- c(2,4,6)
 time2 <- c(3,5,8)
 ltrunc <- c(1,1,2.5)
 
-F_int <- turnbull_intervals(
+F_int <- longevity::turnbull_intervals(
   time = time,
   time2 = time2,
   ltrunc = ltrunc,
   status = rep(3,3))
-test <- npsurv(
+test <- longevity::npsurv(
   time = time,
   time2 = time2,
   event = rep(3,3),
   type = "interval",
   ltrunc = ltrunc)
 Fref <- cbind(time, c(ltrunc[3], time2[-1]))
-tinytest::expect_equal(F_int,
+expect_equal(F_int,
                        Fref,
                        check.attributes = FALSE)
-tinytest::expect_equal(test$prob,
+expect_equal(test$prob,
                        c(0.5,0.25,0.25))
 
 # [6] Interval censoring
@@ -235,32 +236,31 @@ tinytest::expect_equal(test$prob,
 
 if(requireNamespace("interval", quietly = TRUE)){
 res1_icfit <- interval::icfit(L = c(1,1,4), R = c(3,2,Inf))$pf
-res1_longev <- npsurv(time = c(1,1,4),
+res1_longev <- longevity::npsurv(time = c(1,1,4),
                   time2 = c(3,2,Inf),
                   type = "interval2")$prob
-tinytest::expect_equivalent(res1_icfit,res1_longev)
+expect_equivalent(res1_icfit,res1_longev)
 
 res2_icfit <- interval::icfit(L = c(1,1,2,3), R = c(2,2,3,4))$pf
-res2_longev <- npsurv(time = c(1,2,3),
+res2_longev <- longevity::npsurv(time = c(1,2,3),
                   time2 = c(2,3,4),
                   type = "interval2",
                   weights = c(2,1,1))$prob
-tinytest::expect_equivalent(res2_icfit,res2_longev)
+expect_equivalent(res2_icfit,res2_longev)
 
 # AIDS example from Lindsey and Ryan
 
 left <- c(0,15,12,17,13,0,6,0,14,12,13,12,12,0,0,0,0,3,4,1,13,0,0,6,0,2,1,0,0,2,0)
 right <- c(16, rep(Inf, 4), 24, Inf, 15, rep(Inf, 5), 18, 14, 17, 15, Inf, Inf, 11, 19, 6, 11, Inf, 6, 12, 17, 14, 25, 11, 14)
-test <- npsurv(time = left,
+test <- longevity::npsurv(time = left,
                time2 = right,
                type = "interval2")
 # test2 <- interval::icfit(L = left, R = right, icfitControl = interval::icfitControl(maxit = 1e4, epsilon = 1e-15))
-# tinytest::expect_equivalent(test$prob, test2$pf, tolerance = 1e-5)
+# expect_equivalent(test$prob, test2$pf, tolerance = 1e-5)
 
-if(requireNamespace("interval", quietly = TRUE)){
   test3 <- Icens::EM(cbind(left, right), maxiter = 1e4, tol = 1e-15)
-  tinytest::expect_equivalent(test$prob, test3$pf[test3$pf > 0], tolerance = 1e-7)
-}
+  expect_equivalent(test$prob, test3$pf[test3$pf > 0], tolerance = 1e-7)
+
 }
 # [7] Example from Gentleman and Geyer (1994)
 # Interval censoring
@@ -268,8 +268,8 @@ if(requireNamespace("interval", quietly = TRUE)){
 # whereas Turnbull may return 0.5,0,0.5
 time = c(0,1,1,0,0,2)
 time2 = c(1,3,3,2,2,3)
-tinytest::expect_equivalent(
-  npsurv(time = time,
+expect_equivalent(
+  longevity::npsurv(time = time,
                   time2 = time2,
                   type = "interval2")$prob,
   rep(1/3,3))
@@ -294,12 +294,12 @@ trunc_dtda <- DTDA::lynden(
   V = rtrunc,
   boot = FALSE,
   error = 1e-15)
-trunc_long <- np_elife(
+trunc_long <- longevity::np_elife(
   time = dat,
   ltrunc = ltrunc,
   rtrunc = rtrunc)
 
-tinytest::expect_equivalent(
+expect_equivalent(
   max(abs(trunc_long$prob - trunc_dtda$density)),
   0,
   tolerance = 1e-5)

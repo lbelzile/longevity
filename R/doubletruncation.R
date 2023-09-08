@@ -13,6 +13,7 @@
 #' @param rtrunc2 upper truncation limit, default to \code{NULL}
 #' @param weights weights for observations
 #' @param family string; choice of parametric family, either exponential (\code{exp}), Weibull (\code{weibull}), generalized Pareto (\code{gp}), Gompertz (\code{gomp}), Gompertz-Makeham (\code{gompmake}) or extended generalized Pareto (\code{extgp}).
+#' @param arguments a named list specifying default arguments of the function that are common to all \code{elife} calls
 #' @param ... additional arguments for optimization, currently ignored.
 #' @return log-likelihood value
 #' @export
@@ -37,7 +38,14 @@ nll_ditrunc_elife <-
                      "beardmake"),
           thresh = 0,
           weights = rep(1, length(time)),
+          arguments = NULL,
           ...){
+    if(!is.null(arguments)){
+      call <- match.call(expand.dots = FALSE)
+      arguments <- check_arguments(func = nll_ditrunc_elife, call = call, arguments = arguments)
+      return(do.call(nll_ditrunc_elife, args = arguments))
+    }
+
   family <- match.arg(family)
   stopifnot("Threshold must be non-negative" = thresh >= 0,
             "Only a single threshold value is allowed" = family == "gppiece" | length(thresh) == 1L)
@@ -229,8 +237,14 @@ fit_ditrunc_elife <- function(
   weights = NULL,
   export = FALSE,
   start = NULL,
-  restart = FALSE
+  restart = FALSE,
+  arguments = NULL, ...
   ){
+  if(!is.null(arguments)){
+    call <- match.call(expand.dots = FALSE)
+    arguments <- check_arguments(func = fit_ditrunc_elife, call = call, arguments = arguments)
+    return(do.call(fit_ditrunc_elife, args = arguments))
+  }
   stopifnot("Argument `restart` should be a logical vector" = is.logical(restart) & length(restart) == 1L)
   if(is.null(weights)){
     weights <- rep(1, length(time))
@@ -340,7 +354,7 @@ fit_ditrunc_elife <- function(
         stopifnot("Invalid starting values." = isTRUE(all(ineq > ineqLB, ineq < ineqUB)))
       }
       } else {
-          ineq_fn <- .ineq_optim_elife(dat = dat,
+          ineq_fn <- .ineq_optim_elife(dat = time,
                                        family = family,
                                        maxdat = maxdat,
                                        start = start)
@@ -507,7 +521,13 @@ test_ditrunc_elife <- function(time,
                                   "beard",
                                   "perksmake",
                                   "beardmake"),
-                       weights = rep(1, length(time))) {
+                       weights = rep(1, length(time)),
+                       arguments = NULL, ...) {
+  if(!is.null(arguments)){
+    call <- match.call(expand.dots = FALSE)
+    arguments <- check_arguments(func = test_ditrunc_elife, call = call, arguments = arguments)
+    return(do.call(test_ditrunc_elife, args = arguments))
+  }
   family <- match.arg(family)
   stopifnot("Covariate must be provided" = !missing(covariate),
             "Object `covariate` should be of the same length as `time`" = length(covariate) == length(time),

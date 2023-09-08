@@ -16,7 +16,9 @@ prof_gp_shape(
   level = 0.95,
   psi = NULL,
   weights = NULL,
-  confint = TRUE
+  confint = TRUE,
+  arguments = NULL,
+  ...
 )
 }
 \arguments{
@@ -43,6 +45,10 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 \item{weights}{weights for observations}
 
 \item{confint}{logical; if \code{TRUE} (default), return confidence intervals rather than list}
+
+\item{arguments}{a named list specifying default arguments of the function that are common to all \code{elife} calls}
+
+\item{...}{additional arguments for optimization, currently ignored.}
 }
 \value{
 if \code{confint=TRUE}, a vector of length three with the maximum likelihood of the shape and profile-based confidence interval

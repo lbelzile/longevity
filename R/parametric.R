@@ -12,7 +12,7 @@
 #' @param family string; choice of parametric family
 #' @param status integer vector giving status of an observation. If \code{NULL} (default), this argument is computed internally based on \code{type}.
 #' @param ... additional arguments for optimization, currently ignored.
-#' @return log-likelihood value
+#' @return log-likelihood values
 #' @export
 nll_elife <- function(par,
                       time,
@@ -39,7 +39,13 @@ nll_elife <- function(par,
                       thresh = 0,
                       weights = rep(1, length(time)),
                       status = NULL,
+                      arguments = NULL,
                       ...){
+  if(!is.null(arguments)){
+    call <- match.call(expand.dots = FALSE)
+    arguments <- check_arguments(func = "nll_elife", call = call, arguments = arguments)
+    return(do.call(nll_elife, args = arguments))
+  }
   family <- match.arg(family)
   type <- match.arg(type)
   # All parameters must be finite values
@@ -276,6 +282,8 @@ nll_elife <- function(par,
 #' @param start vector of starting values for the optimization routine. If \code{NULL}, the algorithm attempts to find default values and returns a warning with
 #' false convergence diagnostic if it cannot.
 #' @param restart logical; should multiple starting values be attempted? Default to \code{FALSE}.
+#' @param arguments a named list specifying default arguments of the function that are common to all \code{elife} calls
+#' @param ... additional parameters, currently ignored
 #' @return an object of class \code{elife_par}
 #' @export
 fit_elife <- function(time,
@@ -292,8 +300,16 @@ fit_elife <- function(time,
                       weights = NULL,
                       export = FALSE,
                       start = NULL,
-                      restart = FALSE
+                      restart = FALSE,
+                      arguments = NULL,
+                      ...
 ){
+  if(!is.null(arguments)){
+    call <- match.call(expand.dots = FALSE)
+    arguments <- check_arguments(func = fit_elife, call = call, arguments = arguments)
+    return(do.call(fit_elife, args = arguments))
+  }
+
   stopifnot("Argument `restart` should be a logical vector" = is.logical(restart) & length(restart) == 1L)
   stopifnot("Argument `event` must be NULL, a vector of the same length as time or a scalar." = isTRUE(is.null(event) | length(event) %in% c(1L, length(time))))
   family <- match.arg(family)
@@ -654,7 +670,7 @@ fit_elife <- function(time,
       c(par[1], par[2], ifelse(par[2] < 0, thresh - par[1]/par[2] - maxdat, 1e-5))
     }
     ineqLB <- c(0, -1, 0)
-    ineqUB <- c(Inf, 2, Inf)
+    ineqUB <- c(Inf, 10, Inf)
     LB <- c(0, -1)
     UB <- c(Inf, 2)
     # hardcode upper bound for shape parameter, to prevent optim from giving nonsensical output

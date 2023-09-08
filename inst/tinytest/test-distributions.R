@@ -317,17 +317,47 @@ info = "extgp density at endpoint is zero with negative shape")
 unif <- ppoints(100)
 
 for(i in seq_along(models)){
-    dist <- models[[i]]$dist
-    args <- models[[i]]$args
-    args$p <- unif
-    args$q <- do.call(paste0("q", dist), args = args)
-    args$p <- NULL;
-    p <- do.call(paste0("p", dist), args = args)
+  dist <- models[[i]]$dist
+  args <- models[[i]]$args
+  args$p <- unif
+  args$q <- do.call(paste0("q", dist), args = args)
+  args$p <- NULL;
+  p <- do.call(paste0("p", dist), args = args)
   test <- expect_equal(p, unif,
                        info = paste0("CDF is inverse of quantile function for ",
-                                    models[[i]]$dist,
-                                    " (model ", i ,")"),
+                                     models[[i]]$dist,
+                                     " (model ", i ,")"),
                        tol = 1e-5)
+  if(!test){
+    print(test)
+  }
+}
+
+# CHECK HAZARD FUNCTION
+hmodels <- models[! names(models) %in% c("gppieceneg", "gppiecepos", "gppiece_gpdpos")]
+wnested <- which(grepl(names(hmodels), pattern = "_"))
+sub <- match(sub(x = names(hmodels)[wnested], pattern = ".*_", replacement = ""), names(hmodels))
+
+# Check that hazard is zero outside of the domain
+hazard <- simplify2array(lapply(hmodels, function(x){
+  args <- x$args
+  args$x <- ddata
+  do.call(paste0("h", x$dist), args = args)
+}))
+
+# Check hazard is NA for NA or negative values
+expect_equal(as.numeric(hazard[1:2,]),
+             rep(NA_real_, time = 2*ncol(hazard)))
+# Check that hazard is non-negative when available
+expect_true(isTRUE(all(hazard[!is.na(hazard)] >= 0)),
+            info = "Hazard non-negative")
+
+
+for(i in seq_along(wnested)){
+  test <- expect_equivalent(
+    as.numeric(hazard[-1,wnested[i]]),
+    as.numeric(hazard[-1,sub[i]]),
+    info = paste("hazard", i,  names(models)[wnested[i]]))
   if(!test){
     print(test)
   }

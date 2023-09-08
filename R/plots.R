@@ -25,6 +25,7 @@
 #' @param ... additional arguments, currently ignored by the function.
 #' @importFrom rlang .data
 #' @examples
+#' set.seed(1234)
 #' samp <- samp_elife(
 #'  n = 200,
 #'  scale = 2,
@@ -41,13 +42,14 @@
 #'  export = TRUE)
 #' plot(fitted, plot.type = "ggplot")
 #' # Left- and right-truncated data
+#' n <- 40L
 #' samp <- samp_elife(
-#'  n = 200,
+#'  n = n,
 #'  scale = 2,
 #'  shape = 0.3,
 #'  family = "gp",
-#'  lower = ltrunc <- runif(200),
-#'  upper = rtrunc <- ltrunc + runif(200, 0, 10),
+#'  lower = ltrunc <- runif(n),
+#'  upper = rtrunc <- ltrunc + runif(n, 0, 15),
 #'  type2 = "ltrt")
 #' fitted <- fit_elife(
 #'  time = samp,
@@ -56,7 +58,7 @@
 #'  rtrunc = rtrunc,
 #'  family = "gp",
 #'  export = TRUE)
-#' plot(fitted)
+#' plot(fitted,  which.plot = "tmd")
 plot.elife_par <- function(x,
                            plot.type = c("base","ggplot"),
                            which.plot = c("pp","qq"),
@@ -83,12 +85,14 @@ plot.elife_par <- function(x,
   if(is.null(object$ltrunc)){
     object$ltrunc <- rep(0, length(object$time))
   }
-  np <- npsurv(time = object$time,
+  np <- np_elife(time = object$time,
                time2 = object$time2,
                event = object$event,
                type = object$type,
                ltrunc = object$ltrunc,
-               rtrunc = object$rtrunc)
+               rtrunc = object$rtrunc,
+               weights = object$weights,
+               method = ifelse(length(object$time) > 100, "em", "sqp"))
   # Create a weighted empirical CDF
   ecdffun <- np$cdf
   dat <- object$time[object$status == 1L]
@@ -179,7 +183,7 @@ plot.elife_par <- function(x,
         which.plot[which.plot == "erp"] <- "pp"
       }
     } else{
-      np2 <- npsurv(time = dat,
+      np2 <- np_elife(time = dat,
                     ltrunc = ltrunc,
                     rtrunc = rtrunc)
       # Create a weighted empirical CDF
@@ -348,6 +352,7 @@ plot.elife_par <- function(x,
 #' @param level level of the confidence intervals
 #' @inheritParams nll_elife
 #' @keywords internal
+#' @return a matrix with plotting positions for confidence intervals of quantile-quantile plots
 uq1_qqplot_elife <-
   function(B = 9999L,
            dat,
@@ -423,7 +428,7 @@ uq1_qqplot_elife <-
         event = !boot_dat$rcens,
         family = family,
         type = "right")
-       np_boot <- npsurv(time = boot_dat$dat,
+       np_boot <- np_elife(time = boot_dat$dat,
                 event = !boot_dat$rcens,
                 type = "right",
                 ltrunc = lower)
@@ -445,7 +450,7 @@ uq1_qqplot_elife <-
                                 ltrunc = lower,
                                 rtrunc = upper,
                                 family = family)
-          np_boot <- npsurv(time = boot_dat,
+          np_boot <- np_elife(time = boot_dat,
                             type = "interval",
                             event = rep(1L, n),
                             ltrunc = lower,

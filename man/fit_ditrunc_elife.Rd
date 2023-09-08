@@ -16,7 +16,9 @@ fit_ditrunc_elife(
   weights = NULL,
   export = FALSE,
   start = NULL,
-  restart = FALSE
+  restart = FALSE,
+  arguments = NULL,
+  ...
 )
 }
 \arguments{
@@ -42,6 +44,10 @@ fit_ditrunc_elife(
 false convergence diagnostic if it cannot.}
 
 \item{restart}{logical; should multiple starting values be attempted? Default to \code{FALSE}.}
+
+\item{arguments}{a named list specifying default arguments of the function that are common to all \code{elife} calls}
+
+\item{...}{additional arguments for optimization, currently ignored.}
 }
 \value{
 an object of class \code{elife_par}
