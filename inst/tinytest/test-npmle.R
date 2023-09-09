@@ -47,7 +47,7 @@ expect_equal(c(1/3, 2/3),
 # interval::icfit(L = c(1,1,2), R = c(1,Inf,2))
 
 # This fails _problem with definition in Turnbull?_
-
+set.seed(1234)
 # [2] Left truncated data
 n <- 100L
 u <- rnorm(n = n, sd = 1)
@@ -304,3 +304,4 @@ expect_equivalent(
   0,
   tolerance = 1e-5)
 }
+

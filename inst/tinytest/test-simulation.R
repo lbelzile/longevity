@@ -10,7 +10,7 @@ n <- 1000L
 family <- sample(eval(formals(relife)$family), size = 1)
 args <- list(family = family)
 # Check number of input parameters and sample scale, rate and shape
-npar <- .npar_elife(family = family, return_npar = TRUE)
+npar <- longevity:::.npar_elife(family = family, return_npar = TRUE)
 if(npar[1] > 0){
   args$scale <- rexp(n = npar[1])
 }
