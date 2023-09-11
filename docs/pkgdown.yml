@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   introduction: introduction.html
   nonparametric: nonparametric.html
-last_built: 2023-09-10T19:48Z
+last_built: 2023-09-11T02:10Z
 urls:
   reference: https://lbelzile.github.io/longevity/reference
   article: https://lbelzile.github.io/longevity/articles
