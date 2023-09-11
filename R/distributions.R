@@ -2050,6 +2050,10 @@ helife <- function(x,
   )
 }
 
+
+#' Check parameters of extended lifetime distributions
+#' @inheritParams pelife
+#' @export
 #' @keywords internal
 check_elife_dist <- function(rate,
                              scale,

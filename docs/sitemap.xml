@@ -10,7 +10,16 @@
     <loc>https://lbelzile.github.io/longevity/articles/index.html</loc>
   </url>
   <url>
+    <loc>https://lbelzile.github.io/longevity/articles/introduction.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/articles/nonparametric.html</loc>
+  </url>
+  <url>
     <loc>https://lbelzile.github.io/longevity/articles/npmle.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/articles/vignette.html</loc>
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/authors.html</loc>
@@ -19,7 +28,19 @@
     <loc>https://lbelzile.github.io/longevity/index.html</loc>
   </url>
   <url>
+    <loc>https://lbelzile.github.io/longevity/reference/beard.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/beardmake.html</loc>
+  </url>
+  <url>
     <loc>https://lbelzile.github.io/longevity/reference/boxcox_transfo.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/check_arguments.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/check_elife_dist.html</loc>
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/conf_interv.html</loc>
@@ -73,7 +94,19 @@
     <loc>https://lbelzile.github.io/longevity/reference/englandwales.html</loc>
   </url>
   <url>
+    <loc>https://lbelzile.github.io/longevity/reference/ewsim.html</loc>
+  </url>
+  <url>
     <loc>https://lbelzile.github.io/longevity/reference/expit.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/exponential.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/extgp.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/extweibull.html</loc>
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/fit_ditrunc_elife.html</loc>
@@ -85,6 +118,15 @@
     <loc>https://lbelzile.github.io/longevity/reference/french.html</loc>
   </url>
   <url>
+    <loc>https://lbelzile.github.io/longevity/reference/gomp.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/gompmake.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/gpd.html</loc>
+  </url>
+  <url>
     <loc>https://lbelzile.github.io/longevity/reference/gppiece.html</loc>
   </url>
   <url>
@@ -92,6 +134,9 @@
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/hazard_fn_elife.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/hweibull.html</loc>
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/idl.html</loc>
@@ -148,6 +193,12 @@
     <loc>https://lbelzile.github.io/longevity/reference/pbeardmake.html</loc>
   </url>
   <url>
+    <loc>https://lbelzile.github.io/longevity/reference/perks.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/perksmake.html</loc>
+  </url>
+  <url>
     <loc>https://lbelzile.github.io/longevity/reference/pextgp.html</loc>
   </url>
   <url>
@@ -170,6 +221,9 @@
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/plot.elife_par.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/plot.elife_profile.html</loc>
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/pperks.html</loc>

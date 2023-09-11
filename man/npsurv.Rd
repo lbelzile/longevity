@@ -55,6 +55,18 @@ additional vectors for left-truncation and right-truncation.
 Contrary to the Kaplan-Meier estimator, the mass is placed in the interval
 [\code{max(time), Inf}) so the resulting distribution function is not deficient.
 }
+\examples{
+#' # Toy example with interval censoring and right censoring
+# Two observations: A1: [1,3], A2: 4
+# Probability of 0.5
+
+test_simple2 <- npsurv(
+  time = c(1,4),
+  time2 = c(3,4),
+  event = c(3,1),
+  type = "interval"
+)
+}
 \seealso{
 \code{\link[survival]{Surv}}
 }

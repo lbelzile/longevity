@@ -15,14 +15,14 @@ nll_elife(
   family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "gppiece",
     "extweibull", "perks", "beard", "perksmake", "beardmake"),
   thresh = 0,
-  weights = rep(1, length(time)),
+  weights = NULL,
   status = NULL,
   arguments = NULL,
   ...
 )
 }
 \arguments{
-\item{par}{vector of parameters, in thge following order: scale, rate and shape}
+\item{par}{vector of parameters, in the following order: scale, rate and shape}
 
 \item{time}{excess time of the event of follow-up time, depending on the value of event}
 
@@ -57,4 +57,10 @@ log-likelihood values
 Computes the log-likelihood for various parametric models suitable for threshold
 exceedances. If threshold is non-zero, then only right-censored, observed event time and interval censored
 data whose timing exceeds the thresholds are kept.
+}
+\examples{
+data(ewsim, package = "longevity")
+nll_elife(par = c(5, 0.3),
+          family = "gp",
+          arguments = ewsim)
 }

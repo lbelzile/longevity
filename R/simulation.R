@@ -14,6 +14,36 @@
 #' @param type2 string, either \code{none}, \code{ltrt} for left- and right-truncated data or \code{ltrc} for left-truncated right-censored data
 #' @export
 #' @return either a vector of observations or, if \code{type2=ltrc}, a list with \code{n} observations \code{dat} and a logical vector of the same length with \code{TRUE} for right-censored observations and \code{FALSE} otherwise.
+#' @examples
+#' set.seed(1234)
+#' n <- 500L
+#' # Simulate interval truncated data
+#' x <- samp_elife(n = n,
+#'                 scale = 2,
+#'                 shape = 1.5,
+#'                 lower = low <- runif(n),
+#'                 upper = upp <- runif(n, min = 3, max = 15),
+#'                 type2 = "ltrt",
+#'                 family = "weibull")
+#' coef(fit_elife(
+#'    time = x,
+#'    ltrunc = low,
+#'    rtrunc = upp,
+#'    family = "weibull"))
+#' # Simulate left-truncated right-censored data
+#' x <- samp_elife(n = n,
+#'                 scale = 2,
+#'                 shape = 1.5,
+#'                 lower = low <- runif(n),
+#'                 upper = upp <- runif(n, min = 3, max = 15),
+#'                 type2 = "ltrc",
+#'                 family = "gomp")
+#' #note that the return value is a list...
+#' coef(fit_elife(
+#'    time = x$dat,
+#'    ltrunc = low,
+#'    event = !x$rcens,
+#'    family = "gomp"))
 samp_elife <- function(n,
                        scale,
                        rate,

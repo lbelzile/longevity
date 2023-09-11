@@ -10,6 +10,15 @@
 #' @param arguments a named list specifying default arguments of the function that are common to all \code{elife} calls
 #' @param ... additional parameters, currently ignored
 #' @return a list with the maximum likelihood estimate of the endpoint and the profile log-likelihood
+#' @examples
+#' set.seed(2023)
+#' time <- relife(n = 100, scale = 3, shape = -0.3, family = "gp")
+#' endpt <- prof_gp_endpt(
+#'   time = time,
+#'   psi = seq(max(time) + 1e-4, max(time) + 40, length.out = 51L))
+#' print(endpt)
+#' plot(endpt)
+#' confint(endpt)
 prof_gp_endpt <- function(time,
                           time2 = NULL,
                           event = NULL,
@@ -138,6 +147,7 @@ plot(x = x$psi[ind],
      y = x$pll[ind] - x$maxpll,
      type = "l",
      yaxs = "i",
+     bty = "i",
      ylim = c(-4,0.01),
      xlab = x$param,
      ylab = "profile log likelihood")

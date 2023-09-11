@@ -55,3 +55,13 @@ a list with the maximum likelihood estimate of the endpoint and the profile log-
 \description{
 This function returns the profile log likelihood over a grid of values of \code{psi}, the endpoints.
 }
+\examples{
+set.seed(2023)
+time <- relife(n = 100, scale = 3, shape = -0.3, family = "gp")
+endpt <- prof_gp_endpt(
+  time = time,
+  psi = seq(max(time) + 1e-4, max(time) + 40, length.out = 51L))
+print(endpt)
+plot(endpt)
+confint(endpt)
+}

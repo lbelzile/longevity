@@ -101,6 +101,9 @@ turnbull_intervals <- function(
 #' npi <- np_elife(time = dat,
 #'                 rtrunc = rtrunc,
 #'                 ltrunc = ltrunc)
+#' print(npi)
+#' summary(npi)
+#' plot(npi)
 np_elife <- function(time,
                      time2 = NULL,
                      event = NULL,
@@ -628,6 +631,17 @@ np_nll <- function(par,
 #' \item{\code{cdf}: }{nonparametric maximum likelihood estimator of the distribution function}
 #' }
 #' @export
+#' @examples
+#' #' # Toy example with interval censoring and right censoring
+#' # Two observations: A1: [1,3], A2: 4
+#' # Probability of 0.5
+#'
+#' test_simple2 <- npsurv(
+#'   time = c(1,4),
+#'   time2 = c(3,4),
+#'   event = c(3,1),
+#'   type = "interval"
+#' )
 npsurv <- function(time,
                    time2 = NULL,
                    event = NULL,

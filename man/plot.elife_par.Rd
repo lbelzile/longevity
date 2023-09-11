@@ -8,7 +8,7 @@
   x,
   plot.type = c("base", "ggplot"),
   which.plot = c("pp", "qq"),
-  confint = FALSE,
+  confint = c("none", "pointwise", "simultaneous"),
   plot = TRUE,
   ...
 )

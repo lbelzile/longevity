@@ -15,11 +15,12 @@ args <- with(dutch1, list(
   family = "gp")) # choice of parametric model
 
 ## -----------------------------------------------------------------------------
-tstab_c <- tstab(arguments = args,
-        family = "gp", # parametric model, here generalized Pareto
-        thresh = 102:108 * 365.25, # overwrites thresh
-        method = "wald", # type of interval, Wald or profile-likelihood
-        plot = FALSE) # by default, calls 'plot' routine
+tstab_c <- tstab(
+  arguments = args,
+  family = "gp", # parametric model, here generalized Pareto
+  thresh = 102:108 * 365.25, # overwrites thresh
+  method = "wald", # type of interval, Wald or profile-likelihood
+  plot = FALSE) # by default, calls 'plot' routine
 plot(tstab_c, 
      which.plot = "shape", 
      xlab = "threshold (age in days)")

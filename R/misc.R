@@ -128,6 +128,7 @@
 #' @param call user call, obtained from \code{match.call(expand.dots = FALSE)}
 #' @param arguments named list with arguments
 #' @keywords internal
+#' @export
 #' @return a named list with all arguments
 check_arguments <- function(func,
                             call,

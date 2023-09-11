@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">longevity</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2023.03.22</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2023.08.24</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,6 +20,13 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item">
   <a class="nav-link" href="../reference/index.html">Reference</a>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/introduction.html">Introducing longevity</a>
+    <a class="dropdown-item" href="../articles/nonparametric.html">Nonparametric maximum likelihood estimation for survival data</a>
+  </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
@@ -63,19 +70,19 @@
         <dd>England and Wales semi-supercentenarian</dd>
       </dl><dl><dt>
           
+          <code><a href="ewsim.html">ewsim</a></code> 
+        </dt>
+        <dd>England and Wales simulated supercentenarian data</dd>
+      </dl><dl><dt>
+          
           <code><a href="fit_elife.html">fit_elife()</a></code> 
         </dt>
-        <dd>Fit excess lifetime models</dd>
+        <dd>Fit excess lifetime models by maximum likelihood</dd>
       </dl><dl><dt>
           
           <code><a href="french.html">french</a></code> 
         </dt>
         <dd>French semi-supercentenarian</dd>
-      </dl><dl><dt>
-          
-          <code><a href="hazard_elife.html">hazard_elife()</a></code> 
-        </dt>
-        <dd>Profile likelihood for hazard</dd>
       </dl><dl><dt>
           
           <code><a href="idl.html">idl</a></code> 
@@ -136,6 +143,11 @@
           <code><a href="plot.elife_par.html">plot(<i>&lt;elife_par&gt;</i>)</a></code> 
         </dt>
         <dd>Goodness-of-fit plots for parametric models</dd>
+      </dl><dl><dt>
+          
+          <code><a href="plot.elife_profile.html">plot(<i>&lt;elife_profile&gt;</i>)</a></code> 
+        </dt>
+        <dd>Plot profile of endpoint</dd>
       </dl><dl><dt>
           
           <code><a href="prof_gp_endpt.html">prof_gp_endpt()</a></code> 

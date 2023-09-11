@@ -5,3 +5,9 @@ template:
   bootstrap: 5
   params:
     bootswatch: litera
+articles:
+- title: Vignettes
+  navbar: ~
+  contents:
+  - introduction
+  - nonparametric

@@ -3,7 +3,7 @@
 #' Computes the log-likelihood for various parametric models suitable for threshold
 #' exceedances. If threshold is non-zero, then only right-censored, observed event time and interval censored
 #' data whose timing exceeds the thresholds are kept.
-#' @param par vector of parameters, in thge following order: scale, rate and shape
+#' @param par vector of parameters, in the following order: scale, rate and shape
 #' @param thresh vector of thresholds
 #' @inheritParams npsurv
 #' @param ltrunc lower truncation limit, default to \code{NULL}
@@ -14,6 +14,11 @@
 #' @param ... additional arguments for optimization, currently ignored.
 #' @return log-likelihood values
 #' @export
+#' @examples
+#' data(ewsim, package = "longevity")
+#' nll_elife(par = c(5, 0.3),
+#'           family = "gp",
+#'           arguments = ewsim)
 nll_elife <- function(par,
                       time,
                       time2 = NULL,
@@ -37,14 +42,29 @@ nll_elife <- function(par,
                                  "perksmake",
                                  "beardmake"),
                       thresh = 0,
-                      weights = rep(1, length(time)),
+                      weights = NULL,
                       status = NULL,
                       arguments = NULL,
                       ...){
+  if(missing(time)){
+    time <- NULL
+  }
+  if(missing(par)){
+    par <- NULL
+  }
   if(!is.null(arguments)){
     call <- match.call(expand.dots = FALSE)
     arguments <- check_arguments(func = "nll_elife", call = call, arguments = arguments)
     return(do.call(nll_elife, args = arguments))
+  }
+  if(is.null(time)){
+    stop("argument \"time\" is missing, with no default")
+  }
+  if(is.null(par)){
+    stop("argument \"par\" is missing, with no default")
+  }
+  if(is.null(weights)){
+    weights <- rep(1, length(time))
   }
   family <- match.arg(family)
   type <- match.arg(type)
@@ -112,10 +132,6 @@ nll_elife <- function(par,
       stop("Right-truncation must be lower than observation times.")
     }
   }
-  # if(family == "gomp"){
-  #   family <- "extgp"
-  #   par <- c(par, 0)
-  # }
   if(family != "gppiece"){
   parlist <- .npar_elife(family = family, par = par)
   valid_par <- try(do.call(what = check_elife_dist,
@@ -286,6 +302,19 @@ nll_elife <- function(par,
 #' @param ... additional parameters, currently ignored
 #' @return an object of class \code{elife_par}
 #' @export
+#' @examples
+#' data(ewsim, package = "longevity")
+#' fit1 <- fit_elife(
+#'    arguments = ewsim,
+#'    export = TRUE,
+#'    family = "exp")
+#' fit2 <- fit_elife(
+#'    arguments = ewsim,
+#'    export = TRUE,
+#'    family = "gp")
+#' plot(fit1)
+#' summary(fit1)
+#' anova(fit2, fit1)
 fit_elife <- function(time,
                       time2 = NULL,
                       event = NULL,

@@ -41,3 +41,34 @@ This function dispatches simulations accounting for potential left-truncation (r
 If \code{type2=ltrt}, simulated observations will be lower than the upper bounds \code{upper}.
 If \code{type2=ltrc}, simulated observations are capped at \code{upper} and the observation is right-censored (\code{rcens=TRUE}).
 }
+\examples{
+set.seed(1234)
+n <- 500L
+# Simulate interval truncated data
+x <- samp_elife(n = n,
+                scale = 2,
+                shape = 1.5,
+                lower = low <- runif(n),
+                upper = upp <- runif(n, min = 3, max = 15),
+                type2 = "ltrt",
+                family = "weibull")
+coef(fit_elife(
+   time = x,
+   ltrunc = low,
+   rtrunc = upp,
+   family = "weibull"))
+# Simulate left-truncated right-censored data
+x <- samp_elife(n = n,
+                scale = 2,
+                shape = 1.5,
+                lower = low <- runif(n),
+                upper = upp <- runif(n, min = 3, max = 15),
+                type2 = "ltrc",
+                family = "gomp")
+#note that the return value is a list...
+coef(fit_elife(
+   time = x$dat,
+   ltrunc = low,
+   event = !x$rcens,
+   family = "gomp"))
+}

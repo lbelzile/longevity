@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">longevity</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2023.03.22</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2023.08.24</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,6 +20,13 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item">
   <a class="nav-link" href="../reference/index.html">Reference</a>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/introduction.html">Introducing longevity</a>
+    <a class="dropdown-item" href="../articles/nonparametric.html">Nonparametric maximum likelihood estimation for survival data</a>
+  </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
@@ -50,11 +57,13 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">r_ditrunc_elife</span><span class="op">(</span></span>
 <span>  <span class="va">n</span>,</span>
+<span>  <span class="va">rate</span>,</span>
 <span>  <span class="va">scale</span>,</span>
 <span>  <span class="va">shape</span>,</span>
 <span>  <span class="va">lower</span>,</span>
 <span>  <span class="va">upper</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exp"</span>, <span class="st">"gp"</span>, <span class="st">"gomp"</span>, <span class="st">"gompmake"</span>, <span class="st">"weibull"</span>, <span class="st">"extgp"</span><span class="op">)</span></span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exp"</span>, <span class="st">"gp"</span>, <span class="st">"gomp"</span>, <span class="st">"gompmake"</span>, <span class="st">"weibull"</span>, <span class="st">"extgp"</span>, <span class="st">"gppiece"</span>,</span>
+<span>    <span class="st">"extweibull"</span>, <span class="st">"perks"</span>, <span class="st">"beard"</span>, <span class="st">"perksmake"</span>, <span class="st">"beardmake"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -62,6 +71,10 @@
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>n</dt>
 <dd><p>sample size</p></dd>
+
+
+<dt>rate</dt>
+<dd><p>rate parameter(s)</p></dd>
 
 
 <dt>scale</dt>
@@ -81,7 +94,7 @@
 
 
 <dt>family</dt>
-<dd><p>string; choice of parametric family, either exponential (<code>exp</code>), Weibull (<code>weibull</code>), generalized Pareto (<code>gp</code>), Gompertz (<code>gomp</code>), Gompertz-Makeham (<code>gompmake</code>) or extended generalized Pareto (<code>extgp</code>).</p></dd>
+<dd><p>string; choice of parametric family</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -100,23 +113,23 @@
 <span class="r-in"><span>               lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmax</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="op">-</span><span class="fl">0.5</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>               upper <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">6</span>, <span class="fl">10</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>               family <span class="op">=</span> <span class="st">"gp"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   [1] 0.58025009 2.59985618 1.24786952 0.72735563 0.92574431 1.73849416</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   [7] 2.84178998 1.18222667 1.86012936 0.97052633 3.04722079 0.10564937</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [13] 0.59393785 1.69252041 0.32414608 1.05078377 0.96430925 0.84810836</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [19] 3.50172140 0.31389855 1.44191497 0.61242685 0.43111313 1.29195858</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [25] 0.86558521 0.12413623 1.00192036 1.24829229 1.74941939 3.16538912</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [31] 0.89496372 0.16207944 1.94883430 0.46192666 0.28241805 1.00576959</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [37] 1.58413652 0.53475080 0.61849133 0.12982633 0.95750412 0.64473116</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [43] 1.19281072 0.39354711 0.50456404 0.52242855 1.02790873 2.11439841</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [49] 1.31320329 0.80247167 0.33156666 1.85329470 3.04144057 0.68152476</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [55] 0.30284510 0.35818896 0.25471761 1.49836028 1.52264519 0.60478588</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [61] 1.16306984 2.82886081 1.53935393 0.20716444 1.15605402 4.28633989</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [67] 0.83817925 0.69511100 0.75207124 2.37857723 0.90045716 0.01069799</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [73] 1.30257105 2.37221523 1.50231844 1.79642989 1.14811245 1.37044963</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [79] 0.60100852 1.13586664 0.05160670 0.55058284 1.14345822 0.73845164</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [85] 1.82338410 1.33455938 3.36785663 0.07345253 2.80435514 2.98673757</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [91] 0.91169081 0.79072175 0.88138582 0.87276393 1.00144294 2.84326843</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [97] 0.86738734 0.35631843 1.09544771 1.35693429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   [1] 1.62121572 1.11804954 4.33255589 0.83835790 0.13231727 1.94260456</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   [7] 2.27911296 1.94090852 1.19333773 0.65557517 2.41688603 1.65583718</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [13] 0.99436608 3.71770534 0.68246762 0.93225817 1.75530002 2.62241438</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [19] 2.98594635 0.98569869 3.26188894 0.17332777 1.01595047 0.59317293</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [25] 1.12461534 0.11450537 1.43716884 0.30784360 0.95167624 1.24080906</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [31] 1.11532548 0.91999018 1.24657894 1.24277033 0.64245335 1.05051160</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [37] 1.60745654 3.18504860 1.34932180 1.26858002 1.08367748 1.87407147</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [43] 0.91178626 0.92648922 0.41180966 0.25294943 0.03361708 0.38008247</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [49] 0.75943352 0.87160388 0.56163329 0.11528010 3.24938795 0.70004976</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [55] 0.12216051 1.69243139 0.59687959 1.96621880 1.90705234 2.17745745</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [61] 1.06121488 1.69239797 1.54952643 0.93228826 1.77547905 1.66744532</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [67] 1.34999894 0.67481785 0.49456312 1.50166854 1.97636936 0.63534397</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [73] 1.16347268 0.20915566 1.38482877 0.65478358 0.77076789 1.61928217</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [79] 0.25315413 3.63547594 0.88800467 1.43233377 0.93357379 0.43999700</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [85] 0.26157818 1.94381112 1.22233500 1.04506591 0.31968657 0.33210434</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [91] 2.91629476 2.70034110 2.80136086 1.42385645 1.20584851 0.11976767</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [97] 2.45313654 0.20350265 1.00438680 0.27937338</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

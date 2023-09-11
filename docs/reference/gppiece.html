@@ -20,7 +20,7 @@ and reduces to a generalized Pareto distribution if all of the shape parameters 
     
     <a class="navbar-brand me-2" href="../index.html">longevity</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2023.03.22</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2023.08.24</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,6 +30,13 @@ and reduces to a generalized Pareto distribution if all of the shape parameters 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item">
   <a class="nav-link" href="../reference/index.html">Reference</a>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/introduction.html">Introducing longevity</a>
+    <a class="dropdown-item" href="../articles/nonparametric.html">Nonparametric maximum likelihood estimation for survival data</a>
+  </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
@@ -91,13 +98,27 @@ and reduces to a generalized Pareto distribution if all of the shape parameters 
 
 
 <dt>log, log.p</dt>
-<dd><p>logical; if <code>TRUE</code>, probabilities \(p\) are given as \(\log(p)\).</p></dd>
+<dd><p>logical; if <code>TRUE</code>, the values are returned on the log scale</p></dd>
 
 
 <dt>lower.tail</dt>
 <dd><p>logical; if TRUE (default), probabilities are \(\Pr[X \leq x]\) otherwise, \(\Pr[X &gt; x]\).</p></dd>
 
+
+<dt>p</dt>
+<dd><p>vector of probabilities</p></dd>
+
+
+<dt>n</dt>
+<dd><p>sample size</p></dd>
+
 </dl></div>
+    <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    
+
+<p>a vector of quantiles (<code>qgppiece</code>), probabilities (<code>pgppiece</code>), density (<code>dgppiece</code>) or random number generated from the model (<code>rgppiece</code>)</p>
+    </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Northrop &amp; Coleman (2014). Improved threshold diagnostic plots for extreme value

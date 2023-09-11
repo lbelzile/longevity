@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">longevity</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2023.03.22</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2023.08.24</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,6 +20,13 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item">
   <a class="nav-link" href="../reference/index.html">Reference</a>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/introduction.html">Introducing longevity</a>
+    <a class="dropdown-item" href="../articles/nonparametric.html">Nonparametric maximum likelihood estimation for survival data</a>
+  </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
@@ -51,10 +58,12 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">r_ltrc_elife</span><span class="op">(</span></span>
 <span>  <span class="va">n</span>,</span>
 <span>  <span class="va">scale</span>,</span>
+<span>  <span class="va">rate</span>,</span>
 <span>  <span class="va">shape</span>,</span>
 <span>  <span class="va">lower</span>,</span>
 <span>  <span class="va">upper</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exp"</span>, <span class="st">"gp"</span>, <span class="st">"gomp"</span>, <span class="st">"gompmake"</span>, <span class="st">"weibull"</span>, <span class="st">"extgp"</span><span class="op">)</span></span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exp"</span>, <span class="st">"gp"</span>, <span class="st">"gomp"</span>, <span class="st">"gompmake"</span>, <span class="st">"weibull"</span>, <span class="st">"extgp"</span>, <span class="st">"gppiece"</span>,</span>
+<span>    <span class="st">"extweibull"</span>, <span class="st">"perks"</span>, <span class="st">"beard"</span>, <span class="st">"perksmake"</span>, <span class="st">"beardmake"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -101,34 +110,34 @@
 <span class="r-in"><span>               upper <span class="op">=</span> <span class="fl">5</span>,</span></span>
 <span class="r-in"><span>               family <span class="op">=</span> <span class="st">"gp"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $dat</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   [1] 0.83585031 1.70880263 1.42453756 0.23144122 5.00000000 2.30562718</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   [7] 5.00000000 5.00000000 5.00000000 5.00000000 0.98456910 5.00000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [13] 4.23002522 3.79779690 5.00000000 3.22040734 2.36824187 4.92932685</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [19] 5.00000000 4.51399962 0.68632641 5.00000000 1.71437057 5.00000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [25] 1.31848157 4.16504406 5.00000000 5.00000000 5.00000000 5.00000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [31] 1.61895191 3.43188558 4.55637117 5.00000000 5.00000000 4.98305949</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [37] 5.00000000 2.17279614 3.41941684 0.33345183 0.91456334 3.90535302</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [43] 5.00000000 4.89610244 5.00000000 5.00000000 5.00000000 0.83252402</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [49] 5.00000000 2.94284346 5.00000000 5.00000000 3.47590448 4.78226746</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [55] 2.64897262 0.67223497 0.77181044 4.22477841 0.54207303 5.00000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [61] 5.00000000 5.00000000 5.00000000 5.00000000 0.06680135 1.91516450</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [67] 1.18540923 1.40385110 4.33768433 3.70974599 2.99813398 1.86198048</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [73] 5.00000000 5.00000000 4.67124875 1.23677220 4.40157209 5.00000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [79] 1.08246176 1.26011020 4.70711602 0.57334641 4.30333837 5.00000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [85] 1.91817546 1.73946531 4.15969778 3.26331840 5.00000000 4.55242661</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [91] 3.61251745 0.30208529 4.13543701 1.10502980 1.13631242 2.60020902</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [97] 1.17203675 5.00000000 4.13022425 5.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   [1] 2.336863329 3.595901899 5.000000000 0.001810092 1.570244912 5.000000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   [7] 5.000000000 5.000000000 5.000000000 0.039027097 5.000000000 1.734087296</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [13] 0.785274711 2.401133217 1.126958808 2.528427481 3.651339500 3.653942262</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [19] 0.534719465 4.550971549 5.000000000 2.220411329 0.677219374 2.799134667</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [25] 2.294262942 4.016549907 4.606724113 5.000000000 0.775277593 4.485614115</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [31] 5.000000000 3.814730486 1.787996884 1.217029423 4.619413740 5.000000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [37] 0.839067060 3.008559862 1.438535554 5.000000000 5.000000000 5.000000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [43] 3.052403886 5.000000000 5.000000000 5.000000000 0.270998576 1.249693290</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [49] 4.913267804 1.306190826 5.000000000 0.233899808 2.749061255 0.533078886</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [55] 5.000000000 5.000000000 2.139727644 3.144367906 5.000000000 5.000000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [61] 2.253813905 5.000000000 2.592846465 5.000000000 2.077304999 1.537841640</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [67] 5.000000000 1.730290696 5.000000000 3.927962050 1.660080752 2.769785325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [73] 3.273827555 4.365875467 4.120968993 5.000000000 1.046266821 0.663331914</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [79] 5.000000000 3.856506834 0.363591396 1.094757570 5.000000000 5.000000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [85] 3.190864677 2.221471580 1.959137409 2.078210024 4.345968606 0.896874062</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [91] 0.659726767 1.890285003 2.784766471 5.000000000 1.191587161 4.918211529</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [97] 1.136610856 5.000000000 5.000000000 2.982274193</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $rcens</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   [1] FALSE FALSE FALSE FALSE  TRUE FALSE  TRUE  TRUE  TRUE  TRUE FALSE  TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [13] FALSE FALSE  TRUE FALSE FALSE FALSE  TRUE FALSE FALSE  TRUE FALSE  TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [25] FALSE FALSE  TRUE  TRUE  TRUE  TRUE FALSE FALSE FALSE  TRUE  TRUE FALSE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [37]  TRUE FALSE FALSE FALSE FALSE FALSE  TRUE FALSE  TRUE  TRUE  TRUE FALSE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [49]  TRUE FALSE  TRUE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE  TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [61]  TRUE  TRUE  TRUE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [73]  TRUE  TRUE FALSE FALSE FALSE  TRUE FALSE FALSE FALSE FALSE FALSE  TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [85] FALSE FALSE FALSE FALSE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [97] FALSE  TRUE FALSE  TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   [1] FALSE FALSE  TRUE FALSE FALSE  TRUE  TRUE  TRUE  TRUE FALSE  TRUE FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [13] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE  TRUE FALSE FALSE FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [25] FALSE FALSE FALSE  TRUE FALSE FALSE  TRUE FALSE FALSE FALSE FALSE  TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [37] FALSE FALSE FALSE  TRUE  TRUE  TRUE FALSE  TRUE  TRUE  TRUE FALSE FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [49] FALSE FALSE  TRUE FALSE FALSE FALSE  TRUE  TRUE FALSE FALSE  TRUE  TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [61] FALSE  TRUE FALSE  TRUE FALSE FALSE  TRUE FALSE  TRUE FALSE FALSE FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [73] FALSE FALSE FALSE  TRUE FALSE FALSE  TRUE FALSE FALSE FALSE  TRUE  TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [85] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE  TRUE FALSE FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [97] FALSE  TRUE  TRUE FALSE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>

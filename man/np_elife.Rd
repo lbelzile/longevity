@@ -82,6 +82,9 @@ dat <- samp_elife(n = n,
 npi <- np_elife(time = dat,
                 rtrunc = rtrunc,
                 ltrunc = ltrunc)
+print(npi)
+summary(npi)
+plot(npi)
 }
 \references{
 Turnbull, B. W. (1976). \emph{The Empirical Distribution Function with Arbitrarily Grouped, Censored and Truncated Data.} Journal of the Royal Statistical Society. Series B (Methodological) 38(\bold{3}), 290–295.

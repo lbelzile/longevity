@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">longevity</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2023.03.22</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2023.08.24</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,6 +20,13 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item">
   <a class="nav-link" href="../reference/index.html">Reference</a>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/introduction.html">Introducing longevity</a>
+    <a class="dropdown-item" href="../articles/nonparametric.html">Nonparametric maximum likelihood estimation for survival data</a>
+  </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
@@ -59,7 +66,9 @@
 <span>  weights <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">time</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  psi <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  confint <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  level <span class="op">=</span> <span class="fl">0.95</span></span>
+<span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  arguments <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -110,6 +119,14 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 <dt>level</dt>
 <dd><p>numeric; the level for the confidence intervals</p></dd>
 
+
+<dt>arguments</dt>
+<dd><p>a named list specifying default arguments of the function that are common to all <code>elife</code> calls</p></dd>
+
+
+<dt>...</dt>
+<dd><p>additional parameters, currently ignored</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -118,6 +135,24 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 <p>a list with the maximum likelihood estimate of the endpoint and the profile log-likelihood</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2023</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">time</span> <span class="op">&lt;-</span> <span class="fu"><a href="elife.html">relife</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">100</span>, scale <span class="op">=</span> <span class="fl">3</span>, shape <span class="op">=</span> <span class="op">-</span><span class="fl">0.3</span>, family <span class="op">=</span> <span class="st">"gp"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">endpt</span> <span class="op">&lt;-</span> <span class="fu">prof_gp_endpt</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  time <span class="op">=</span> <span class="va">time</span>,</span></span>
+<span class="r-in"><span>  psi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">time</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1e-4</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">time</span><span class="op">)</span> <span class="op">+</span> <span class="fl">40</span>, length.out <span class="op">=</span> <span class="fl">51L</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">endpt</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter: endpoint </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Maximum likelihood estimator:  10.77 </span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">endpt</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in plot.window(...):</span> invalid value specified for graphical parameter "bty"</span>
+<span class="r-plt img"><img src="prof_gp_endpt-1.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">endpt</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Estimate  Lower CI  Upper CI </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10.769592  9.168439 22.908076 </span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>
 

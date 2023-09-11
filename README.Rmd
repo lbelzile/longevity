@@ -62,7 +62,7 @@ devtools::install_github("lbelzile/longevity")
 - [x] Add empirical distribution function for `npelife` and `npsurv`
 - [x] Fix `npsurv` and add weighting argument to Cpp routine.
 - [x] Remove Kolmogorov-Smirnov test (depending on whether it makes sense given null distribution)
-- [ ] Change bootstrap procedure for Q-Q plots and other graphical diagnostics
+- [ ] Change procedure for Q-Q plots and other graphical diagnostics
 
 
 ## Testing
@@ -84,9 +84,9 @@ devtools::install_github("lbelzile/longevity")
 ## Package on CRAN
 
 - [x] Add tests
-- [ ] Add examples for each function
+- [x] Add examples for each function
 - [x] Add vignettes
 - [x] Use `pkgdown` to create a webpage
-- [x] Root out data sets that cannot go on CRAN (with accompanying examples)
+- [x] Root out data sets that cannot go on CRAN (with accompanying doc)
 - [ ] Submit to the CRAN
 

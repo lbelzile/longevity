@@ -62,9 +62,10 @@
 plot.elife_par <- function(x,
                            plot.type = c("base","ggplot"),
                            which.plot = c("pp","qq"),
-                           confint = FALSE,
+                           confint = c("none", "pointwise", "simultaneous"),
                            plot = TRUE, ...){
   plot.type <- match.arg(plot.type)
+  confint <- match.arg(confint)
   if(plot.type == "ggplot"){
     if(requireNamespace("ggplot2", quietly = TRUE)){
     } else{
@@ -85,14 +86,12 @@ plot.elife_par <- function(x,
   if(is.null(object$ltrunc)){
     object$ltrunc <- rep(0, length(object$time))
   }
-  np <- np_elife(time = object$time,
-               time2 = object$time2,
-               event = object$event,
-               type = object$type,
-               ltrunc = object$ltrunc,
-               rtrunc = object$rtrunc,
-               weights = object$weights,
-               method = ifelse(length(object$time) > 100, "em", "sqp"))
+  np <- np_elife(arguments = object,
+                 method = "em",
+                 thresh = 0)
+  if(!np$convergence){
+    warning("Nonparametric maximum likelihood routine did not converge.")
+  }
   # Create a weighted empirical CDF
   ecdffun <- np$cdf
   dat <- object$time[object$status == 1L]
@@ -184,8 +183,8 @@ plot.elife_par <- function(x,
       }
     } else{
       np2 <- np_elife(time = dat,
-                    ltrunc = ltrunc,
-                    rtrunc = rtrunc)
+                      ltrunc = ltrunc,
+                      rtrunc = rtrunc)
       # Create a weighted empirical CDF
       ecdffun2 <- np2$cdf
     }

@@ -252,6 +252,25 @@ rgppiece <- function(n,
 #' \item{\code{df}: }{degrees of freedom}
 #' \item{\code{pval}: }{the p-value obtained from the asymptotic chi-square approximation.}
 #' }
+#' @examples
+#' \donttest{
+#' set.seed(1234)
+#' n <- 100L
+#' x <- samp_elife(n = n,
+#'                 scale = 2,
+#'                 shape = -0.2,
+#'                 lower = low <- runif(n),
+#'                 upper = upp <- runif(n, min = 3, max = 20),
+#'                 type2 = "ltrt",
+#'                 family = "gp")
+#' test <- nc_test(
+#'   time = x,
+#'   ltrunc = low,
+#'   rtrunc = upp,
+#'   thresh = quantile(x, seq(0, 0.5, by = 0.1)))
+#' print(test)
+#' plot(test)
+#' }
 nc_test <- function(time,
                     time2 = NULL,
                     event = NULL,

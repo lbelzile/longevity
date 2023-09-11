@@ -16,7 +16,7 @@ groups."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mat
     
     <a class="navbar-brand me-2" href="../index.html">longevity</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2023.03.22</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2023.08.24</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,6 +26,13 @@ groups."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mat
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item">
   <a class="nav-link" href="../reference/index.html">Reference</a>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/introduction.html">Introducing longevity</a>
+    <a class="dropdown-item" href="../articles/nonparametric.html">Nonparametric maximum likelihood estimation for survival data</a>
+  </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
@@ -68,7 +75,9 @@ groups.</p>
 <span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"right"</span>, <span class="st">"left"</span>, <span class="st">"interval"</span>, <span class="st">"interval2"</span><span class="op">)</span>,</span>
 <span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exp"</span>, <span class="st">"gp"</span>, <span class="st">"weibull"</span>, <span class="st">"gomp"</span>, <span class="st">"gompmake"</span>, <span class="st">"extgp"</span>, <span class="st">"extweibull"</span>, <span class="st">"perks"</span>,</span>
 <span>    <span class="st">"perksmake"</span>, <span class="st">"beard"</span>, <span class="st">"beardmake"</span><span class="op">)</span>,</span>
-<span>  weights <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">time</span><span class="op">)</span><span class="op">)</span></span>
+<span>  weights <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">time</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  arguments <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -89,7 +98,7 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 
 
 <dt>covariate</dt>
-<dd><p>vector of factors, logical or integer whose distinct values are</p></dd>
+<dd><p>vector of factors, logical or integer whose distinct values define groups</p></dd>
 
 
 <dt>thresh</dt>
@@ -115,6 +124,14 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 <dt>weights</dt>
 <dd><p>weights for observations</p></dd>
 
+
+<dt>arguments</dt>
+<dd><p>a named list specifying default arguments of the function that are common to all <code>elife</code> calls</p></dd>
+
+
+<dt>...</dt>
+<dd><p>additional arguments for optimization, currently ignored.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -127,12 +144,24 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">uk110</span>,</span></span>
-<span class="r-in"><span><span class="fu">test_elife</span><span class="op">(</span>time <span class="op">=</span> <span class="va">ndays</span>,</span></span>
-<span class="r-in"><span>thresh <span class="op">=</span> <span class="fl">40178L</span>, covariate <span class="op">=</span> <span class="va">gender</span>,</span></span>
-<span class="r-in"><span>ltrunc <span class="op">=</span> <span class="va">ltrunc</span>, rtrunc <span class="op">=</span> <span class="va">rtrunc</span>,</span></span>
-<span class="r-in"><span>family <span class="op">=</span> <span class="st">"exp"</span>, type <span class="op">=</span> <span class="st">"ltrt"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in with(uk110, test_elife(time = ndays, thresh = 40178L, covariate = gender,     ltrunc = ltrunc, rtrunc = rtrunc, family = "exp", type = "ltrt")):</span> object 'uk110' not found</span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">dutch</span>, <span class="va">ndays</span> <span class="op">&gt;</span> <span class="fl">39082</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span> <span class="fu">test_elife</span><span class="op">(</span></span></span>
+<span class="r-in"><span> time <span class="op">=</span> <span class="va">ndays</span>,</span></span>
+<span class="r-in"><span> thresh <span class="op">=</span> <span class="fl">39082L</span>,</span></span>
+<span class="r-in"><span> covariate <span class="op">=</span> <span class="va">gender</span>,</span></span>
+<span class="r-in"><span> ltrunc <span class="op">=</span> <span class="va">ltrunc</span>,</span></span>
+<span class="r-in"><span> rtrunc <span class="op">=</span> <span class="va">rtrunc</span>,</span></span>
+<span class="r-in"><span> family <span class="op">=</span> <span class="st">"exp"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span> <span class="va">test</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Model: exponential distribution. </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Threshold: 39082 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Number of exceedances per covariate level:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   male female </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     42    205 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihood ratio statistic: 2.78</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Null distribution: chi-square (1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Asymptotic p-value:  0.0954 </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

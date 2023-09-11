@@ -59,11 +59,15 @@ pointwise confidence intervals.
 #| cache: true
 #| label: fig-tstab
 #| fig-cap: "Threshold stability plot with generalized Pareto shape estimates for Dutch data as a function of threshold (in years)."
-tstab_c <- tstab(arguments = args,
-        family = "gp", # parametric model, here generalized Pareto
-        thresh = 102:108 * 365.25, # overwrites thresh
-        method = "wald", # type of interval, Wald or profile-likelihood
-        plot = FALSE) # by default, calls 'plot' routine
+#| #| out-width: '80%'
+#| fig-width: 8
+#| fig-height: 5
+tstab_c <- tstab(
+  arguments = args,
+  family = "gp", # parametric model, here generalized Pareto
+  thresh = 102:108 * 365.25, # overwrites thresh
+  method = "wald", # type of interval, Wald or profile-likelihood
+  plot = FALSE) # by default, calls 'plot' routine
 plot(tstab_c, 
      which.plot = "shape", 
      xlab = "threshold (age in days)")
@@ -76,6 +80,9 @@ We can fit various parametric models and compare them using the `anova` call, pr
 #| cache: true
 #| warning: false
 #| fig-cap: "Quantile-quantile plot of generalized Pareto model to exceedances above 105 years for Dutch."
+#| fig-width: 8
+#| out-width: '80%'
+#| fig-height: 5
 (m1 <- fit_elife(arguments = args, 
           thresh = 105 * 365.25,
           family = "gp",

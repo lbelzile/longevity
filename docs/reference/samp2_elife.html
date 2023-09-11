@@ -20,7 +20,7 @@ c2."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax
     
     <a class="navbar-brand me-2" href="../index.html">longevity</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2023.03.22</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2023.08.24</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,6 +30,13 @@ c2."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item">
   <a class="nav-link" href="../reference/index.html">Reference</a>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/introduction.html">Introducing longevity</a>
+    <a class="dropdown-item" href="../articles/nonparametric.html">Nonparametric maximum likelihood estimation for survival data</a>
+  </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
@@ -67,7 +74,8 @@ The new excess lifetime above the threshold are right-censored if they exceed
 <span>  <span class="va">n</span>,</span>
 <span>  <span class="va">scale</span>,</span>
 <span>  <span class="va">shape</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exp"</span>, <span class="st">"gp"</span>, <span class="st">"gomp"</span>, <span class="st">"gompmake"</span>, <span class="st">"weibull"</span>, <span class="st">"extgp"</span><span class="op">)</span>,</span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exp"</span>, <span class="st">"gp"</span>, <span class="st">"gomp"</span>, <span class="st">"gompmake"</span>, <span class="st">"weibull"</span>, <span class="st">"extgp"</span>, <span class="st">"gppiece"</span>,</span>
+<span>    <span class="st">"extweibull"</span>, <span class="st">"perks"</span>, <span class="st">"beard"</span>, <span class="st">"perksmake"</span>, <span class="st">"beardmake"</span><span class="op">)</span>,</span>
 <span>  <span class="va">xcal</span>,</span>
 <span>  <span class="va">c1</span>,</span>
 <span>  <span class="va">c2</span></span>
@@ -89,7 +97,7 @@ The new excess lifetime above the threshold are right-censored if they exceed
 
 
 <dt>family</dt>
-<dd><p>string; choice of parametric family, either exponential (<code>exp</code>), Weibull (<code>weibull</code>), generalized Pareto (<code>gp</code>), Gompertz (<code>gomp</code>), Gompertz-Makeham (<code>gompmake</code>) or extended generalized Pareto (<code>extgp</code>).</p></dd>
+<dd><p>string; choice of parametric family</p></dd>
 
 
 <dt>xcal</dt>

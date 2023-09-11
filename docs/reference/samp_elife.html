@@ -14,7 +14,7 @@ If type2=ltrc, simulated observations are capped at upper and the observation is
     
     <a class="navbar-brand me-2" href="../index.html">longevity</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2023.03.22</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2023.08.24</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,6 +24,13 @@ If type2=ltrc, simulated observations are capped at upper and the observation is
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item">
   <a class="nav-link" href="../reference/index.html">Reference</a>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/introduction.html">Introducing longevity</a>
+    <a class="dropdown-item" href="../articles/nonparametric.html">Nonparametric maximum likelihood estimation for survival data</a>
+  </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
@@ -57,10 +64,12 @@ If <code>type2=ltrc</code>, simulated observations are capped at <code>upper</co
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">samp_elife</span><span class="op">(</span></span>
 <span>  <span class="va">n</span>,</span>
 <span>  <span class="va">scale</span>,</span>
+<span>  <span class="va">rate</span>,</span>
 <span>  shape <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lower <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  upper <span class="op">=</span> <span class="cn">Inf</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exp"</span>, <span class="st">"gp"</span>, <span class="st">"gomp"</span>, <span class="st">"gompmake"</span>, <span class="st">"weibull"</span>, <span class="st">"extgp"</span>, <span class="st">"gppiece"</span><span class="op">)</span>,</span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exp"</span>, <span class="st">"gp"</span>, <span class="st">"gomp"</span>, <span class="st">"gompmake"</span>, <span class="st">"weibull"</span>, <span class="st">"extgp"</span>, <span class="st">"gppiece"</span>,</span>
+<span>    <span class="st">"extweibull"</span>, <span class="st">"perks"</span>, <span class="st">"beard"</span>, <span class="st">"perksmake"</span>, <span class="st">"beardmake"</span><span class="op">)</span>,</span>
 <span>  type2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"ltrt"</span>, <span class="st">"ltrc"</span>, <span class="st">"ditrunc"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -73,6 +82,10 @@ If <code>type2=ltrc</code>, simulated observations are capped at <code>upper</co
 
 <dt>scale</dt>
 <dd><p>scale parameter(s)</p></dd>
+
+
+<dt>rate</dt>
+<dd><p>rate parameter(s)</p></dd>
 
 
 <dt>shape</dt>
@@ -88,7 +101,7 @@ If <code>type2=ltrc</code>, simulated observations are capped at <code>upper</co
 
 
 <dt>family</dt>
-<dd><p>string; choice of parametric family, either exponential (<code>exp</code>), Weibull (<code>weibull</code>), generalized Pareto (<code>gp</code>), Gompertz (<code>gomp</code>), Gompertz-Makeham (<code>gompmake</code>) or extended generalized Pareto (<code>extgp</code>).</p></dd>
+<dd><p>string; choice of parametric family</p></dd>
 
 
 <dt>type2</dt>
@@ -102,6 +115,43 @@ If <code>type2=ltrc</code>, simulated observations are capped at <code>upper</co
 <p>either a vector of observations or, if <code>type2=ltrc</code>, a list with <code>n</code> observations <code>dat</code> and a logical vector of the same length with <code>TRUE</code> for right-censored observations and <code>FALSE</code> otherwise.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">500L</span></span></span>
+<span class="r-in"><span><span class="co"># Simulate interval truncated data</span></span></span>
+<span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu">samp_elife</span><span class="op">(</span>n <span class="op">=</span> <span class="va">n</span>,</span></span>
+<span class="r-in"><span>                scale <span class="op">=</span> <span class="fl">2</span>,</span></span>
+<span class="r-in"><span>                shape <span class="op">=</span> <span class="fl">1.5</span>,</span></span>
+<span class="r-in"><span>                lower <span class="op">=</span> <span class="va">low</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                upper <span class="op">=</span> <span class="va">upp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span>, min <span class="op">=</span> <span class="fl">3</span>, max <span class="op">=</span> <span class="fl">15</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                type2 <span class="op">=</span> <span class="st">"ltrt"</span>,</span></span>
+<span class="r-in"><span>                family <span class="op">=</span> <span class="st">"weibull"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="fu"><a href="fit_elife.html">fit_elife</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>   time <span class="op">=</span> <span class="va">x</span>,</span></span>
+<span class="r-in"><span>   ltrunc <span class="op">=</span> <span class="va">low</span>,</span></span>
+<span class="r-in"><span>   rtrunc <span class="op">=</span> <span class="va">upp</span>,</span></span>
+<span class="r-in"><span>   family <span class="op">=</span> <span class="st">"weibull"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    scale    shape </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1.943001 1.579761 </span>
+<span class="r-in"><span><span class="co"># Simulate left-truncated right-censored data</span></span></span>
+<span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu">samp_elife</span><span class="op">(</span>n <span class="op">=</span> <span class="va">n</span>,</span></span>
+<span class="r-in"><span>                scale <span class="op">=</span> <span class="fl">2</span>,</span></span>
+<span class="r-in"><span>                shape <span class="op">=</span> <span class="fl">1.5</span>,</span></span>
+<span class="r-in"><span>                lower <span class="op">=</span> <span class="va">low</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                upper <span class="op">=</span> <span class="va">upp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span>, min <span class="op">=</span> <span class="fl">3</span>, max <span class="op">=</span> <span class="fl">15</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                type2 <span class="op">=</span> <span class="st">"ltrc"</span>,</span></span>
+<span class="r-in"><span>                family <span class="op">=</span> <span class="st">"gomp"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co">#note that the return value is a list...</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="fu"><a href="fit_elife.html">fit_elife</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>   time <span class="op">=</span> <span class="va">x</span><span class="op">$</span><span class="va">dat</span>,</span></span>
+<span class="r-in"><span>   ltrunc <span class="op">=</span> <span class="va">low</span>,</span></span>
+<span class="r-in"><span>   event <span class="op">=</span> <span class="op">!</span><span class="va">x</span><span class="op">$</span><span class="va">rcens</span>,</span></span>
+<span class="r-in"><span>   family <span class="op">=</span> <span class="st">"gomp"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    scale    shape </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2.336803 1.988250 </span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>
 

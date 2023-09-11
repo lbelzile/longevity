@@ -74,3 +74,17 @@ The standard errors are obtained via the observed information matrix, calculated
 using the hessian. In many instances, such as when the shape parameter is zero
 or negative, the hessian is singular and no estimates are returned.
 }
+\examples{
+data(ewsim, package = "longevity")
+fit1 <- fit_elife(
+   arguments = ewsim,
+   export = TRUE,
+   family = "exp")
+fit2 <- fit_elife(
+   arguments = ewsim,
+   export = TRUE,
+   family = "gp")
+plot(fit1)
+summary(fit1)
+anova(fit2, fit1)
+}
