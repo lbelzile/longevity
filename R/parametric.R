@@ -671,7 +671,7 @@ fit_elife <- function(time,
                           cens_type = cens_type,
                           trunc_type = trunc_type),
                      class = "elife_par")
-    if(type != "interval"){
+    if(!type  %in% c("interval","interval2")){
       ret$time2 <- NULL
     }
     return(ret)
