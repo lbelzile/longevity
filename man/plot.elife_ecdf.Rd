@@ -7,6 +7,10 @@
 \method{plot}{elife_ecdf}(x, ...)
 }
 \arguments{
+\item{x}{argument of class \code{elife_ecdf}}
+
+\item{...}{additional arguments for the plot}
+
 \item{B}{integer; number of simulations}
 
 \item{object}{an object of class \code{elife_par}}

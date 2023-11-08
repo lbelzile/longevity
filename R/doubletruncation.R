@@ -499,9 +499,9 @@ names(mle) <- names(se_mle) <-
 #' @param covariate vector of factors, logical or integer whose distinct values are
 #' @return a list with elements
 #' \itemize{
-#' \item{\code{stat}: }{likelihood ratio statistic}
-#' \item{\code{df}: }{degrees of freedom}
-#' \item{\code{pval}: }{the p-value obtained from the asymptotic chi-square approximation.}
+#' \item \code{stat}: likelihood ratio statistic
+#' \item \code{df}: degrees of freedom
+#' \item \code{pval}: the p-value obtained from the asymptotic chi-square approximation.
 #' }
 test_ditrunc_elife <- function(time,
                        covariate,

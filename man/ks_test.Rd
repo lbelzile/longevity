@@ -47,8 +47,8 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 \value{
 a list with elements
 \itemize{
-\item{\code{stat}: }{the value of the test statistic}
-\item{\code{pval}: }{p-value obtained via simulation}
+\item \code{stat} the value of the test statistic
+\item \code{pval} p-value obtained via simulation
 }
 }
 \description{

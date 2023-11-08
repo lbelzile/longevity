@@ -49,10 +49,10 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 \value{
 a list with elements
 \itemize{
-\item{\code{cdf}: }{right-continuous \code{stepfun} object defined by probabilities}
-\item{\code{time}: }{matrix of unique values for the Turnbull intervals defining equivalence classes; only those with non-zero probabilities are returned}
-\item{\code{prob}: }{\code{J} vector of non-zero probabilities}
-\item{\code{niter}: }{number of iterations}
+\item \code{cdf}: right-continuous \code{stepfun} object defined by probabilities
+\item \code{time}: matrix of unique values for the Turnbull intervals defining equivalence classes; only those with non-zero probabilities are returned
+\item \code{prob}: \code{J} vector of non-zero probabilities
+\item \code{niter}: number of iterations
 }
 }
 \description{

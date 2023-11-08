@@ -16,7 +16,7 @@
 #' @param plot.type string; either \code{base} for base R plots or \code{ggplot} for \code{ggplot2} plots
 #' @param which.plot string; which parameters to plot;
 #' @param plot logical; should a plot be returned alongside with the estimates? Default to \code{TRUE}
-#' @seealso \code{\link[mev]{tstab.gpd}}, \code{\link[ismev]{gpd.fitrange}}, \code{\link[evd]{tcplot}}
+#' @seealso \code{tstab.gpd} from package \code{mev}, \code{gpd.fitrange} from package \code{ismev} or \code{tcplot} from package \code{evd}, among others.
 #' @export
 #' @return an invisible list with pointwise estimates and confidence intervals for the scale and shape parameters
 #' @examples
@@ -32,7 +32,7 @@
 #' tstab_plot <- tstab(time = x,
 #'                     ltrunc = low,
 #'                    rtrunc = upp,
-#'                    thresh = quantile(x, seq(0, 0.5, by = 0.1)))
+#'                    thresh = quantile(x, seq(0, 0.5, length.out = 4)))
 #' plot(tstab_plot, plot.type = "ggplot")
 tstab <- function(time,
                   time2 = NULL,

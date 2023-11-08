@@ -74,10 +74,10 @@ turnbull_intervals <- function(
 #' @param ... additional arguments, currently ignored
 #' @return a list with elements
 #' \itemize{
-#' \item{\code{cdf}: }{right-continuous \code{stepfun} object defined by probabilities}
-#' \item{\code{time}: }{matrix of unique values for the Turnbull intervals defining equivalence classes; only those with non-zero probabilities are returned}
-#' \item{\code{prob}: }{\code{J} vector of non-zero probabilities}
-#' \item{\code{niter}: }{number of iterations}
+#' \item \code{cdf}: right-continuous \code{stepfun} object defined by probabilities
+#' \item \code{time}: matrix of unique values for the Turnbull intervals defining equivalence classes; only those with non-zero probabilities are returned
+#' \item \code{prob}: \code{J} vector of non-zero probabilities
+#' \item \code{niter}: number of iterations
 #' }
 #' @useDynLib longevity, .registration=TRUE
 #' @importFrom Rcpp evalCpp
@@ -467,7 +467,6 @@ plot.elife_npar <- function(x, ...){
 #' @param cens_ub index of interval in which death occurs (if death is observed), or else the largest interval.
 #' @param trunc_lb vector of largest index for the lower truncation
 #' @param trunc_ub vector of smallest index for the upper truncation
-#' @param transform logical; are parameters on logit scale? Default to \code{TRUE}
 #' @return a scalar, the negative log likelihood value
 #' @keywords internal
 np_nll <- function(par,
@@ -624,11 +623,11 @@ np_nll <- function(par,
 #' @seealso \code{\link[survival]{Surv}}
 #' @return a list with components
 #' \itemize{
-#' \item{\code{xval}: }{unique ordered values of sets on which the distribution function is defined}
-#' \item{\code{prob}: }{estimated probability of failure on intervals}
-#' \item{\code{convergence}: }{logical; \code{TRUE} if the EM algorithm iterated until convergence}
-#' \item{\code{niter}: }{logical; number of iterations for the EM algorithm}
-#' \item{\code{cdf}: }{nonparametric maximum likelihood estimator of the distribution function}
+#' \item \code{xval}: unique ordered values of sets on which the distribution function is defined
+#' \item \code{prob}: estimated probability of failure on intervals
+#' \item \code{convergence}: logical; \code{TRUE} if the EM algorithm iterated until convergence
+#' \item \code{niter}: logical; number of iterations for the EM algorithm
+#' \item \code{cdf}: nonparametric maximum likelihood estimator of the distribution function
 #' }
 #' @export
 #' @examples

@@ -342,7 +342,7 @@ plot.elife_par <- function(x,
 
 
 #' Uncertainty quantification for quantile-quantile plots
-#' @export
+#' 
 #' @param B number of bootstrap samples
 #' @param dat vector of data
 #' @param par parameter estimates of the model
@@ -351,6 +351,7 @@ plot.elife_par <- function(x,
 #' @param level level of the confidence intervals
 #' @inheritParams nll_elife
 #' @keywords internal
+#' @export
 #' @return a matrix with plotting positions for confidence intervals of quantile-quantile plots
 uq1_qqplot_elife <-
   function(B = 9999L,
@@ -493,6 +494,9 @@ uq1_qqplot_elife <-
 
 
 #' @importFrom stats plot.ecdf
+#' @export
+#' @param x argument of class \code{elife_ecdf}
+#' @param ... additional arguments for the plot
 plot.elife_ecdf <- function(x, ...){
   args <- list(...)
   args$main <- ""

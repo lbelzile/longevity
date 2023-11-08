@@ -46,11 +46,11 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 \value{
 a data frame with the following variables:
 \itemize{
-\item{\code{thresh}: }{threshold for the generalized Pareto}
-\item{\code{nexc}: }{number of exceedances}
-\item{\code{score}: }{score statistic}
-\item{\code{df}: }{degrees of freedom}
-\item{\code{pval}: }{the p-value obtained from the asymptotic chi-square approximation.}
+\item \code{thresh}: threshold for the generalized Pareto distribution
+\item \code{nexc}: number of exceedances
+\item \code{score}: score statistic
+\item \code{df}: degrees of freedom
+\item \code{pval}: the p-value obtained from the asymptotic chi-square approximation.
 }
 }
 \description{

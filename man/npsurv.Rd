@@ -40,11 +40,11 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 \value{
 a list with components
 \itemize{
-\item{\code{xval}: }{unique ordered values of sets on which the distribution function is defined}
-\item{\code{prob}: }{estimated probability of failure on intervals}
-\item{\code{convergence}: }{logical; \code{TRUE} if the EM algorithm iterated until convergence}
-\item{\code{niter}: }{logical; number of iterations for the EM algorithm}
-\item{\code{cdf}: }{nonparametric maximum likelihood estimator of the distribution function}
+\item \code{xval}: unique ordered values of sets on which the distribution function is defined
+\item \code{prob}: estimated probability of failure on intervals
+\item \code{convergence}: logical; \code{TRUE} if the EM algorithm iterated until convergence
+\item \code{niter}: logical; number of iterations for the EM algorithm
+\item \code{cdf}: nonparametric maximum likelihood estimator of the distribution function
 }
 }
 \description{

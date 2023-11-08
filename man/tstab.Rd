@@ -86,9 +86,9 @@ x <- samp_elife(n = n,
 tstab_plot <- tstab(time = x,
                     ltrunc = low,
                    rtrunc = upp,
-                   thresh = quantile(x, seq(0, 0.5, by = 0.1)))
+                   thresh = quantile(x, seq(0, 0.5, length.out = 4)))
 plot(tstab_plot, plot.type = "ggplot")
 }
 \seealso{
-\code{\link[mev]{tstab.gpd}}, \code{\link[ismev]{gpd.fitrange}}, \code{\link[evd]{tcplot}}
+\code{tstab.gpd} from package \code{mev}, \code{gpd.fitrange} from package \code{ismev} or \code{tcplot} from package \code{evd}, among others.
 }

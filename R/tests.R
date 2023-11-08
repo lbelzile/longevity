@@ -10,9 +10,9 @@
 #' @param covariate vector of factors, logical or integer whose distinct values define groups
 #' @return a list with elements
 #' \itemize{
-#' \item{\code{stat}: }{likelihood ratio statistic}
-#' \item{\code{df}: }{degrees of freedom}
-#' \item{\code{pval}: }{the p-value obtained from the asymptotic chi-square approximation.}
+#' \item \code{stat} likelihood ratio statistic
+#' \item \code{df} degrees of freedom
+#' \item \code{pval} the p-value obtained from the asymptotic chi-square approximation.
 #' }
 #' @examples
 #' test <- with(subset(dutch, ndays > 39082),
@@ -335,8 +335,8 @@ anova.elife_par <- function(object,
 #' @param B number of bootstrap simulations
 #' @return a list with elements
 #' \itemize{
-#' \item{\code{stat}: }{the value of the test statistic}
-#' \item{\code{pval}: }{p-value obtained via simulation}
+#' \item \code{stat} the value of the test statistic
+#' \item \code{pval} p-value obtained via simulation
 #' }
 #' @keywords internal
 ks_test <- function(time,

@@ -28,7 +28,7 @@
 #' the Netherlands, \code{B} for individuals born abroad who died
 #'  in the Netherlands}
 #' }
-#' @references Einmahl, J.J., J.H.J. Einmahl and L. de Haan (2019). \emph{Limits to Human Life Span Through Extreme Value Theory}, Journal of the American Statistical Association, \bold{114}(527), 1075-1080. \url{https://doi.org/10.1080/01621459.2018.1537912}
+#' @references Einmahl, J.J., J.H.J. Einmahl and L. de Haan (2019). \emph{Limits to Human Life Span Through Extreme Value Theory}, Journal of the American Statistical Association, \bold{114}(527), 1075-1080. \doi{10.1080/01621459.2018.1537912}
 #'
 #' @source Statistics Netherlands (CBS). Accessed via the Supplemental material of Einmahl, Einmahl and de Haan (2019)
 "dutch"
@@ -102,7 +102,7 @@
 #' \item{count}{integer, number of death for cohort at given age}
 #' \item{gender}{factor, the gender of the individuals; either \code{male} or \code{female}}
 #' }
-#' @references Hanayama, N. and M. Sibuya (2016). Estimating the Upper Limit of Lifetime Probability Distribution, Based on Data of Japanese Centenarians, \emph{The Journals of Gerontology: Series A}, 71(\bold{8}), 1014–1021. \url{https://doi.org/10.1093/gerona/glv113}
+#' @references Hanayama, N. and M. Sibuya (2016). Estimating the Upper Limit of Lifetime Probability Distribution, Based on Data of Japanese Centenarians, \emph{The Journals of Gerontology: Series A}, 71(\bold{8}), 1014–1021. \doi{10.1093/gerona/glv113}
 #'
 #' @source Table extracted from Hanayama & Sibuya (2016).
 "japanese"
@@ -246,6 +246,9 @@
 #' @importFrom graphics mtext
 #' @importFrom graphics rug
 #' @importFrom stats approxfun
+#' @importFrom stats dbinom
+#' @importFrom stats pbinom
+#' @importFrom stats qbinom
 #' @importFrom stats dexp
 #' @importFrom stats dweibull
 #' @importFrom stats family

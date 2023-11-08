@@ -50,9 +50,9 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 \value{
 a list with elements
 \itemize{
-\item{\code{stat}: }{likelihood ratio statistic}
-\item{\code{df}: }{degrees of freedom}
-\item{\code{pval}: }{the p-value obtained from the asymptotic chi-square approximation.}
+\item \code{stat} likelihood ratio statistic
+\item \code{df} degrees of freedom
+\item \code{pval} the p-value obtained from the asymptotic chi-square approximation.
 }
 }
 \description{

@@ -16,8 +16,6 @@ np_nll(par, cens_lb, cens_ub, trunc_lb, trunc_ub, cens, trunc, weights)
 \item{trunc_lb}{vector of largest index for the lower truncation}
 
 \item{trunc_ub}{vector of smallest index for the upper truncation}
-
-\item{transform}{logical; are parameters on logit scale? Default to \code{TRUE}}
 }
 \value{
 a scalar, the negative log likelihood value

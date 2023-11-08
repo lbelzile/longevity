@@ -39,7 +39,7 @@ plot(fit, which.plot = "exp", plot.type = "ggplot")
 plot(fit, which.plot = "tmd", plot.type = "ggplot")
 
 expect_true(isTRUE(all.equal(deviance(fit), as.numeric(logLik(fit))*-2)))
-expect_true(length(x) == nobs(fit))
+expect_true(length(x$dat) == nobs(fit))
 
 set.seed(1234)
 n <- 100L

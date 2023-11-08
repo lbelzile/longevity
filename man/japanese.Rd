@@ -34,6 +34,6 @@ Only positive counts are reported and two records (Misao Okawa and Jiroemon Kimu
 excluded because they do not correspond to the same selection mechanism.
 }
 \references{
-Hanayama, N. and M. Sibuya (2016). Estimating the Upper Limit of Lifetime Probability Distribution, Based on Data of Japanese Centenarians, \emph{The Journals of Gerontology: Series A}, 71(\bold{8}), 1014–1021. \url{https://doi.org/10.1093/gerona/glv113}
+Hanayama, N. and M. Sibuya (2016). Estimating the Upper Limit of Lifetime Probability Distribution, Based on Data of Japanese Centenarians, \emph{The Journals of Gerontology: Series A}, 71(\bold{8}), 1014–1021. \doi{10.1093/gerona/glv113}
 }
 \keyword{datasets}

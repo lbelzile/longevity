@@ -42,6 +42,6 @@ There are 226 records that are interval-censored and interval-truncated
 for which \code{bdate}, \code{ddate} and \code{ndays} is missing (\code{NA}).
 }
 \references{
-Einmahl, J.J., J.H.J. Einmahl and L. de Haan (2019). \emph{Limits to Human Life Span Through Extreme Value Theory}, Journal of the American Statistical Association, \bold{114}(527), 1075-1080. \url{https://doi.org/10.1080/01621459.2018.1537912}
+Einmahl, J.J., J.H.J. Einmahl and L. de Haan (2019). \emph{Limits to Human Life Span Through Extreme Value Theory}, Journal of the American Statistical Association, \bold{114}(527), 1075-1080. \doi{10.1080/01621459.2018.1537912}
 }
 \keyword{datasets}
