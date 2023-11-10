@@ -22,7 +22,7 @@ This function handles interval truncation and right-censoring."><!-- mathjax -->
     
     <a class="navbar-brand me-2" href="../index.html">longevity</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2023.08.24</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2023.09.13</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -173,7 +173,7 @@ Although unusual, the event indicator can be omitted, in which case all subjects
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="https://lbelzile.github.io/mev/reference/tstab.gpd.html" class="external-link">tstab.gpd</a></code>, <code><a href="https://rdrr.io/pkg/ismev/man/gpd.fitrange.html" class="external-link">gpd.fitrange</a></code>, <code><a href="https://rdrr.io/pkg/evd/man/tcplot.html" class="external-link">tcplot</a></code></p></div>
+    <div class="dont-index"><p><code>tstab.gpd</code> from package <code>mev</code>, <code>gpd.fitrange</code> from package <code>ismev</code> or <code>tcplot</code> from package <code>evd</code>, among others.</p></div>
     </div>
 
     <div class="section level2">
@@ -190,7 +190,7 @@ Although unusual, the event indicator can be omitted, in which case all subjects
 <span class="r-in"><span><span class="va">tstab_plot</span> <span class="op">&lt;-</span> <span class="fu">tstab</span><span class="op">(</span>time <span class="op">=</span> <span class="va">x</span>,</span></span>
 <span class="r-in"><span>                    ltrunc <span class="op">=</span> <span class="va">low</span>,</span></span>
 <span class="r-in"><span>                   rtrunc <span class="op">=</span> <span class="va">upp</span>,</span></span>
-<span class="r-in"><span>                   thresh <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.5</span>, by <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>                   thresh <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.5</span>, length.out <span class="op">=</span> <span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="tstab-1.png" alt="" width="700" height="433"></span>
 <span class="r-plt img"><img src="tstab-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tstab_plot</span>, plot.type <span class="op">=</span> <span class="st">"ggplot"</span><span class="op">)</span></span></span>

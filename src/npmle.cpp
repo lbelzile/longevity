@@ -109,7 +109,7 @@ arma::umat censTruncLimits(
   bool cens
 ){
   arma::uword n = lcens.n_elem;
-  if(lcens.n_elem != n | rcens.n_elem != n){
+  if((lcens.n_elem != n) || (rcens.n_elem != n)){
     Rcpp::stop("All vectors of censoring intervals should be of the same length.");
   }
   arma::uword J = tsets.n_rows;
@@ -126,7 +126,7 @@ for(arma::uword i = 0; i < n; ++i){
     if(fabs(rcens(i) - lcens(i)) < eps){ // check equality status == 1
       // Compute I_{ij} for censoring - the description in Turnbull 1976 says the contrary...
       // L_i, R_i should cover [q_j, p_j]
-      if((tsets(j,0) >= lcens(i)) & (tsets(j,1) <= rcens(i))){
+      if((tsets(j,0) >= lcens(i)) && (tsets(j,1) <= rcens(i))){
         // Initialized to J, so pick the smallest integer
         if(j < bounds(i,0)){ // initialized to J, so true for the first
           bounds(i,0) = j;
@@ -135,7 +135,7 @@ for(arma::uword i = 0; i < n; ++i){
         bounds(i,1) = j;
       }
     } else{ // Interval data, consider (left, right)
-      if((tsets(j,0) >= (lcens(i) + eps)) & (tsets(j,1) <= rcens(i))){
+      if((tsets(j,0) >= (lcens(i) + eps)) && (tsets(j,1) <= rcens(i))){
         // Initialized to J, so pick the smallest integer
         if(j < bounds(i,0)){ // initialized to J, so true for the first
           bounds(i,0) = j;
@@ -157,7 +157,7 @@ if(!trunc){
   }
   for(arma::uword i = 0; i < n; ++i){
     for(arma::uword j = 0; j < J; ++j){
-    if((ltrunc(i) <= tsets(j,0)) & (rtrunc(i) >= tsets(j,1))){
+    if((ltrunc(i) <= tsets(j,0)) && (rtrunc(i) >= tsets(j,1))){
         // Initialized to J, so pick the smallest integer
         if(j < bounds(i,2)){
           bounds(i,2) = j;
@@ -217,13 +217,13 @@ Rcpp::List turnbullem(
     Rcpp::stop("\"tsets\" should be a matrix with two columns.");
   }
   arma::umat limits = censTruncLimits(
-    tsets = tsets,
-    lcens = lcens,
-    rcens = rcens,
-    ltrunc = ltrunc,
-    rtrunc = rtrunc,
-    trunc = trunc,
-    cens = cens);
+    tsets,
+    lcens,
+    rcens,
+    ltrunc,
+    rtrunc,
+    trunc,
+    cens);
   arma::uvec censLow = limits.col(0);
   arma::uvec censUpp = limits.col(1);
   arma::uvec truncLow = limits.col(2);
@@ -255,7 +255,7 @@ Rcpp::List turnbullem(
   while(!convergence && niter < maxiter){
     abstol = arma::max(arma::abs(pCur - pNew));
     // Check convergence of the method
-    if(abstol < tol & niter > 1){
+    if((abstol < tol) && (niter > 1)){
       // If difference is negligible, check the KKT conditions
       nviolation = 0;
       for(arma::uword j = 0; j < J; ++j){

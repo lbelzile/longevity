@@ -473,16 +473,16 @@ uq1_qqplot_elife <-
     # return(boot::envelope(mat = ppos, level = level))
   }
 
-#' Approximate uncertainty for diagnostic plots
-#'
-#' Approximate the uncertainty by resampling parameters
-#' estimates using a normal approximation to the maximum
-#' likelihood estimators.
-#'
-#' @param B integer; number of simulations
-#' @param object an object of class \code{elife_par}
-#' @param logscale logical; if \code{TRUE} (default), compute the approximation using \eqn{\log(\sigma)} rather than \eqn{\sigma}
-#' @keywords internal
+# #' Approximate uncertainty for diagnostic plots
+# #'
+# #' Approximate the uncertainty by resampling parameters
+# #' estimates using a normal approximation to the maximum
+# #' likelihood estimators.
+# #'
+# #' @param B integer; number of simulations
+# #' @param object an object of class \code{elife_par}
+# #' @param logscale logical; if \code{TRUE} (default), compute the approximation using \eqn{\log(\sigma)} rather than \eqn{\sigma}
+# #' @keywords internal
 # uq2_qqplot_elife <- function(B = 1e4,
 #                              object,
 #                              logscale = TRUE){
