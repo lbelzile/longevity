@@ -540,6 +540,11 @@ np_nll <- function(par,
   invisible(rval)
 }
 
+
+#' Check survival output
+
+#' @inheritParams npsurv
+#' @return a list with transformed inputs or an error
 #' @export
 #' @keywords internal
 .check_surv <- function(time,
