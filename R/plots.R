@@ -492,7 +492,8 @@ uq1_qqplot_elife <-
 #
 # }
 
-
+#' Plot empirical distribution function
+#' 
 #' @importFrom stats plot.ecdf
 #' @export
 #' @param x argument of class \code{elife_ecdf}
