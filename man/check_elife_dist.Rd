@@ -21,6 +21,9 @@ check_elife_dist(
 
 \item{family}{string indicating the parametric model, one of \code{exp}, \code{gp}, \code{gomp}, \code{gompmake}, \code{weibull}, \code{extgp}, \code{extweibull}, \code{perks}, \code{perksmake}, \code{beard} and \code{beardmake}}
 }
+\value{
+The function has no return value and is only used to throw error for invalid arguments.
+}
 \description{
 Check parameters of extended lifetime distributions
 }

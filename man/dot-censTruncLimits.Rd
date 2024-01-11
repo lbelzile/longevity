@@ -19,6 +19,9 @@
 
 \item{trunc}{logical are observation truncated?}
 }
+\value{
+a matrix with the bounds of the intervals for Turnbull sets
+}
 \description{
 Identification sets
 }

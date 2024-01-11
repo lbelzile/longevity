@@ -2054,6 +2054,7 @@ helife <- function(x,
 #' Check parameters of extended lifetime distributions
 #' @inheritParams pelife
 #' @export
+#' @return The function has no return value and is only used to throw error for invalid arguments.
 #' @keywords internal
 check_elife_dist <- function(rate,
                              scale,

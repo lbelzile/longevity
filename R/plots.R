@@ -24,6 +24,7 @@
 #' @param plot logical; if \code{TRUE}, creates a plot when \code{plot.type="ggplot"}. Useful for returning \code{ggplot} objects without printing the graphs
 #' @param ... additional arguments, currently ignored by the function.
 #' @importFrom rlang .data
+#' @return The function produces graphical goodness-of-fit plots using base R or ggplot objects (returned as an invisible list).
 #' @examples
 #' set.seed(1234)
 #' samp <- samp_elife(
@@ -497,6 +498,7 @@ uq1_qqplot_elife <-
 #' @importFrom stats plot.ecdf
 #' @export
 #' @param x argument of class \code{elife_ecdf}
+#' @return base R plot of the empirical distribution function
 #' @param ... additional arguments for the plot
 plot.elife_ecdf <- function(x, ...){
   args <- list(...)

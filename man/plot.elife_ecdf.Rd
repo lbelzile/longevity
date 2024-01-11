@@ -11,6 +11,9 @@
 
 \item{...}{additional arguments for the plot}
 }
+\value{
+base R plot of the empirical distribution function
+}
 \description{
 Plot empirical distribution function
 }

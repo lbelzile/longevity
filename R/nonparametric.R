@@ -71,6 +71,7 @@ turnbull_intervals <- function(
 #' @param tol double, relative tolerance for convergence of the EM algorithm
 #' @param weights double, vector of weights for the observations
 #' @param method string, one of \code{"em"} for expectation-maximization (EM) algorithm or \code{"sqp"} for sequential quadratic programming with augmented Lagrange multiplie method.
+#' @param maxiter integer, maximum number of iterations for the EM algorithm
 #' @param ... additional arguments, currently ignored
 #' @return a list with elements
 #' \itemize{
@@ -118,6 +119,7 @@ np_elife <- function(time,
                      weights = NULL,
                      method = c("em", "sqp"),
                      arguments = NULL,
+                     maxiter = 1e5L,
                      ...) {
   if(!is.null(arguments)){
     call <- match.call(expand.dots = FALSE)
@@ -210,7 +212,9 @@ np_elife <- function(time,
   } else{
     trunc <- TRUE
   }
-
+  if(length(event) == 1L){
+    event <- rep(event, length(time))
+  }
   # Dispatch methods
   if(method == "em"){
     return(
@@ -224,7 +228,8 @@ np_elife <- function(time,
         weights = weights,
         status = status,
         thresh = thresh,
-        arguments = NULL)
+        arguments = NULL,
+        maxiter = as.integer(maxiter))
       )
   } else if(method == "emR"){
   # unex <- turnbull_intervals(
@@ -420,8 +425,9 @@ np_elife <- function(time,
     invisible(structure(
       list(
         cdf = .wecdf(x = thresh + unex[,2], w = prob),
-        xval = unex,
+        xval = thresh + unex,
         prob = prob,
+        thresh = thresh,
         convergence = coptim$convergence == 0,
         niter = coptim$outer.iter),
       class = c("elife_npar", "npcdf")
@@ -433,8 +439,8 @@ np_elife <- function(time,
 print.elife_npar <- function(x, ...){
   # Compute restricted mean
   height <- 1-x$cdf(x$xval[,1]-1e-10)
-  width <- diff(c(0, x$xval[,1]))
-  rmean <- sum(height * width)
+  width <- diff(c(x$thresh, x$xval[,1]))
+  rmean <- sum(height * width) + x$thresh
   quants <- stats::quantile(x$cdf, c(0.75, 0.5, 0.25))
   cat("Nonparametric maximum likelihood estimator\n\n")
 
@@ -446,7 +452,17 @@ print.elife_npar <- function(x, ...){
 
 #' @export
 summary.elife_npar <- function(object, ...){
-  summary(object$cdf)
+  height <- 1-object$cdf(object$xval[,1]-1e-10)
+  width <- diff(c(object$thresh, object$xval[,1]))
+  rmean <- sum(height * width) + object$thresh
+  quant <- as.numeric(quantile(object$cdf, probs = c(0.25, 0.5, 0.75)))
+  # cat(paste0("NPMLE of CDF: ", nrow(object$xval), " equivalence classes with summary\n"))
+  c("Min." = min(object$xval),
+    "1st Qu." = quant[1],
+    "Median" = quant[2],
+    "Mean" = rmean,
+    "3rd Qu." = quant[3],
+    "Max." = max(object$xval))
 }
 
 #' @export
@@ -725,9 +741,9 @@ npsurv <- function(time,
   if(!is.null(args$maxiter)){
     maxiter <- as.integer(args$maxiter)
     if(isTRUE(any(maxiter <= 1L,
-                  maxiter > 1e6,
+                  maxiter > 1e7,
                   !is.finite(maxiter)))){
-      stop("Invalid argument \"maxiter\": must be a finite integer no bigger than a million.")
+      stop("Invalid argument \"maxiter\": must be a finite integer no bigger than 1e7L.")
     }
   } else{
     maxiter <- 1e5L
@@ -758,12 +774,12 @@ npsurv <- function(time,
   probs <- as.numeric(survfit_res$p)
   invisible(structure(
     list(cdf = .wecdf(x = thresh + unex[,2], w = probs),
-       xval = unex[probs > 0, ],
+       xval = thresh + unex[probs > 0, ],
        prob = probs[probs > 0],
-       # grad = as.numeric(survfit_res$grad),
+       thresh = thresh,
        niter = survfit_res$neval,
-       # abstol = survfit_res$abstol,
-       convergence = survfit_res$conv),
+       convergence = survfit_res$conv,
+       abstol = survfit_res$abstol)),
     class = c("elife_npar", "npcdf")
   ))
 }

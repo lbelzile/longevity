@@ -5,8 +5,9 @@
 
 <!-- badges: start -->
 
-[![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
+[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version-last-release/longevity)](https://cran.r-project.org/package=longevity)
+[![License](https://img.shields.io/badge/license-GPL%20%28%3E=%203%29-blue.svg?style=flat)](http://www.gnu.org/licenses/gpl-3.0.html)
+[![Downloads](http://cranlogs.r-pkg.org/badges/longevity?color=brightgreen)](http://www.r-pkg.org/pkg/longevity)
 <!-- badges: end -->
 
 The `longevity` package proposes estimation routines for modeling excess
@@ -34,63 +35,21 @@ devtools::install_github("lbelzile/longevity")
 
 <!-- `devtools::build_readme()` is handy for this. You could also use GitHub Actions to re-render `README.Rmd` every time you push. An example workflow can be found here: <https://github.com/r-lib/actions/tree/master/examples>. -->
 
-## Current features
+## Features
 
-- [x] maximum likelihood estimation routines
-- [x] simulation of left-truncated and right-truncated/right-censored
-  data
-- [x] hazard plots with profile-likelihood based confidence intervals
-- [x] threshold selection diagnostics with profile and Wald pointwise
+- maximum likelihood estimation routines
+- simulation of left-truncated and right-truncated/right-censored data
+- hazard plots with profile-likelihood based confidence intervals
+- threshold selection diagnostics with profile and Wald pointwise
   confidence intervals
-- [x] quantile-quantile plots
-- [x] likelihood ratio tests for nested models
-- [x] likelihood ratio tests for a categorical explanatory
-- [x] score and likelihood ratio tests for piecewise generalized Pareto
+- quantile-quantile plots
+- likelihood ratio tests for nested models
+- likelihood ratio tests for a categorical explanatory
+- score and likelihood ratio tests for piecewise generalized Pareto
   distribution, extending Northrop and Coleman (2014), with $p$-value
   paths
-- [x] nonparametric maximum likelihood estimate of the distribution
-  function with arbitrary truncation and censoring using the EM
-  algorithm of Turnbull (1976) - C++ implementation.
-- [x] profile likelihood for generalized Pareto (endpoint)
-- [x] Adapt `npsurv` for interval censoring
-- [x] S3 methods
-- [x] hazard functions for all parametric models, using `helife`
-
-## Improvements
-
-- [x] Add logistic-type models, including distributions, optimization
-  routines, tests
-- [x] Add empirical distribution function for `npelife` and `npsurv`
-- [x] Fix `npsurv` and add weighting argument to Cpp routine.
-- [x] Remove Kolmogorov-Smirnov test (depending on whether it makes
-  sense given null distribution)
-- [ ] Change procedure for Q-Q plots and other graphical diagnostics
-
-## Testing
-
-- [x] Check `np_elife` for the case of
-  1)  right-censoring
-  2)  left-truncation (Bell-Lynden estimator)
-  3)  left-truncation and right-censoring (Tsai, Jewell and Wang)
-  4)  Frydman (1994) correction for interval censored truncated data
-  5)  double truncation
-- [x] Check functions fail when packages listed in ‘Suggests’ are absent
-- [x] Check all distributions and proper nesting relationships
-- [x] Check that all ANOVA nesting works as expected (with null
-  distribution)
-- [x] Check distributions
-- [ ] Fix starting values for `gomp` and `gompmake` and make sure model
-  is as good as submodel
-- [x] Verify fitting procedure in multiple instances, including interval
-  censoring, left and right truncation, etc.
-- [x] Check all plots type are produced with both base **R** and
-  `ggplot2`, and ellipsis works as expected
-
-## Package on CRAN
-
-- [x] Add tests
-- [x] Add examples for each function
-- [x] Add vignettes
-- [x] Use `pkgdown` to create a webpage
-- [x] Root out data sets that cannot go on CRAN (with accompanying doc)
-- [ ] Submit to the CRAN
+- nonparametric maximum likelihood estimate of the distribution function
+  with arbitrary truncation and censoring using the EM algorithm of
+  Turnbull (1976) - C++ implementation.
+- profile likelihood for generalized Pareto (endpoint)
+- hazard functions for all parametric models, using `helife`

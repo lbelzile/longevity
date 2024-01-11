@@ -15,6 +15,9 @@
 
 \item{...}{additional arguments for base \code{plot}}
 }
+\value{
+a base R or ggplot object with p-values for the Northrop-Coleman test against thresholds.
+}
 \description{
 The Northrop-Coleman tests for penultimate models are
 comparing the piece-wise generalized Pareto distribution

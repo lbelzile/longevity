@@ -14,6 +14,7 @@
 #' @param Rtrunc vector of right truncation limits
 #' @param status integer vector giving status of censoring set
 #' @export
+#' @return a matrix containing limits of intervals for EM
 #' @keywords internal
 .turnbull_intervals <- function(Lcens, Rcens, Ltrunc, Rtrunc, status) {
     .Call(`_longevity_turnbull_intervals`, Lcens, Rcens, Ltrunc, Rtrunc, status)
@@ -28,6 +29,7 @@
 #' @param rtrunc numeric vector of right truncation
 #' @param trunc logical are observation truncated?
 #' @export
+#' @return a matrix with the bounds of the intervals for Turnbull sets
 #' @keywords internal
 .censTruncLimits <- function(tsets, lcens, rcens, ltrunc, rtrunc, trunc, cens) {
     .Call(`_longevity_censTruncLimits`, tsets, lcens, rcens, ltrunc, rtrunc, trunc, cens)

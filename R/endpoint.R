@@ -125,6 +125,7 @@ print.elife_profile <- function(x, ...){
 #' @param plot.type string indicating whether to use base R for plots or \code{ggplot2}
 #' @param plot logical; if \code{TRUE}, creates a plot when \code{plot.type="ggplot"}. Useful for returning \code{ggplot} objects without printing the graphs
 #' @param ... additional arguments to pass to \code{plot}, currently ignored
+#' @return base R or ggplot object for a plot of the profile log likelihood of the endpoint of the generalized Pareto distribution
 #' @export
 plot.elife_profile <-
   function(x,

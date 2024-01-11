@@ -17,6 +17,9 @@
 
 \item{status}{integer vector giving status of censoring set}
 }
+\value{
+a matrix containing limits of intervals for EM
+}
 \description{
 Given truncation and censoring sets,
 construct disjoint increasing intervals whose

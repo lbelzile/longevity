@@ -15,6 +15,9 @@
 
 \item{...}{additional arguments to pass to \code{plot}, currently ignored}
 }
+\value{
+base R or ggplot object for a plot of the profile log likelihood of the endpoint of the generalized Pareto distribution
+}
 \description{
 Plot profile of endpoint
 }

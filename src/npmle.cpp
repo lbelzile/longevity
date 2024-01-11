@@ -15,6 +15,7 @@
 //' @param Rtrunc vector of right truncation limits
 //' @param status integer vector giving status of censoring set
 //' @export
+//' @return a matrix containing limits of intervals for EM
 //' @keywords internal
 // [[Rcpp::export(.turnbull_intervals)]]
 arma::dmat turnbull_intervals(
@@ -97,6 +98,7 @@ arma::dmat turnbull_intervals(
 //' @param rtrunc numeric vector of right truncation
 //' @param trunc logical are observation truncated?
 //' @export
+//' @return a matrix with the bounds of the intervals for Turnbull sets
 //' @keywords internal
 // [[Rcpp::export(.censTruncLimits)]]
 arma::umat censTruncLimits(

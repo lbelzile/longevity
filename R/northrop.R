@@ -395,6 +395,7 @@ nc_test <- function(time,
 #' @param x an object of class \code{elife_northropcoleman}
 #' @param plot.type string indicating the type of plot
 #' @param plot logical; should the routine print the graph if \code{plot.type} equals \code{"ggplot"}? Default to \code{TRUE}.
+#' @return a base R or ggplot object with p-values for the Northrop-Coleman test against thresholds.
 #' @param ... additional arguments for base \code{plot}
 plot.elife_northropcoleman <- function(x,
                                        plot.type = c("base", "ggplot"),

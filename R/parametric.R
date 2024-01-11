@@ -426,6 +426,9 @@ fit_elife <- function(time,
   }
   # Keep maximum and sample size
   n <- length(time) #number of exceedances
+  if(n == 0L){
+    stop("No observation lies above the threshold.")
+  }
   dat <- ifelse(status == 2L, time2, time)
   maxdat <- max(dat)
   stopifnot("Incorrect data input: some entries are missing or infinite" = is.finite(maxdat))
@@ -486,8 +489,13 @@ fit_elife <- function(time,
                        hessian = TRUE
       )
       mle <- opt_mle$par
-      vcov <- solve(opt_mle$hessian)
+      vcov <- try(solve(opt_mle$hessian), silent = TRUE)
+      if(inherits(vcov, "try-error")){
+        vcov <- NULL
+        se_mle <- NA
+      } else{
       se_mle <- sqrt(diag(vcov))
+      }
       ll <- -opt_mle$value
       conv <- opt_mle$convergence == 0
     }
@@ -595,7 +603,7 @@ fit_elife <- function(time,
     }
     mle <- opt_mle$pars
     vcov <- try(solve(opt_mle$hessian[-(seq_along(ineqLB)),-(seq_along(ineqLB))]))
-    if(is.character(vcov)){
+    if(inherits(vcov, "try-error")){
       vcov <- NULL
       se_mle <- rep(NA, length(mle))
     } else{
@@ -852,7 +860,7 @@ print.elife_par <-
                          perks = "Perks",
                          perksmake = "Perks-Makeham",
                          beard = "Beard",
-                         bearmake = "Beard-Makeham"),
+                         beardmake = "Beard-Makeham"),
         "distribution.", "\n")
     if(x$cens_type != "none" || x$trunc_type != "none"){
       cat("Sampling: ",

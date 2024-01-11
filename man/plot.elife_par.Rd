@@ -26,6 +26,9 @@
 
 \item{...}{additional arguments, currently ignored by the function.}
 }
+\value{
+The function produces graphical goodness-of-fit plots using base R or ggplot objects (returned as an invisible list).
+}
 \description{
 Because of censoring and truncation, the plotting
 positions must be adjusted accordingly.
