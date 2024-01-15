@@ -782,7 +782,7 @@ npsurv <- function(time,
        thresh = thresh,
        niter = survfit_res$neval,
        convergence = survfit_res$conv,
-       abstol = survfit_res$abstol)),
+       abstol = survfit_res$abstol),
     class = c("elife_npar", "npcdf")
   ))
 }
