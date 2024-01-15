@@ -443,10 +443,13 @@ print.elife_npar <- function(x, ...){
   rmean <- sum(height * width) + x$thresh
   quants <- stats::quantile(x$cdf, c(0.75, 0.5, 0.25))
   cat("Nonparametric maximum likelihood estimator\n\n")
-
   cat("Routine", ifelse(x$convergence, "converged", "did not converge"), "\n")
   cat("Number of equivalence classes:", nrow(x$xval),"\n")
-  cat("Restricted mean at upper bound", x$xval[nrow(x$xval),2], ":", rmean,"\n")
+  if(x$cdf(x$xval[nrow(x$xval),2]) == 1){
+    cat("Mean: ", rmean,"\n")
+  } else{
+    cat("Restricted mean at upper bound", x$xval[nrow(x$xval),2], ":", rmean,"\n")
+  }
   cat("Quartiles of the survival function:", quants)
 }
 

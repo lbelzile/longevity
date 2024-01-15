@@ -579,7 +579,7 @@ fit_elife <- function(time,
                              ineqLB = ineqLB,
                              ineqUB = ineqUB,
                              control = list(trace = 0))
-    if(opt_mle$convergence != 0 | restart){
+    if(opt_mle$convergence != 0 & restart){
       opt_mle <- Rsolnp::gosolnp(LB = LB,
                                  UB = ifelse(is.finite(UB),
                                              UB, 10*maxdat),
