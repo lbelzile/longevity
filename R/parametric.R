@@ -353,7 +353,7 @@ fit_elife <- function(time,
     stopifnot("Censoring is not currently handled for doubly truncated data." = is.null(event) | isTRUE(all(event == 1L)),
               "Argument `time2` not used for doubly truncated data" = is.null(time2)
     )
-    fit_ditrunc_elife(
+    return(fit_ditrunc_elife(
       time = time,
       ltrunc1 = ltrunc[,1],
       rtrunc1 = rtrunc[,1],
@@ -364,7 +364,7 @@ fit_elife <- function(time,
       weights = weights,
       export = export,
       start = start,
-      restart = restart)
+      restart = restart))
   } else{
   if(is.null(status)){
     survout <- .check_surv(time = time,
