@@ -31,14 +31,14 @@ turnbull_intervals <- function(
   rcens <- ifelse(status %in% c(1L, 2L), time,
                   ifelse(status == 0L, Inf, time2))
   if(!is.null(rtrunc)){
-    rtrunc <- rtrunc[is.finite(rtrunc)]
+    rtrunc <- as.vector(rtrunc[is.finite(rtrunc)])
     #don't put Inf, otherwise wrong...
   }
   if(length(rtrunc) == 0L){ # NULL has length zero
     rtrunc <- numeric(0)
   }
   if(!is.null(ltrunc)){
-    ltrunc <- ltrunc[is.finite(ltrunc)]
+    ltrunc <- as.vector(ltrunc[is.finite(ltrunc)])
   }
   if(length(ltrunc) == 0L){
     ltrunc <- numeric(0)
@@ -171,18 +171,28 @@ np_elife <- function(time,
     }
     status <- status[ind]
     if(!is.null(ltrunc)){
-      ltrunc <- pmax(0, ltrunc[ind] - thresh[1])
+      if(isTRUE(is.matrix(ltrunc) && ncol(ltrunc) > 1)){
+        ltrunc <- apply(ltrunc[ind,] - thresh[1], 1:2, function(x){ pmax(0, x)})
+      } else{
+        ltrunc <- pmax(0, ltrunc[ind] - thresh[1])
+      }
     }
     if(!is.null(rtrunc)){
-      rtrunc <- rtrunc[ind] - thresh[1]
+      if(isTRUE(is.matrix(rtrunc) && ncol(rtrunc) > 1)){
+        rtrunc <- apply(rtrunc[ind,] - thresh[1], 1:2, function(x){ pmax(0, x)})
+      } else{
+        rtrunc <- rtrunc[ind] - thresh[1]
+      }
+    }
     }
   }
-  if(!is.null(ltrunc)){
+  # End of threshold shifting
+  if(!is.null(ltrunc) & is.vector(ltrunc)){
     if(isTRUE(any(ltrunc > time, ltrunc > time2, na.rm = TRUE))){
       stop("Left-truncation must be lower than observation times.")
     }
   }
-  if(!is.null(rtrunc)){
+  if(!is.null(rtrunc) & is.vector(rtrunc)){
     if(isTRUE(any(rtrunc < time,
                   rtrunc < time2,
                   na.rm = TRUE))){
@@ -193,19 +203,31 @@ np_elife <- function(time,
   cens <- !isTRUE(all(status == 1L,
                       na.rm = TRUE))
   if (!is.null(rtrunc)) {
+    if(is.matrix(rtrunc) & ncol(rtrunc) > 1){
+      stopifnot(
+      "`rtrunc` should be the same length as `time`" =  nrow(rtrunc) == n
+      )
+    } else{
     stopifnot(
       "`rtrunc` should be a vector" = is.vector(rtrunc),
       "`rtrunc` should be the same length as `time`" =  length(rtrunc) == n
     )
+    }
   }
   if (!is.null(ltrunc)) {
+    if(is.matrix(ltrunc) & ncol(ltrunc) > 1){
+      stopifnot(
+        "`ltrunc` should be the same length as `time`" =  nrow(ltrunc) == n
+      )
+    } else{
       stopifnot(
       "`ltrunc` should be a vector" = is.vector(ltrunc),
       "`ltrunc` should be the same length as `dat`" =  length(ltrunc) == n
     )
+    }
   }
   if (!is.null(ltrunc) & !is.null(rtrunc)) {
-    stopifnot("`ltrunc` should be smaller than `rtrunc`" = isTRUE(all(ltrunc < rtrunc)))
+    stopifnot("`ltrunc` should be smaller than `rtrunc`" = isTRUE(all(ltrunc < rtrunc, na.rm = TRUE)))
   }
   if(is.null(ltrunc) && is.null(rtrunc)){
     trunc <- FALSE
@@ -698,11 +720,13 @@ npsurv <- function(time,
  }
   n <- length(time)
   stopifnot(length(status) == n)
+  # Modified Jan. 2023 - pass truncation limits as vectors, removing NAs
+  # that would appear with doubly truncated results
   unex <- turnbull_intervals(time = time,
                              time2 = time2,
                              status = status,
-                             ltrunc = ltrunc,
-                             rtrunc = rtrunc)
+                             ltrunc = na.omit(as.numeric(ltrunc)),
+                             rtrunc = na.omit(as.numeric(rtrunc)))
   J <- nrow(unex)
   if(isTRUE(any(status != 1L))){
     cens <- TRUE
@@ -728,7 +752,7 @@ npsurv <- function(time,
       stop("Invalid argument \"tol\".")
     }
   } else{
-    tol <- 1e-12
+    tol <- 1e-8
   }
   if(!is.null(args$zerotol)){
     zerotol <- args$zerotol

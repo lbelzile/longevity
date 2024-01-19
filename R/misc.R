@@ -105,15 +105,57 @@
 
 .onLoad <- function(...) {
   if (requireNamespace("ggplot2", quietly = TRUE)) {
-    # .s3_register("ggplot2::autoplot", "elife_par")
-    # .s3_register("ggplot2::autoplot", "elife_hazard")
-    # .s3_register("ggplot2::autoplot", "elife_northropcoleman")
-    # .s3_register("ggplot2::autoplot", "elife_tstab")
-    # .s3_register("ggplot2::autoplot", "elife_profile")
-    # .s3_register("ggplot2::autoplot", "elife_ecdf")
-    # .s3_register("ggplot2::autoplot", "elife_npar")
+     .s3_register("ggplot2::autoplot", "elife_par")
+     .s3_register("ggplot2::autoplot", "elife_hazard")
+     .s3_register("ggplot2::autoplot", "elife_northropcoleman")
+     .s3_register("ggplot2::autoplot", "elife_tstab")
+     .s3_register("ggplot2::autoplot", "elife_profile")
+     # .s3_register("ggplot2::autoplot", "elife_ecdf")
+     # .s3_register("ggplot2::autoplot", "elife_npar")
   }
 }
+
+
+#' @export
+autoplot.elife_par <- function(object, ...){
+  args <- list(...)
+  args$plot.type <- "ggplot"
+  args$x <- object
+  do.call(plot.elife_par, args = args)
+}
+
+
+#' @export
+autoplot.elife_hazard <- function(object, ...){
+  args <- list(...)
+  args$plot.type <- "ggplot"
+  args$x <- object
+  do.call(plot.elife_hazard, args = args)
+}
+
+#' @export
+autoplot.elife_northropcoleman <- function(object, ...){
+  args <- list(...)
+  args$plot.type <- "ggplot"
+  args$x <- object
+  do.call(plot.elife_northropcoleman, args = args)
+}
+
+#' @export
+autoplot.elife_tstab <- function(object, ...){
+  args <- list(...)
+  args$plot.type <- "ggplot"
+  args$x <- object
+  do.call(plot.elife_tstab, args = args)
+}
+
+#' @export
+autoplot.elife_profile <- function(object, ...){
+  args <- list(...)
+  args$x <- object
+  do.call(plot.elife_profile, args = args)
+}
+
 
 
 #' Check default arguments

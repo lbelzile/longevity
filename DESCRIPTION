@@ -1,7 +1,7 @@
 Package: longevity
 Type: Package
 Title: Statistical Methods for the Analysis of Excess Lifetimes
-Version: 1.0.0
+Version: 1.0.002
 Authors@R: c(person(given="Leo", family="Belzile", role = c("aut", "cre"), email = "belzilel@gmail.com", comment = c(ORCID = "0000-0002-9135-014X")))
 BugReports: https://github.com/lbelzile/longevity/issues
 URL: https://lbelzile.github.io/longevity/
@@ -21,5 +21,5 @@ Description: A collection of parametric and nonparametric methods for the analys
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.0
 VignetteBuilder: knitr
