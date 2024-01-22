@@ -171,19 +171,18 @@ np_elife <- function(time,
     }
     status <- status[ind]
     if(!is.null(ltrunc)){
-      if(isTRUE(is.matrix(ltrunc) && ncol(ltrunc) > 1)){
+      if(isTRUE(all(is.matrix(ltrunc),  ncol(ltrunc) > 1))){
         ltrunc <- apply(ltrunc[ind,] - thresh[1], 1:2, function(x){ pmax(0, x)})
       } else{
         ltrunc <- pmax(0, ltrunc[ind] - thresh[1])
       }
     }
     if(!is.null(rtrunc)){
-      if(isTRUE(is.matrix(rtrunc) && ncol(rtrunc) > 1)){
+      if(isTRUE(all(is.matrix(rtrunc), ncol(rtrunc) > 1))){
         rtrunc <- apply(rtrunc[ind,] - thresh[1], 1:2, function(x){ pmax(0, x)})
       } else{
         rtrunc <- rtrunc[ind] - thresh[1]
       }
-    }
     }
   }
   # End of threshold shifting
@@ -203,7 +202,7 @@ np_elife <- function(time,
   cens <- !isTRUE(all(status == 1L,
                       na.rm = TRUE))
   if (!is.null(rtrunc)) {
-    if(is.matrix(rtrunc) & ncol(rtrunc) > 1){
+    if(isTRUE(all(is.matrix(rtrunc), ncol(rtrunc) > 1))){
       stopifnot(
       "`rtrunc` should be the same length as `time`" =  nrow(rtrunc) == n
       )
@@ -215,7 +214,7 @@ np_elife <- function(time,
     }
   }
   if (!is.null(ltrunc)) {
-    if(is.matrix(ltrunc) & ncol(ltrunc) > 1){
+    if(isTRUE(all(is.matrix(ltrunc), ncol(ltrunc) > 1))){
       stopifnot(
         "`ltrunc` should be the same length as `time`" =  nrow(ltrunc) == n
       )
@@ -226,16 +225,18 @@ np_elife <- function(time,
     )
     }
   }
-  if (!is.null(ltrunc) & !is.null(rtrunc)) {
-    stopifnot("`ltrunc` should be smaller than `rtrunc`" = isTRUE(all(ltrunc < rtrunc, na.rm = TRUE)))
-  }
   if(is.null(ltrunc) && is.null(rtrunc)){
     trunc <- FALSE
   } else{
     trunc <- TRUE
+    stopifnot("`ltrunc` should be smaller than `rtrunc`" = isTRUE(all(ltrunc < rtrunc, na.rm = TRUE)))
   }
+
   if(length(event) == 1L){
     event <- rep(event, length(time))
+  }
+  if(is.matrix(ltrunc)){
+    method <- "em"
   }
   # Dispatch methods
   if(method == "em"){
@@ -717,7 +718,7 @@ npsurv <- function(time,
   time <- survout$time
   time2 <- survout$time2
   status <- survout$status
- }
+  }
   n <- length(time)
   stopifnot(length(status) == n)
   # Modified Jan. 2023 - pass truncation limits as vectors, removing NAs
@@ -780,6 +781,39 @@ npsurv <- function(time,
   } else{
     stopifnot("Weights must be positive and finite." = isTRUE(all(weights > 0)) & isTRUE(all(is.finite(weights))))
   }
+  # Check if double truncation
+  if(is.matrix(ltrunc)){
+    # Check dimensions
+    stopifnot(is.matrix(ltrunc),
+              ncol(ltrunc) == 2L,
+              ncol(rtrunc) == 2L,
+              nrow(ltrunc) == nrow(rtrunc),
+              nrow(ltrunc) == n)
+    if(!(isTRUE(all(time > ltrunc[,1] | time > ltrunc[,2])))){
+      stop("Some observed times are not part of the observation windows.")
+    }
+    if(!(isTRUE(all(time2 < rtrunc[,1] | time2 < rtrunc[,2])))){
+      stop("Some observed times are not part of the observation windows.")
+    }
+    if(!(isTRUE(all((time > ltrunc[,1] & time2 < rtrunc[,1]) |
+                    (time > ltrunc[,2] & time2 < rtrunc[,2]))))){
+      stop("Some censoring windows are not part of the observation windows.")
+    }
+
+    survfit_res <- .turnbull_em_dtrunc(
+      tsets = unex,
+      lcens = as.numeric(time),
+      rcens = as.numeric(time2),
+      ltrunc = as.matrix(ltrunc),
+      rtrunc = as.matrix(rtrunc),
+      cens = as.logical(cens),
+      zerotol = as.numeric(zerotol),
+      tol = as.numeric(tol),
+      maxiter = as.integer(maxiter),
+      trunc = as.logical(trunc),
+      weights = as.numeric(weights)
+    )
+  } else{
   survfit_res <- .turnbull_em(
     tsets = unex,
     lcens = as.numeric(time),
@@ -793,6 +827,7 @@ npsurv <- function(time,
     trunc = as.logical(trunc),
     weights = as.numeric(weights)
   )
+  }
   if(!survfit_res$conv){
     warning(paste("EM algorithm failed to converge after",
                   survfit_res$niter,
