@@ -82,7 +82,6 @@ plot.elife_par <- function(x,
   which.plot <- match.arg(which.plot,
                           choices = c("pp","qq","sqq","erp","exp","tmd"),
                           several.ok = TRUE)
-
   # Fit a nonparametric survival function (Turnbull, 1976)
   if(is.null(object$rtrunc) & is.null(object$ltrunc)){
     trunc <- FALSE
@@ -101,6 +100,10 @@ plot.elife_par <- function(x,
   if(is.null(object$ltrunc)){
     object$ltrunc <- rep(0, length(object$time))
   }
+  if(is.null(object$status)){
+    # Omitted status for doubly truncated data
+      object$status <- rep(1, length.out = length(object$time))
+  }
   np <- suppressWarnings(np_elife(arguments = object,
                  method = "em",
                  thresh = 0,
@@ -108,6 +111,7 @@ plot.elife_par <- function(x,
   # if(!np$convergence){
   #   warning("Nonparametric maximum likelihood routine did not converge.")
   # }
+
   # Create a weighted empirical CDF
   ecdffun <- np$cdf
   seen <- which(object$status %in% c(1L, 3L))
@@ -201,10 +205,10 @@ plot.elife_par <- function(x,
       txpos <- xpos*pmod(rtrunc, args = parameters) +
         (1-xpos)*pmod(ltrunc, args = parameters) # Fa + u*(Fb-Fa)
       } else{ # matrix
-      txpos <- xpos*(F_b2 - F_a2 + F_b1 - F_a1) +
+      txpos <- pmin(1-1e-10, pmax(1e-10, xpos*(F_b2 - F_a2 + F_b1 - F_a1) +
         ifelse(dat > rtrunc[,1],
-               (F_a2 + F_b1 - F_a1),
-               F_a1)
+               (F_a2 - F_b1 + F_a1),
+               F_a1)))
     }
   }
   if("erp" %in% which.plot){
@@ -269,7 +273,7 @@ plot.elife_par <- function(x,
              ylab = "empirical quantiles",
              panel.first = {abline(a = 0, b = 1, col = "gray")})
       }  else if(pl == "sqq" && trunc){
-        plot(y = qmod(ypos, args = parameters),
+        plot(y = qmod(sort(ypos), args = parameters),
              x = qmod(ppoints(length(ypos)), args = parameters),
              bty = "l",
              pch = 20,

@@ -492,10 +492,8 @@ names(mle) <- names(se_mle) <-
                    thresh = thresh,
                    time = time,
                    weights = weights,
-                   ltrunc1 = ltrunc1,
-                   rtrunc1 = rtrunc1,
-                   ltrunc2 = ltrunc2,
-                   rtrunc2 = rtrunc2,
+                   ltrunc = cbind(ltrunc1, ltrunc2),
+                   rtrunc = cbind(rtrunc1, rtrunc2),
                    cens_type = cens_type,
                    trunc_type = trunc_type),
               class = "elife_par")
