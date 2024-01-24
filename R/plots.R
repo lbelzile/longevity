@@ -82,6 +82,7 @@ plot.elife_par <- function(x,
   which.plot <- match.arg(which.plot,
                           choices = c("pp","qq","sqq","erp","exp","tmd"),
                           several.ok = TRUE)
+  stopifnot(length(which.plot) >= 1L)
   # Fit a nonparametric survival function (Turnbull, 1976)
   if(is.null(object$rtrunc) & is.null(object$ltrunc)){
     trunc <- FALSE
@@ -114,9 +115,9 @@ plot.elife_par <- function(x,
 
   # Create a weighted empirical CDF
   ecdffun <- np$cdf
-  seen <- which(object$status %in% c(1L, 3L))
+  seen <- which(object$status == 1)
   if(length(seen) == 0L){
-    stop("All observations are left or right censored.")
+    stop("All observations are censored.")
   }
   dat <- object$time[seen]
   # only keep interval censored or observed failure times
@@ -209,6 +210,7 @@ plot.elife_par <- function(x,
         ifelse(dat > rtrunc[,1],
                (F_a2 - F_b1 + F_a1),
                F_a1)))
+    }
     }
   }
   if("erp" %in% which.plot){
@@ -395,7 +397,6 @@ plot.elife_par <- function(x,
       lapply(pl_list, get("print.ggplot", envir = loadNamespace("ggplot2")))
     }
     return(invisible(pl_list))
-  }
 }
 
 
