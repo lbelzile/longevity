@@ -19,7 +19,7 @@
 #' @export
 #' @param x a parametric model of class \code{elife_par}
 #' @param plot.type string, one of \code{base} for base R or \code{ggplot}
-#' @param which.plot vector of string indicating the plots, among \code{pp} for probability-probability plot, \code{qq} for quantile-quantile plot, \code{erp} for empirically rescaled plot (only for censored data), \code{exp} for standard exponential quantile-quantile plot or \code{tmd} for Tukey's mean difference plot, which is a variant of the Q-Q plot in which we map the pair \eqn{(x,y)} is mapped to \code{((x+y)/2,y-x)} are detrended
+#' @param which.plot vector of string indicating the plots, among \code{pp} for probability-probability plot, \code{qq} for quantile-quantile plot, \code{erp} for empirically rescaled plot (only for censored data), \code{exp} for standard exponential quantile-quantile plot or \code{tmd} for Tukey's mean difference plot, which is a variant of the Q-Q plot in which we map the pair \eqn{(x,y)} is mapped to \code{((x+y)/2,y-x)} are detrended, \code{dens} and \code{cdf} return the empirical distribution function with the fitted parametric density or distribution function curve superimposed.
 #' @param confint logical; if \code{TRUE}, creates uncertainty diagnostic via a parametric bootstrap
 #' @param plot logical; if \code{TRUE}, creates a plot when \code{plot.type="ggplot"}. Useful for returning \code{ggplot} objects without printing the graphs
 #' @param ... additional arguments, currently ignored by the function.
@@ -65,6 +65,7 @@ plot.elife_par <- function(x,
                            which.plot = c("pp","qq"),
                            confint = c("none", "pointwise", "simultaneous"),
                            plot = TRUE, ...){
+  args <- list(...)
   plot.type <- match.arg(plot.type)
   confint <- match.arg(confint)
   if(plot.type == "ggplot"){
@@ -80,7 +81,7 @@ plot.elife_par <- function(x,
     stop("Object created using a call to `fit_elife` should include the data (`export=TRUE`).")
   }
   which.plot <- match.arg(which.plot,
-                          choices = c("pp","qq","sqq","erp","exp","tmd"),
+                          choices = c("pp","qq","sqq","erp","exp","tmd","dens","cdf"),
                           several.ok = TRUE)
   stopifnot(length(which.plot) >= 1L)
   # Fit a nonparametric survival function (Turnbull, 1976)
@@ -89,6 +90,12 @@ plot.elife_par <- function(x,
   } else{
     trunc <- TRUE
   }
+  # if("dens" %in% which.plot & trunc){
+  #   warning("Density plots require identically distributed data.");
+  #   which.plot <- which.plot[!(which.plot == "dens")]
+  #   if(length(which.plot) == 0L){
+  #     return(NULL)
+  # }
   # Scaled quantile-quantile plot only valid for truncated data
   if("sqq" %in% which.plot & !trunc){
     warning("Scaled quantile-quantile plot only useful for truncated data.")
@@ -112,10 +119,10 @@ plot.elife_par <- function(x,
   # if(!np$convergence){
   #   warning("Nonparametric maximum likelihood routine did not converge.")
   # }
-
+  #
   # Create a weighted empirical CDF
   ecdffun <- np$cdf
-  seen <- which(object$status == 1)
+  seen <- which(object$status %in% c(1,3))
   if(length(seen) == 0L){
     stop("All observations are censored.")
   }
@@ -282,7 +289,75 @@ plot.elife_par <- function(x,
              xlab = "theoretical quantiles",
              ylab = "empirical quantiles",
              panel.first = {abline(a = 0, b = 1, col = "gray")})
-      }
+      } else if(pl == "dens"){
+        breaks <- FALSE
+        # Use NPMLE to get cutoff points for mass
+        xvals <- c(np$xval)
+        # Remove infinite values
+        xvals <- xvals[is.finite(xvals)]
+        # Obtain range
+        ran <- range(xvals)
+        if(!is.null(args$breaks)){
+          breaks <- args$breaks
+          # Extract breaks, must be numeric
+          if(is.numeric(breaks) | is.integer(breaks)){
+            # Either pass number of classes
+            if(length(breaks) == 1L){
+              if(breaks < 0){
+                stop("Invalid \"breaks\" argument.")
+              }
+             nbr <- ceiling(breaks)
+             xs <- seq(from = ran[1], to = ran[2], length.out = nbr)
+             mid <- xs[-length(xs)] + (xs[2]-xs[1])/2
+            } else{
+              xs <- sort(breaks)
+              mid <- xs[-length(xs)] + diff(xs)/2
+            }
+            breaks <- TRUE
+          }
+        }
+        if(isTRUE(!breaks)){ # if 'breaks' = FALSE
+            xs <- seq(from = ran[1], to = ran[2],
+                      length.out = pmin(100, ceiling(sqrt(object$nexc))))
+            mid <- xs[-length(xs)] + (xs[2]-xs[1])/2
+        }
+        prob <- diff(np$cdf(xs))
+        sprob <- prob/sum(prob)
+        xt <- seq(ran[1], ran[2], length.out = 101)
+        dt <- delife(x = xt,
+                     rate = object$par['rate'],
+                     shape = object$par['shape'],
+                     scale = object$par['scale'],
+                     family = object$family)
+        plot(y = sprob,
+            x = object$thresh + mid,
+               type = "h",
+               ylim = c(0, 1.02 * max(sprob, dt)),
+               lwd = pmax(1, 200/length(xs)),
+               lend = 1,
+               xlab = "",
+               col = "grey",
+               ylab = "density",
+               yaxs = "i",
+               bty = "l")
+          lines(object$thresh + xt, dt)
+        }  else if(pl == "cdf"){
+          xt <- seq(0, max(np$xval), length.out = 101)
+          xt <- xt[is.finite(xt)]
+          cdf <- pelife(q = xt,
+                        rate = object$par['rate'],
+                        shape = object$par['shape'],
+                        scale = object$par['scale'],
+                        family = object$family)
+          ecdf <- .wecdf(x = object$thresh + np$xval[, 2],
+                        w = np$prob)
+          plot(ecdf, ...)
+          lines(x = xt + object$thresh,
+                y = cdf,
+                type = "l",
+                col = "grey",
+                xlim = range(xt))
+        }
     }
     return(invisible(NULL))
   } else if(plot.type == "ggplot"){
@@ -389,6 +464,122 @@ plot.elife_par <- function(x,
         ggplot2::geom_point() +
         ggplot2::labs(x = "theoretical quantiles",
                       y = "empirical quantiles") +
+        ggplot2::theme_classic()
+      } else if(pl == "dens"){
+        # With continuous data (no censoring, no truncation),
+        # one could in principle compute a histogram of the data,
+        # rescale it to the density scale and compare with the
+        # fitted density of the model.
+        # The NPMLE is defined over equivalence classes, but the latter can be
+        # intervals (left, right or interval censored observations)
+        # For the latter, we could compute either
+        # (a) the probability mass for the interval, using pelife, or
+        # (b) the "density" of the singleton, or
+        # (c) the different in distribution function between endpoints
+        breaks <- FALSE
+        # Use NPMLE to get cutoff points for mass
+        xvals <- c(np$xval)
+        # Remove infinite values
+        xvals <- xvals[is.finite(xvals)]
+        # Obtain range
+        ran <- range(xvals)
+        if(!is.null(args$breaks)){
+          breaks <- args$breaks
+          # Extract breaks, must be numeric
+          if(is.numeric(breaks) | is.integer(breaks)){
+            # Either pass number of classes
+            if(length(breaks) == 1L){
+              if(breaks < 0){
+               stop("Invalid \"breaks\" argument.")
+              }
+              nbr <- ceiling(breaks)
+              xs <- seq(from = ran[1], to = ran[2], length.out = nbr)
+              mid <- xs[-length(xs)] + (xs[2]-xs[1])/2
+            } else{
+              xs <- sort(breaks)
+              mid <- xs[-length(xs)] + diff(xs)/2
+            }
+          } else {
+            breaks <- FALSE
+          }
+        }
+        if(isTRUE(!breaks)){ # if 'breaks' = FALSE
+          xs <- seq(from = ran[1], to = ran[2],
+                    length.out = pmin(100, ceiling(sqrt(object$nexc))))
+          mid <- xs[-length(xs)] + (xs[2]-xs[1])/2
+        }
+        prob <- diff(np$cdf(xs))
+        sprob <- prob/sum(diff(xs)*prob)
+        xt <- seq(ran[1], ran[2], length.out = 101)
+        dt <- delife(x = xt,
+                     rate = object$par['rate'],
+                     shape = object$par['shape'],
+                     scale = object$par['scale'],
+                     family = object$family)
+        pl_list[["dens"]] <-
+          ggplot2::ggplot() +
+          ggplot2::geom_col(
+            data = data.frame(
+              y = sprob,
+              x = mid + object$thresh),
+            mapping = ggplot2::aes(
+              x = .data[["x"]],
+              y = .data[["y"]]),
+            color = "grey",
+            alpha = 0.5
+          ) +
+          ggplot2::geom_line(
+            data = data.frame(
+              y = dt,
+              x = xt + object$thresh),
+            mapping = ggplot2::aes(
+              x = .data[["x"]],
+              y = .data[["y"]])
+            ) +
+          ggplot2::labs(x = "",
+                        y = "density") +
+          ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.02))) +
+          ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = 0)) +
+          ggplot2::theme_classic()
+      } else if(pl == "cdf"){
+      xt <- seq(0, max(np$xval), length.out = 101)
+      xt <- xt[is.finite(xt)]
+      xv <- sort(unique(c(np$xval[,1], np$xval[,2] + 1e-5)))
+      cdf <- pelife(q = xt,
+                   rate = object$par['rate'],
+                   shape = object$par['shape'],
+                   scale = object$par['scale'],
+                   family = object$family)
+      pl_list[["cdf"]] <-
+        ggplot2::ggplot() +
+        ggplot2::geom_step(
+          data = data.frame(
+            x = xv + object$thresh,
+            y = np$cdf(xv)
+            ),
+          mapping = ggplot2::aes(
+            x = .data[["x"]],
+            y = .data[["y"]]),
+          color = "grey",
+          alpha = 0.5
+        ) +
+        ggplot2::geom_line(
+          data = data.frame(
+            y = cdf,
+            x = xt + object$thresh),
+          mapping = ggplot2::aes(
+            x = .data[["x"]],
+            y = .data[["y"]])
+        ) +
+        ggplot2::labs(x = "",
+                      y = "distribution function") +
+        ggplot2::scale_y_continuous(limits = c(-1e-8,1+1e-8),
+                                    breaks = seq(0, 1, by = 0.25),
+                                    labels = c("0","0.25","0.5","0.75","1"),
+                                    expand = ggplot2::expansion()) +
+        ggplot2::scale_x_continuous(limits = range(c(range(xt), range(xv))) +
+                                      object$thresh + c(-1e-8, 1e-8),
+                                    expand = ggplot2::expansion(mult = c(0, 0.04))) +
         ggplot2::theme_classic()
       }
     }

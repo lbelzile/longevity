@@ -908,6 +908,19 @@ deviance.elife_par <- function(object, ...) {
 }
 
 
+#' @importFrom stats AIC
+#' @export
+AIC.elife_par <- function(object, ..., k = 2) {
+  val <- as.numeric(-2*object$loglik) + k * length(coef(object))
+  return(val)
+}
+
+#' @importFrom stats BIC
+#' @export
+BIC.elife_par <- function(object, ..., k = 2) {
+  AIC(object, ..., k = log(nobs(object)))
+}
+
 #' @importFrom stats nobs
 #' @export
 nobs.elife_par <- function(object, ...) {

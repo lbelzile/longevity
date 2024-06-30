@@ -1113,9 +1113,25 @@ qperks <- function(p,
   )
 }
 
-
-#' Distribution function of the Beard distribution
+#' Beard distribution
 #'
+#' Distribution function, density, hazard, quantile function and random number generation for the Beard distribution
+#'
+#' @param n sample size
+#' @param rate rate parameter (\eqn{\nu})
+#' @param shape1 shape parameter (\eqn{\alpha})
+#' @param shape2 shape parameter (\eqn{\beta})
+#' @return a vector of random variates
+#' @export
+#' @keywords internal
+#' @rdname beard
+rbeard <- function(n, rate, shape1, shape2){
+  n <- as.integer(n)
+  stopifnot(n >= 1)
+  qbeard(runif(n), rate = rate, shape1 = shape1, shape2 = shape2)
+}
+
+
 #' @param q vector of quantiles.
 #' @param rate rate parameter (\eqn{\nu})
 #' @param shape1 shape parameter (\eqn{\alpha})
@@ -1143,8 +1159,6 @@ pbeard <- function(q,
   )
 }
 
-#' Density function of the Beard distribution
-#'
 #' @inheritParams pbeard
 #' @param x vector of quantiles.
 #' @param log logical; if \code{FALSE} (default), return the density, else the log likelihood of the individual observations.
@@ -1167,8 +1181,6 @@ dbeard <- function (x,
   )
 }
 
-#' Hazard function of the Beard distribution
-#'
 #' @inheritParams pbeard
 #' @param x vector of quantiles.
 #' @param log logical; if \code{FALSE} (default), return the hazard
@@ -1191,8 +1203,6 @@ hbeard <- function (x,
   )
 }
 
-#' Quantile function of the Beard distribution
-#'
 #' @param p vector of probabilities.
 #' @inheritParams pbeard
 #' @return a vector of quantiles
@@ -1479,7 +1489,7 @@ qbeardmake <- function(p,
 #' @param log,log.p logical; if \code{TRUE}, values are returned on the logarithmic scale (default to \code{FALSE}).
 #' @param family string indicating the parametric model, one of \code{exp}, \code{gp}, \code{gomp}, \code{gompmake}, \code{weibull}, \code{extgp}, \code{extweibull}, \code{perks}, \code{perksmake}, \code{beard} and \code{beardmake}
 #' @name elife
-#' @returns depending on the function type, a vector of probabilities (\code{pelife}), quantiles (\code{qelife}), density (\code{delife}), or hazard (\code{helife}). The function \code{relife} returns a random sample of size \code{n} from the distribution.
+#' @returns depending on the function type, a vector of probabilities (\code{pelife}), survival probabilities (\code{selife}), quantiles (\code{qelife}), density (\code{delife}), or hazard (\code{helife}). The function \code{relife} returns a random sample of size \code{n} from the distribution.
 NULL
 
 #' @rdname elife
@@ -1720,6 +1730,35 @@ pelife <- function(q,
       log.p = log.p
     )
   )
+}
+
+#' @rdname elife
+#' @export
+selife <- function(q,
+                   rate,
+                   scale,
+                   shape,
+                   family = c(
+                     "exp",
+                     "gp",
+                     "weibull",
+                     "gomp",
+                     "gompmake",
+                     "extgp",
+                     "extweibull",
+                     "perks",
+                     "perksmake",
+                     "beard",
+                     "beardmake"
+                   ),
+                   log.p = FALSE) {
+  pelife(q = q,
+         rate = rate,
+         scale = scale,
+         shape = shape,
+         family = family,
+         lower.tail = FALSE,
+         log.p = log.p)
 }
 
 #' @rdname elife

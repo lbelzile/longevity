@@ -18,7 +18,7 @@
 
 \item{plot.type}{string, one of \code{base} for base R or \code{ggplot}}
 
-\item{which.plot}{vector of string indicating the plots, among \code{pp} for probability-probability plot, \code{qq} for quantile-quantile plot, \code{erp} for empirically rescaled plot (only for censored data), \code{exp} for standard exponential quantile-quantile plot or \code{tmd} for Tukey's mean difference plot, which is a variant of the Q-Q plot in which we map the pair \eqn{(x,y)} is mapped to \code{((x+y)/2,y-x)} are detrended}
+\item{which.plot}{vector of string indicating the plots, among \code{pp} for probability-probability plot, \code{qq} for quantile-quantile plot, \code{erp} for empirically rescaled plot (only for censored data), \code{exp} for standard exponential quantile-quantile plot or \code{tmd} for Tukey's mean difference plot, which is a variant of the Q-Q plot in which we map the pair \eqn{(x,y)} is mapped to \code{((x+y)/2,y-x)} are detrended, \code{dens} and \code{cdf} return the empirical distribution function with the fitted parametric density or distribution function curve superimposed.}
 
 \item{confint}{logical; if \code{TRUE}, creates uncertainty diagnostic via a parametric bootstrap}
 
