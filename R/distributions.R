@@ -1,3 +1,4 @@
+
 #' Distribution function of the generalized Pareto distribution
 #'
 #' @param q vector of quantiles.
@@ -1513,6 +1514,7 @@ qelife <- function(p,
                      "beardmake"
                    ),
                    lower.tail = TRUE) {
+  if(family == "gpd"){ family <- "gp"}
   family <- match.arg(family)
   if (missing(shape) & family != "exp") {
     stop("Missing \"shape\" parameter.")
@@ -1626,6 +1628,7 @@ pelife <- function(q,
                    ),
                    lower.tail = TRUE,
                    log.p = FALSE) {
+  if(family == "gpd"){ family <- "gp"}
   family <- match.arg(family)
   if (missing(shape) & family != "exp") {
     stop("Missing \"shape\" parameter.")
@@ -1752,6 +1755,7 @@ selife <- function(q,
                      "beardmake"
                    ),
                    log.p = FALSE) {
+  if(family == "gpd"){ family <- "gp"}
   pelife(q = q,
          rate = rate,
          scale = scale,
@@ -1780,6 +1784,7 @@ relife <- function(n,
                      "beard",
                      "beardmake"
                    )) {
+  if(family == "gpd"){ family <- "gp"}
   family <- match.arg(family)
   if (missing(shape) & family != "exp") {
     stop("Missing \"shape\" parameter.")
@@ -1878,6 +1883,7 @@ delife <- function(x,
                      "beardmake"
                    ),
                    log = FALSE) {
+  if(family == "gpd"){ family <- "gp"}
   family <- match.arg(family)
   if (missing(shape) & family != "exp") {
     stop("Missing \"shape\" parameter.")
@@ -1994,6 +2000,7 @@ helife <- function(x,
                      "beardmake"
                    ),
                    log = FALSE) {
+  if(family == "gpd"){ family <- "gp"}
   family <- match.arg(family)
   if (missing(shape) & family != "exp") {
     stop("Missing \"shape\" parameter.")

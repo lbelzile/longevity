@@ -59,7 +59,7 @@
 #'  rtrunc = rtrunc,
 #'  family = "gp",
 #'  export = TRUE)
-#' plot(fitted,  which.plot = "tmd")
+#' plot(fitted,  which.plot = c("tmd", "dens"))
 plot.elife_par <- function(x,
                            plot.type = c("base","ggplot"),
                            which.plot = c("pp","qq"),
@@ -187,6 +187,14 @@ plot.elife_par <- function(x,
     } else{
       args$p <- x
       do.call(qelife, args)
+    }
+  }
+  dmod <- function(x, args){
+    if(args$family == "gppiece"){
+      dgppiece(x = x, scale = args$scale, shape = args$shape, thresh = args$thresh)
+    } else{
+      args$x <- x
+      do.call(delife, args)
     }
   }
   # This position is used for PP plots, and whichever plot which maps back to common scale
@@ -322,13 +330,9 @@ plot.elife_par <- function(x,
             mid <- xs[-length(xs)] + (xs[2]-xs[1])/2
         }
         prob <- diff(np$cdf(xs))
-        sprob <- prob/sum(prob)
+        sprob <- prob/sum(diff(xs)*prob)
         xt <- seq(ran[1], ran[2], length.out = 101)
-        dt <- delife(x = xt,
-                     rate = object$par['rate'],
-                     shape = object$par['shape'],
-                     scale = object$par['scale'],
-                     family = object$family)
+        dt <- dmod(xt, args = parameters)
         plot(y = sprob,
             x = object$thresh + mid,
                type = "h",
@@ -342,21 +346,19 @@ plot.elife_par <- function(x,
                bty = "l")
           lines(object$thresh + xt, dt)
         }  else if(pl == "cdf"){
-          xt <- seq(0, max(np$xval), length.out = 101)
-          xt <- xt[is.finite(xt)]
-          cdf <- pelife(q = xt,
-                        rate = object$par['rate'],
-                        shape = object$par['shape'],
-                        scale = object$par['scale'],
-                        family = object$family)
+          maxxt <- max(np$xval[is.finite(np$xval)])
+          xt <- seq(0, maxxt*1.05, length.out = 101)
+          cdf <- pmod(xt, args = parameters)
           ecdf <- .wecdf(x = object$thresh + np$xval[, 2],
                         w = np$prob)
-          plot(ecdf, ...)
+          plot(ecdf,
+               xlim = range(xt), # TODO fix
+               ...
+              )
           lines(x = xt + object$thresh,
                 y = cdf,
                 type = "l",
-                col = "grey",
-                xlim = range(xt))
+                col = "grey")
         }
     }
     return(invisible(NULL))
@@ -511,11 +513,7 @@ plot.elife_par <- function(x,
         prob <- diff(np$cdf(xs))
         sprob <- prob/sum(diff(xs)*prob)
         xt <- seq(ran[1], ran[2], length.out = 101)
-        dt <- delife(x = xt,
-                     rate = object$par['rate'],
-                     shape = object$par['shape'],
-                     scale = object$par['scale'],
-                     family = object$family)
+        dt <- dmod(xt, args = parameters)
         pl_list[["dens"]] <-
           ggplot2::ggplot() +
           ggplot2::geom_col(
@@ -542,14 +540,10 @@ plot.elife_par <- function(x,
           ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = 0)) +
           ggplot2::theme_classic()
       } else if(pl == "cdf"){
-      xt <- seq(0, max(np$xval), length.out = 101)
-      xt <- xt[is.finite(xt)]
+        maxxt <- max(np$xval[is.finite(np$xval)])
+      xt <- seq(0, maxxt*1.05, length.out = 101)
       xv <- sort(unique(c(np$xval[,1], np$xval[,2] + 1e-5)))
-      cdf <- pelife(q = xt,
-                   rate = object$par['rate'],
-                   shape = object$par['shape'],
-                   scale = object$par['scale'],
-                   family = object$family)
+      cdf <- pmod(xt, args = parameters)
       pl_list[["cdf"]] <-
         ggplot2::ggplot() +
         ggplot2::geom_step(
@@ -577,7 +571,7 @@ plot.elife_par <- function(x,
                                     breaks = seq(0, 1, by = 0.25),
                                     labels = c("0","0.25","0.5","0.75","1"),
                                     expand = ggplot2::expansion()) +
-        ggplot2::scale_x_continuous(limits = range(c(range(xt), range(xv))) +
+        ggplot2::scale_x_continuous(limits = range(xt) +
                                       object$thresh + c(-1e-8, 1e-8),
                                     expand = ggplot2::expansion(mult = c(0, 0.04))) +
         ggplot2::theme_classic()

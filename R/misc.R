@@ -106,7 +106,7 @@
 .onLoad <- function(...) {
   if (requireNamespace("ggplot2", quietly = TRUE)) {
      .s3_register("ggplot2::autoplot", "elife_par")
-     .s3_register("ggplot2::autoplot", "elife_hazard")
+     # .s3_register("ggplot2::autoplot", "elife_hazard")
      .s3_register("ggplot2::autoplot", "elife_northropcoleman")
      .s3_register("ggplot2::autoplot", "elife_tstab")
      .s3_register("ggplot2::autoplot", "elife_profile")
@@ -115,8 +115,9 @@
   }
 }
 
-
+#' @rdname plot.elife_par
 #' @export
+#' @param object an object of class \code{elife_par} containing the fitted parametric model
 autoplot.elife_par <- function(object, ...){
   args <- list(...)
   args$plot.type <- "ggplot"
@@ -124,16 +125,19 @@ autoplot.elife_par <- function(object, ...){
   do.call(plot.elife_par, args = args)
 }
 
+# #' @rdname plot.elife_hazard
+# #' @export
+# autoplot.elife_hazard <- function(object, ...){
+#   args <- list(...)
+#   args$plot.type <- "ggplot"
+#   args$x <- object
+#   do.call(plot.elife_hazard, args = args)
+# }
+
 
 #' @export
-autoplot.elife_hazard <- function(object, ...){
-  args <- list(...)
-  args$plot.type <- "ggplot"
-  args$x <- object
-  do.call(plot.elife_hazard, args = args)
-}
-
-#' @export
+#' @rdname plot.elife_northropcoleman
+#' @param object object of class \code{elife_northropcoleman}, with the fitted piecewise-constant generalized Pareto model
 autoplot.elife_northropcoleman <- function(object, ...){
   args <- list(...)
   args$plot.type <- "ggplot"
@@ -142,6 +146,8 @@ autoplot.elife_northropcoleman <- function(object, ...){
 }
 
 #' @export
+#' @rdname plot.elife_tstab
+#' @param object object of class \code{elife_tstab}, representing parameter estimates to draw threshold stability plots
 autoplot.elife_tstab <- function(object, ...){
   args <- list(...)
   args$plot.type <- "ggplot"
@@ -150,6 +156,8 @@ autoplot.elife_tstab <- function(object, ...){
 }
 
 #' @export
+#' @rdname plot.elife_profile
+#' @param object object of class \code{elife_profile}
 autoplot.elife_profile <- function(object, ...){
   args <- list(...)
   args$x <- object

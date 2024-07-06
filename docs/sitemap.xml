@@ -28,6 +28,9 @@
     <loc>https://lbelzile.github.io/longevity/index.html</loc>
   </url>
   <url>
+    <loc>https://lbelzile.github.io/longevity/news/index.html</loc>
+  </url>
+  <url>
     <loc>https://lbelzile.github.io/longevity/reference/beard.html</loc>
   </url>
   <url>
@@ -70,7 +73,16 @@
     <loc>https://lbelzile.github.io/longevity/reference/dot-censTruncLimits.html</loc>
   </url>
   <url>
+    <loc>https://lbelzile.github.io/longevity/reference/dot-censTruncLimitsDtrunc.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/dot-check_surv.html</loc>
+  </url>
+  <url>
     <loc>https://lbelzile.github.io/longevity/reference/dot-turnbull_em.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/dot-turnbull_em_dtrunc.html</loc>
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/dot-turnbull_intervals.html</loc>
@@ -224,6 +236,9 @@
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/plot.elife_profile.html</loc>
+  </url>
+  <url>
+    <loc>https://lbelzile.github.io/longevity/reference/plot.elife_tstab.html</loc>
   </url>
   <url>
     <loc>https://lbelzile.github.io/longevity/reference/pperks.html</loc>
