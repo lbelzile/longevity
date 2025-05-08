@@ -601,7 +601,10 @@ np_nll <- function(par,
    time <- as.numeric(time)
    n <- length(time)
    type <- match.arg(type)
-   stopifnot("Event vector is missing" = !is.null(event))
+   if(is.null(event)){
+     event <- 1L
+   }
+   #stopifnot("Event vector is missing" = !is.null(event))
    event <- as.integer(event)
    if(length(event) == 1L){
      event <- rep(event, n)
