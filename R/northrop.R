@@ -439,7 +439,7 @@ plot.elife_northropcoleman <- function(x,
                                     expand = c(0,0.1)) +
         ggplot2::theme_classic()
       if(plot){
-        get("print.ggplot", envir = loadNamespace("ggplot2"))(g1)
+        get("print.ggplot2::ggplot", envir = loadNamespace("ggplot2"))(g1)
       }
       return(invisible(g1))
     }

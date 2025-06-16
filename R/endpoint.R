@@ -163,6 +163,15 @@ endpoint.tstab <- function(
   plot = TRUE,
   ...
 ) {
+  if (!is.null(arguments)) {
+    call <- match.call(expand.dots = FALSE)
+    arguments <- check_arguments(
+      func = endpoint.tstab,
+      call = call,
+      arguments = arguments
+    )
+    return(do.call(endpoint.tstab, args = arguments))
+  }
   if (length(thresh) <= 1) {
     stop("Vector \"thresh\" must contain multiple thresholds.")
   }
@@ -333,22 +342,19 @@ prof_gp_endpt <- function(
   ...
 ) {
   .Deprecated(new = "endpoint.profile")
-  do.call(
-    what = endpoint.profile,
-    args = list(
-      time = time,
-      time2 = time2,
-      event = event,
-      thresh = thresh,
-      type = type,
-      ltrunc = ltrunc,
-      rtrunc = rtrunc,
-      weights = weights,
-      psi = psi,
-      confint = confint,
-      level = level,
-      arguments = arguments,
-      ...
-    )
+  endpoint.profile(
+    time = time,
+    time2 = time2,
+    event = event,
+    thresh = thresh,
+    type = type,
+    ltrunc = ltrunc,
+    rtrunc = rtrunc,
+    weights = weights,
+    psi = psi,
+    confint = confint,
+    level = level,
+    arguments = arguments,
+    ...
   )
 }

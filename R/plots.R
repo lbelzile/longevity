@@ -699,7 +699,13 @@ plot.elife_par <- function(
     }
   }
   if (plot) {
-    lapply(pl_list, get("print.ggplot", envir = loadNamespace("ggplot2")))
+    lapply(
+      X = pl_list,
+      FUN = get(
+        x = "print.ggplot2::ggplot",
+        envir = loadNamespace("ggplot2")
+      )
+    )
   }
   return(invisible(pl_list))
 }

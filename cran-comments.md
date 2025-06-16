@@ -1,2 +1,2 @@
-Checked on R-devel (Windows)
-Fixing errors on Atlas
+Checked on R-devel (Windows), Linux Debian
+
