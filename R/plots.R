@@ -702,7 +702,11 @@ plot.elife_par <- function(
     lapply(
       X = pl_list,
       FUN = get(
-        x = "print.ggplot2::ggplot",
+        x = ifelse(
+          packageVersion("ggplot2") >= "3.5.2.9001",
+          "print.ggplot2::ggplot",
+          "print.ggplot"
+        ),
         envir = loadNamespace("ggplot2")
       )
     )

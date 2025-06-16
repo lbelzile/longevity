@@ -267,7 +267,14 @@ plot.elife_tstab <- function(
           ylab = "modified scale"
         )
         if (length(which.plot) == 1L && plot) {
-          get("print.ggplot2::ggplot", envir = loadNamespace("ggplot2"))(g1)
+          get(
+            ifelse(
+              packageVersion("ggplot2") >= "3.5.2.9001",
+              "print.ggplot2::ggplot",
+              "print.ggplot"
+            ),
+            envir = loadNamespace("ggplot2")
+          )(g1)
         }
         graphs$g1 <- g1
       }
@@ -278,14 +285,28 @@ plot.elife_tstab <- function(
           ylab = "shape"
         )
         if (length(which.plot) == 1L && plot) {
-          get("print.ggplot2::ggplot", envir = loadNamespace("ggplot2"))(g2)
+          get(
+            ifelse(
+              packageVersion("ggplot2") >= "3.5.2.9001",
+              "print.ggplot2::ggplot",
+              "print.ggplot"
+            ),
+            envir = loadNamespace("ggplot2")
+          )(g2)
         }
         graphs$g2 <- g2
       }
       if (length(which.plot) == 2L && plot) {
         lapply(
           list(g1, g2),
-          get("print.ggplot2::ggplot", envir = loadNamespace("ggplot2"))
+          get(
+            ifelse(
+              packageVersion("ggplot2") >= "3.5.2.9001",
+              "print.ggplot2::ggplot",
+              "print.ggplot"
+            ),
+            envir = loadNamespace("ggplot2")
+          )
         )
       }
     } else if (object$family == "exp") {
@@ -295,7 +316,14 @@ plot.elife_tstab <- function(
         ylab = "scale"
       )
       if (plot) {
-        get("print.ggplot2::ggplot", envir = loadNamespace("ggplot2"))(g1)
+        get(
+          ifelse(
+            packageVersion("ggplot2") >= "3.5.2.9001",
+            "print.ggplot2::ggplot",
+            "print.ggplot"
+          ),
+          envir = loadNamespace("ggplot2")
+        )(g1)
       }
       graphs$g1 <- g1
     }
