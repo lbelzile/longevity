@@ -17,6 +17,7 @@
 #' @param which.plot string; which parameters to plot;
 #' @param plot logical; should a plot be returned alongside with the estimates? Default to \code{TRUE}
 #' @seealso \code{tstab.gpd} from package \code{mev}, \code{gpd.fitrange} from package \code{ismev} or \code{tcplot} from package \code{evd}, among others.
+#' @importFrom utils packageVersion
 #' @export
 #' @return an invisible list with pointwise estimates and confidence intervals for the scale and shape parameters
 #' @examples
