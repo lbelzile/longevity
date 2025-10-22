@@ -216,6 +216,7 @@ tstab <- function(
 #' @param x an object of class \code{elife_tstab} containing
 #' the fitted parameters as a function of threshold
 #' @inheritParams plot.elife_par
+#' @return This S3 method is used to create plots; it only returns a list of graphs if \code{plot.type="ggplot"}
 #' @export
 plot.elife_tstab <- function(
   x,
