@@ -60,7 +60,8 @@ tstab <- function(
       call = call,
       arguments = arguments
     )
-    return(do.call(tstab, args = arguments))
+    caller_env <- parent.frame()
+    return(do.call(tstab, args = arguments, envir = caller_env))
   }
   family <- match.arg(family)
   method <- match.arg(method)
@@ -386,7 +387,8 @@ prof_gp_shape <-
         call = call,
         arguments = arguments
       )
-      return(do.call(prof_gp_shape, args = arguments))
+      caller_env <- parent.frame()
+      return(do.call(prof_gp_shape, args = arguments, envir = caller_env))
     }
     if (is.null(weights)) {
       weights <- rep(1, length(time))
@@ -508,7 +510,8 @@ prof_gp_scalet <-
         call = call,
         arguments = arguments
       )
-      return(do.call(prof_gp_scalet, args = arguments))
+      caller_env <- parent.frame()
+      return(do.call(prof_gp_scalet, args = arguments, envir = caller_env))
     }
 
     if (is.null(weights)) {
@@ -639,7 +642,8 @@ prof_exp_scale <- function(
       call = call,
       arguments = arguments
     )
-    return(do.call(prof_exp_scale, args = arguments))
+    caller_env <- parent.frame()
+    return(do.call(prof_exp_scale, args = arguments, envir = caller_env))
   }
   type <- match.arg(type)
   stopifnot(
