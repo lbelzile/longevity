@@ -1,8 +1,17 @@
+
+# Version 1.3.1
+
+
+## New
+
+- Citation now refers to the publication in The R Journal
+- Subset of the IDL database (French, England and Wales) `french` and `englandwales`
+
 # Version 1.3
 
 ## Changes
 
-- Fix evaluation environments when arguments is used (#4)
+- Fix evaluation environments when arguments are used (#4)
 
 # Version 1.2.1
 

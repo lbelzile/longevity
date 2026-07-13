@@ -21,6 +21,9 @@ have reached by the end of 2017}
 either \code{female} or \code{male}}
 }
 }
+\source{
+International Database on Longevity (IDL), 2021. Hosted by the French Institute for Demographic Studies (Ined) at \url{https://www.supercentenarians.org/en/}. The IDL data are licensed under CC BY 4.0 License; please refer to the IDL database to download the latest available data.
+}
 \usage{
 french
 }
@@ -29,10 +32,10 @@ This data frame contains information about 9853 French semi-supercentenarian,
 part of the International Database on Longevity (IDL). All
 supercentenarian records were validated, but only a random sample
 of semi-supercentenarians were validated.
-Lifetimes are interval truncated;only people above 110 born
+Lifetimes are interval truncated; only people above 110 born
 after 1978 and people above 105 born after 1987 are included.
 }
 \references{
-International Database on Longevity
+International Database on Longevity (2021). French Institute for Demographic Studies (Ined) (host).
 }
 \keyword{datasets}

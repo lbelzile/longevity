@@ -9,8 +9,6 @@
 inst/rawdata
 inst/sticker
 # Folder containing data (because of confidentiality)
-data/englandwales.rda
-data/french.rda
 data/idl.rda
 data/idl2021.rda
 data/italian.rda

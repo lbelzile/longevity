@@ -33,40 +33,6 @@
 #' @source Statistics Netherlands (CBS). Accessed via the Supplemental material of Einmahl, Einmahl and de Haan (2019)
 "dutch"
 
-#' England and Wales semi-supercentenarian
-#'
-#' This data frame contains information about 3866
-#' Welsh and English who died at age ranging from 105 to 110
-#' between 2000 and 2014 (except for two women
-#' who died late in December 1999) and a subset of UK supercentenarians from
-#' the IDL database (5 male, 80 female) who died during the same period.
-#' All records for people who died at age 109 and all men,
-#' plus a stratified sample of the women were validated
-#' by the General Register Office (GRO). Observations are
-#' doubly truncated.
-#'
-#' In the original data forwarded by the IDL staff,
-#' there were 7 dubious records (missing birth day or month)
-#' that were excluded. The referenced technical reports describes the validation
-#' procedure in more details and includes (approximate) sampling weights for the validation
-#' sample of women who died age 105-108.
-#' @references Office for National Statistics (2016). Accuracy of official high-age
-#' population estimates, in England and Wales: an evaluation. Technical report,
-#' \url{https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/ageing/methodologies/accuracyofofficialhighagepopulationestimatesinenglandandwalesanevaluation}
-#' @source Ngaire Coombs, Office for National Statistics (ONS)
-#' @format A data frame with 3951 rows and 7 variables:
-#' \describe{
-#' \item{ndays}{survival time (in days)}
-#' \item{bdate}{birth date (\code{Date})}
-#' \item{ddate}{death date (\code{Date})}
-#' \item{ltrunc}{minimum age (in days); the maximum of 38350 days (approximately 105 years)
-#' or the number of days reached in 2000}
-#' \item{rtrunc}{maximum age (in days) an individual could have reached by the end of 2014}
-#' \item{gender}{factor indicating gender of individual, either \code{female} or \code{male}}
-#' \item{valid}{quality flag; \code{A} for validated records, \code{B} for unchecked records}
-#' }
-"englandwales"
-
 
 #' England and Wales simulated supercentenarian data
 #'
@@ -126,7 +92,6 @@
 "japanese2"
 
 
-
 #' Italian semi-supercentenarian
 #'
 #' This data frame contains information about 3836 Italians
@@ -164,10 +129,11 @@
 #' part of the International Database on Longevity (IDL). All
 #' supercentenarian records were validated, but only a random sample
 #' of semi-supercentenarians were validated.
-#' Lifetimes are interval truncated;only people above 110 born
+#' Lifetimes are interval truncated; only people above 110 born
 #' after 1978 and people above 105 born after 1987 are included.
-#'
-#' @references International Database on Longevity
+#' @
+#' @references International Database on Longevity (2021). French Institute for Demographic Studies (Ined) (host).
+#' @source International Database on Longevity (IDL), 2021. Hosted by the French Institute for Demographic Studies (Ined) at \url{https://www.supercentenarians.org/en/}. The IDL data are licensed under CC BY 4.0 License; please refer to the IDL database to download the latest available data.
 #' @format A data frame with 9853 rows and 6 variables:
 #' \describe{
 #' \item{ndays}{survival time (in days)}
@@ -238,6 +204,52 @@
 #' \item{rdate}{Date, latest death date}
 #' }
 "idlmetadata"
+
+#' England and Wales age at death
+#'
+#' This data frame contains information about 4032
+#' Welsh and English individuals who died at age ranging from
+#' 105 to 110 (so-called semisupercentenarians) between
+#' December 28th, 1999 and December 31st, 2014, as well
+#' as all 179 supercentenarians (aged 110 and above) who died
+#' between January 1st, 1968 and December 31st, 2020.
+#'
+#' All records for people who died at age 109 and all men,
+#' plus a stratified sample of the women were validated
+#' by the General Register Office (GRO). Observations are
+#' doubly interval truncated: some individuals could have
+#' been observed over distinct intervals if they died between
+#' 105 and 110 before 2014, but could have reached 110 before
+#' the end of the collection period.
+#'
+#'
+#' The referenced technical report from ONS describes the validation
+#' procedure in more details and includes (approximate) sampling weights
+#' for the validation of the sample of women who died age 105-108.
+#'
+#' The IDL data are licensed under CC BY 4.0
+#' License; please refer to the IDL database to download the latest available data.
+#'
+#' @references Office for National Statistics (2016). Accuracy of official high-age
+#' population estimates, in England and Wales: an evaluation. Technical report,
+#' \url{https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/ageing/methodologies/accuracyofofficialhighagepopulationestimatesinenglandandwalesanevaluation}
+#' @references International Database on Longevity (2021). French Institute for Demographic Studies (Ined) (host).
+#' @source International Database on Longevity (IDL), 2021. Hosted by the French Institute for Demographic Studies (Ined) at \url{https://www.supercentenarians.org/en/}.
+#' Data accessed on December 1st, 2023
+#' @format A data frame with 4032 rows and 10 variables:
+#' \describe{
+#' \item{ndays}{survival time (in days)}
+#' \item{ageyear}{floor of maximum age reached (in years)}
+#' \item{gender}{factor indicating gender of individual, either \code{female} or \code{male}}
+#' \item{valid}{factor for the quality flag; \code{yes} for validated records, \code{no} for unchecked records}
+#' \item{ddate}{death date (\code{Date})}
+#' \item{bdate}{birth date (\code{Date})}
+#' \item{ltrunc1}{first lower truncation bound (in days) corresponding to the lowest possible age achieved for inclusion as semisupercentenarian or supercentenarian}
+#' \item{rtrunc1}{first upper truncation bound (in days), corresponding to the maximum age reachable by the end of the sampling frame time window}
+#' \item{ltrunc2}{second lower truncation bound (in days) corresponding to 110 years, for semisupercentenarians who could have reached 110 before 2021}
+#' \item{rtrunc2}{second upper truncation bound (in days) corresponding to the maximum age by 2021 of semisupercentenarians who could have reached 110 before then}
+#' }
+"englandwales"
 
 
 #' @importFrom graphics abline

@@ -1,0 +1,12 @@
+bibentry("article",
+  author = "Leo R Belzile",
+  title = "longevity: An {R} Package for Modelling Excess Lifetimes",
+  journal = "The R Journal",
+  year = "2025",
+  url = "https://doi.org/10.32614/RJ-2025-034",
+  doi = "10.32614/RJ-2025-034",
+  volume = 17,
+  issue = 4,
+  issn = "2073-4859",
+  pages = "37--58"
+)

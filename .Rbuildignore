@@ -15,12 +15,9 @@ TODO
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
-data/englandwales.rda
-data/french.rda
 data/idl.rda
+data/englandwales_old.rda
 data/italian.rda
-man/englandwales.Rd
-man/french.Rd
 man/italian.Rd
 man/idl.Rd
 ^doc$
